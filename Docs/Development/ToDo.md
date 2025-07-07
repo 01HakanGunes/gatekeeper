@@ -1,1 +1,2 @@
-First the database and model connection?
+- First the database and model connection?
+- MCP for db access?
