@@ -9,7 +9,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 # ---- 1. Define Shared State ----
 class VisitorProfile(TypedDict):
     name: Optional[str]
-    request: Optional[str]
+    purpose: Optional[str]
     threat_level: Optional[str]
     affiliation: Optional[str]
     id_verified: Optional[bool]
@@ -23,7 +23,7 @@ class State(TypedDict):
 
 # ---- 2. Initialize Graph + LLM ----
 graph_builder = StateGraph(State)
-llm = ChatOllama(model="gemma3n:e4b", temperature=0)
+llm = ChatOllama(model="qwen3:0.6b", temperature=0)
 
 
 # ---- 3. Node Implementations ----
@@ -35,14 +35,14 @@ def receive_input(state: State) -> State:
 
     user_input = input("User: ")  # Wait for terminal input
     state["messages"].append(HumanMessage(content=user_input))
-    
+
     # Print current visitor profile status after each user input for debugging
     print(f"\n📋 Visitor Profile Status (after user input):")
     for field, value in state["visitor_profile"].items():
         status = "✅" if value is not None and value != "-1" else "❌"
         print(f"  {status} {field}: {value}")
     print()
-    
+
     return state
 
 
@@ -70,10 +70,9 @@ def reset_conversation(state: State) -> State:
     return state
 
 
-def check_visitor_profile(state: State) -> Literal["complete", "not_complete"]:
+def check_visitor_profile_node(state: State) -> State:
     """
-    Check and update visitor profile based on conversation context.
-    Uses LLM to extract missing information from the message history.
+    Node function that performs LLM extraction and updates the visitor profile.
     """
     # Get current conversation context
     messages = state["messages"]
@@ -86,23 +85,34 @@ def check_visitor_profile(state: State) -> Literal["complete", "not_complete"]:
     )
 
     # Define fields to extract
-    fields_to_extract = ["name", "request", "threat_level", "affiliation"]
+    fields_to_extract = ["name", "purpose", "threat_level", "affiliation"]
 
     # Try to extract information using LLM
     for field in fields_to_extract:
         if state["visitor_profile"][field] is None:
-            # Create extraction prompt with strict formatting instructions
+            # Define detailed descriptions for each field
+            field_descriptions = {
+                "name": "The visitor's full name (first and last name). Examples: 'John Smith', 'Maria Garcia', 'David Kim', '-1'",
+                "purpose": "The reason for the visit or what they want to do. Examples: 'meeting', 'delivery', 'tour', 'interview', 'maintenance', '-1'",
+                "threat_level": "Security risk assessment based on items carried, behavior, or concerns mentioned. Examples: 'low', 'medium', 'high', '-1'",
+                "affiliation": "Company, organization, or group they represent. Examples: 'Google', 'FedEx', 'University of XYZ', 'independent contractor', '-1'",
+            }
+
+            # Create extraction prompt with field-specific description
             extraction_prompt = f"""You are a data extraction tool. Your task is to extract ONLY the {field} value from the conversation.
+
+FIELD DESCRIPTION:
+{field} = {field_descriptions[field]}
 
 STRICT RULES:
 - Respond with ONLY the {field} value (no explanations, no sentences)
-- If you cannot find the {field}, respond with exactly: -1
+- If you cannot clearly determine the {field} from the conversation, respond with exactly: -1
 - Maximum 3 words for the response
 - No punctuation except necessary hyphens or periods
 
 Examples:
 - If extracting "name" and conversation mentions "I'm John Smith" → respond: John Smith
-- If extracting "request" and visitor says "here for the meeting" → respond: meeting
+- If extracting "purpose" and visitor says "here for the meeting" → respond: meeting
 - If extracting "affiliation" and they say "I work at Google" → respond: Google
 - If cannot determine the value → respond: -1
 
@@ -114,6 +124,7 @@ Extract {field}:"""
             try:
                 # Use LLM to extract information
                 response = llm.invoke([HumanMessage(content=extraction_prompt)])
+                print(response)
 
                 # Handle the AIMessage response
                 if hasattr(response, "content"):
@@ -163,12 +174,21 @@ Extract {field}:"""
         print(f"  {status} {field}: {value}")
     print()
 
+    return state
+
+
+def check_visitor_profile_condition(
+    state: State,
+) -> Literal["complete", "not_complete"]:
+    """
+    Simple conditional function that only checks if profile is complete.
+    """
     # Check if all required fields are completed
     profile = state["visitor_profile"]
     all_fields_complete = all(
         [
             profile["name"] is not None and profile["name"] != "-1",
-            profile["request"] is not None and profile["request"] != "-1",
+            profile["purpose"] is not None and profile["purpose"] != "-1",
             profile["threat_level"] is not None and profile["threat_level"] != "-1",
             profile["affiliation"] is not None and profile["affiliation"] != "-1",
         ]
@@ -184,6 +204,30 @@ Extract {field}:"""
 
 
 def question_visitor(state: State) -> State:
+    # Define specific questions for each field
+    field_questions = {
+        "name": "What is your name?",
+        "purpose": "What is the purpose of your visit today?",
+        "threat_level": "Are you carrying any restricted items or have any security concerns I should know about?",
+        "affiliation": "What company or organization are you with?",
+    }
+
+    # Find the first missing field that needs to be completed
+    fields_to_check = ["name", "purpose", "threat_level", "affiliation"]
+
+    for field in fields_to_check:
+        if (
+            state["visitor_profile"][field] is None
+            or state["visitor_profile"][field] == "-1"
+        ):
+            # Ask specific question for this missing field
+            question_text = field_questions[field]
+            question = SystemMessage(content=question_text)
+            state["messages"].append(question)
+            print(f"🤔 Asking for missing field: {field}")
+            return state
+
+    # Fallback if somehow all fields are filled but we're still here
     question = SystemMessage(content="Can you tell me more about yourself?")
     state["messages"].append(question)
     return state
@@ -209,8 +253,8 @@ graph_builder.add_node(
 graph_builder.add_node("summarize", summarize)
 graph_builder.add_node("reset_conversation", reset_conversation)
 graph_builder.add_node(
-    "check_visitor_profile", lambda state: state
-)  # passthrough for decision node
+    "check_visitor_profile", check_visitor_profile_node
+)  # Use the actual node function
 graph_builder.add_node("question_visitor", question_visitor)
 graph_builder.add_node("make_decision", make_decision)
 
@@ -245,7 +289,7 @@ graph_builder.add_edge("summarize", "check_visitor_profile")
 graph_builder.add_edge("reset_conversation", "check_visitor_profile")
 graph_builder.add_conditional_edges(
     "check_visitor_profile",
-    check_visitor_profile,
+    check_visitor_profile_condition,  # Use the simple conditional function
     {
         "complete": "make_decision",
         "not_complete": "question_visitor",
@@ -269,7 +313,7 @@ initial_state: State = {
     "messages": initial_messages,
     "visitor_profile": {
         "name": None,
-        "request": None,
+        "purpose": None,
         "threat_level": None,
         "affiliation": None,
         "id_verified": None,
@@ -277,6 +321,6 @@ initial_state: State = {
     "decision": "",
 }
 
-result = graph.invoke(initial_state)
+result = graph.invoke(initial_state, {"recursion_limit": 100})
 print("Final decision:", result["decision"])
 print("Last message:", result["messages"][-1].content)
