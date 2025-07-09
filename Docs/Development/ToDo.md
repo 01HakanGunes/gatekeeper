@@ -1,2 +1,2 @@
-- First the database and model connection?
-- MCP for db access?
+- Profile filler llm
+- 
