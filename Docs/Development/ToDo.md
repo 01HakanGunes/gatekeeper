@@ -1,7 +1,13 @@
-- Add several actions that the llm can choose between.
-- Add a prompt validator that will discard the giberrish prompts directly could be a smaller model for that.
 
 - Manage Prompts in a different controlled place. Add fallbacks or prompt switches to the nodes
-- program stucks for some reason maybe add limits to things also add summarizer that could fix.
+- program stucks for some reason maybe add limits
 
-- For summary no need to use a thinking model
+- summarizer test
+
+- (Model abstractions: init_chat_model() for easy model switching
+
+Prompt utilities: ChatPromptTemplate, MessagesPlaceholder
+
+Runnable components: Use model.bind_tools(tools) for tool-calling)?
+
+
