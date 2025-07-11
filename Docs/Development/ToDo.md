@@ -21,3 +21,5 @@ Runnable components: Use model.bind_tools(tools) for tool-calling)?
 - there is an extra layer in the "validate_contact_person" node that calls an llm again but is not connected correctly. We already have the contact_person name extracted.
 
 - after removing the contact, it re adds it because it is in the conversation history.
+
+- I can extract all the fields in "1" llm prompt turn as json.

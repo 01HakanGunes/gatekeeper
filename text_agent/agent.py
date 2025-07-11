@@ -439,14 +439,13 @@ def check_visitor_profile_node(state: State) -> State:
         ]
     )
 
-    # Define fields to extract
+    # Define fields to extract (excluding contact_person which is handled by validate_contact_person node)
     fields_to_extract = [
         "name",
         "purpose",
-        "contact_person",
         "threat_level",
         "affiliation",
-    ]  # all visitor profile fields should be extracted. Is there a way to extract not manually so i dont need to update this each time i change the visitor profile?
+    ]  # contact_person is exclusively handled by validate_contact_person node
 
     # Try to extract information using LLM
     for field in fields_to_extract:
@@ -537,19 +536,11 @@ Extract {field}:"""
 
 def validate_contact_person(state: State) -> State:
     """
-    Dedicated node for validating and matching contact persons against known contacts list.
-    Removes invalid contact persons that are not in the CONTACTS list.
+    Dedicated node for extracting and validating contact persons against known contacts list.
+    This is the only node that handles contact_person field.
     """
-    current_contact = state["visitor_profile"]["contact_person"]
-    
-    # Check if current contact_person is invalid (not in CONTACTS list)
-    if current_contact is not None and current_contact != "-1" and current_contact not in CONTACTS:
-        print(f"❌ Removing invalid contact person: '{current_contact}' (not in known contacts)")
-        state["visitor_profile"]["contact_person"] = None
-        current_contact = None
-    
-    # Process contact person extraction if not set or if we just removed an invalid one
-    if current_contact is None:
+    # Only process if contact_person is not already set
+    if state["visitor_profile"]["contact_person"] is None:
         # Get current conversation context
         messages = state["messages"]
         conversation_text = "\n".join(
@@ -559,22 +550,31 @@ def validate_contact_person(state: State) -> State:
                 if hasattr(msg, "type") and hasattr(msg, "content")
             ]
         )
-        
+
         # Create contact validation prompt
         known_contacts_list = "\n".join([f"- {contact}" for contact in CONTACTS.keys()])
 
-        validation_prompt = f"""You are a contact person validator. Your task is to determine if the visitor is referring to any of the known contacts in our organization.
+        validation_prompt = f"""You are a strict contact person validator. Your task is to determine if the visitor is referring to any of the known contacts in our organization.
 
 KNOWN CONTACTS:
 {known_contacts_list}
 
-RULES:
-- If the visitor mentions someone who matches (even partially) one of the known contacts, respond with the EXACT name from the list
-- Match variations like "David", "Dave", "Mr. Smith" to "David Smith"
-- Match "Alice", "Ms. Kimble" to "Alice Kimble"
-- Match "John", "Martinez" to "John Martinez"
-- If no match is found or visitor doesn't mention a contact person, respond with exactly: -1
-- Respond with ONLY the exact contact name or -1
+STRICT MATCHING RULES:
+- ONLY match if the visitor mentions a name that is clearly the SAME PERSON as one of the known contacts
+- Match variations like "David", "Mr. Smith", "Dave Smith" to "David Smith" 
+- Match "Alice", "Ms. Kimble", "Alice K" to "Alice Kimble"
+- Match "John", "Martinez", "J. Martinez" to "John Martinez"
+- DO NOT match similar sounding but different names: "Ahmad Kim" is NOT "Alice Kimble"
+- DO NOT match partial similarities: "Mike Chen" is NOT "Michael Chen" unless clearly referring to the same person
+- If the names are completely different people, respond with -1
+- Only respond with the EXACT name from the list if you are certain it's the same person
+- When in doubt, respond with -1
+
+Examples:
+- Visitor says "Ahmad Kim" → -1 (not in our list)
+- Visitor says "Dave" or "David" → "David Smith" (clear match)
+- Visitor says "Alice" or "Ms. Kimble" → "Alice Kimble" (clear match)
+- Visitor says "Johnson" → -1 (could be Sarah Johnson but not specific enough)
 
 Conversation:
 {conversation_text}
@@ -585,7 +585,7 @@ Contact person:"""
             response = llm_main.invoke([HumanMessage(content=validation_prompt)])
             extracted_contact = extract_answer_from_thinking_model(response).strip()
 
-            # Verify the response is actually in our known contacts list
+            # Only set contact_person if it's a valid contact from our list
             if extracted_contact in CONTACTS:
                 state["visitor_profile"]["contact_person"] = extracted_contact
                 print(f"✅ Contact validation: Matched '{extracted_contact}'")
@@ -600,7 +600,7 @@ Contact person:"""
             print(f"Error validating contact person: {error}")
     else:
         print(
-            f"ℹ️ Contact validation: Valid contact already set to '{current_contact}'"
+            f"ℹ️ Contact validation: Already set to '{state['visitor_profile']['contact_person']}'"
         )
 
     return state
