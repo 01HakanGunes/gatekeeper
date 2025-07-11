@@ -4,6 +4,8 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_core.tools import tool
+from langgraph.prebuilt import ToolNode
 
 
 # ---- 1. Define Shared State ----
@@ -28,6 +30,48 @@ class State(TypedDict):
 
 graph_builder = StateGraph(State)
 
+# Predefined list of contacts with email addresses
+CONTACTS = {
+    "David Smith": "david.smith@company.com",
+    "Alice Kimble": "alice.kimble@company.com",
+    "John Martinez": "john.martinez@company.com",
+    "Sarah Johnson": "sarah.johnson@company.com",
+    "Michael Chen": "michael.chen@company.com",
+}
+
+
+@tool
+def send_email(contact_name: str, subject: str, message: str) -> str:
+    """
+    Send an email to a contact from the approved contact list.
+
+    Args:
+        contact_name: Full name of the contact (e.g., "David Smith", "Alice Kimble")
+        subject: Subject line of the email
+        message: Body content of the email
+
+    Returns:
+        Confirmation message about the email being sent
+    """
+    if contact_name not in CONTACTS:
+        available_contacts = ", ".join(CONTACTS.keys())
+        return f"Error: Contact '{contact_name}' not found. Available contacts: {available_contacts}"
+
+    email_address = CONTACTS[contact_name]
+
+    # Mock email sending (replace with actual email service)
+    print(f"\n📧 EMAIL SENT:")
+    print(f"To: {contact_name} ({email_address})")
+    print(f"Subject: {subject}")
+    print(f"Message: {message}")
+    print("=" * 50)
+
+    return f"✅ Email successfully sent to {contact_name} ({email_address}) with subject '{subject}'"
+
+
+# Define tools list
+tools = [send_email]
+
 # Initialize all LLMs
 llm_main = ChatOllama(
     model="gemma3n:e2b", temperature=0
@@ -35,7 +79,8 @@ llm_main = ChatOllama(
 llm_validation = ChatOllama(model="gemma3n:e2b", temperature=0.1)
 llm_session = ChatOllama(model="gemma3n:e2b", temperature=0.1)
 llm_summary = ChatOllama(model="gemma3n:e2b", temperature=0.1)
-llm_decision = ChatOllama(model="gemma3n:e2b", temperature=0.1)
+llm_decision = ChatOllama(model="qwen3:4b", temperature=0)
+llm_email = ChatOllama(model="qwen3:4b", temperature=0).bind_tools(tools)
 
 
 def extract_answer_from_thinking_model(response):
@@ -502,6 +547,68 @@ Extract {field}:"""
     return state
 
 
+def validate_contact_person(state: State) -> State:
+    """
+    Dedicated node for validating and matching contact persons against known contacts list.
+    """
+    # Get current conversation context
+    messages = state["messages"]
+    conversation_text = "\n".join(
+        [
+            f"{msg.type}: {msg.content}"
+            for msg in messages
+            if hasattr(msg, "type") and hasattr(msg, "content")
+        ]
+    )
+
+    # Only process if contact_person is not already set
+    if state["visitor_profile"]["contact_person"] is None:
+        # Create contact validation prompt
+        known_contacts_list = "\n".join([f"- {contact}" for contact in CONTACTS.keys()])
+
+        validation_prompt = f"""You are a contact person validator. Your task is to determine if the visitor is referring to any of the known contacts in our organization.
+
+KNOWN CONTACTS:
+{known_contacts_list}
+
+RULES:
+- If the visitor mentions someone who matches (even partially) one of the known contacts, respond with the EXACT name from the list
+- Match variations like "David", "Dave", "Mr. Smith" to "David Smith"
+- Match "Alice", "Ms. Kimble" to "Alice Kimble"
+- Match "John", "Martinez" to "John Martinez"
+- If no match is found or visitor doesn't mention a contact person, respond with exactly: -1
+- Respond with ONLY the exact contact name or -1
+
+Conversation:
+{conversation_text}
+
+Contact person:"""
+
+        try:
+            response = llm_main.invoke([HumanMessage(content=validation_prompt)])
+            extracted_contact = extract_answer_from_thinking_model(response).strip()
+
+            # Verify the response is actually in our known contacts list
+            if extracted_contact in CONTACTS:
+                state["visitor_profile"]["contact_person"] = extracted_contact
+                print(f"✅ Contact validation: Matched '{extracted_contact}'")
+            elif extracted_contact != "-1":
+                print(
+                    f"⚠️ Contact person '{extracted_contact}' not in known list, treating as unknown"
+                )
+            else:
+                print("❌ Contact validation: No known contact found")
+
+        except Exception as error:
+            print(f"Error validating contact person: {error}")
+    else:
+        print(
+            f"ℹ️ Contact validation: Already set to '{state['visitor_profile']['contact_person']}'"
+        )
+
+    return state
+
+
 def check_visitor_profile_condition(
     state: State,
 ) -> Literal["complete", "not_complete"]:
@@ -530,10 +637,11 @@ def check_visitor_profile_condition(
 
 def question_visitor(state: State) -> State:
     # Define specific questions for each field
+    known_contacts_list = ", ".join(CONTACTS.keys())
     field_questions = {
         "name": "What is your name?",
         "purpose": "What is the purpose of your visit today?",
-        "contact_person": "Who is your contact?",
+        "contact_person": f"Who is your contact? (Known contacts include: {known_contacts_list})",
         "threat_level": "Are you carrying any restricted items or have any security concerns I should know about?",
         "affiliation": "What company or organization are you with?",
     }
@@ -609,7 +717,7 @@ AVAILABLE DECISIONS:
 RECENT CONVERSATION:
 {conversation_text}
 
-Respond with ONLY the decision ID (e.g., "allow_entry", "call_security", etc.):"""
+Respond with ONLY the decision ID (e.g., "allow_request", "call_security", etc.):"""
 
     try:
         response = llm_decision.invoke([HumanMessage(content=decision_prompt)])
@@ -622,9 +730,9 @@ Respond with ONLY the decision ID (e.g., "allow_entry", "call_security", etc.):"
 
                 # Add appropriate response message
                 decision_messages = {
-                    "allow_entry": "✅ Access granted. Welcome! Please proceed to the main entrance.",
+                    "allow_request": "✅ Access granted. Welcome! Please proceed to the main entrance.",
                     "call_security": "⚠️ Please wait here. Security has been notified and will assist you shortly.",
-                    "deny_access": "❌ Access denied. Please contact the appropriate department to arrange your visit.",
+                    "deny_request": "❌ Access denied. Please contact the appropriate department to arrange your visit.",
                 }
 
                 state["messages"].append(
@@ -635,11 +743,11 @@ Respond with ONLY the decision ID (e.g., "allow_entry", "call_security", etc.):"
                 return state
 
         # Fallback if no valid decision found
-        print("⚠️ Decision making: Unclear response, defaulting to notify_company")
-        state["decision"] = "notify_company"
+        print("⚠️ Decision making: Unclear response, defaulting to deny_request")
+        state["decision"] = "deny_request"
         state["messages"].append(
             AIMessage(
-                content="📞 I need to verify your visit with your organization. Please wait while I contact them."
+                content="❌ I cannot process your request at this time. Please contact reception for assistance."
             )
         )
         return state
@@ -647,13 +755,104 @@ Respond with ONLY the decision ID (e.g., "allow_entry", "call_security", etc.):"
     except Exception as error:
         print(f"⚠️ Decision making error: {error}")
         # Safe fallback decision
-        state["decision"] = "notify_company"
+        state["decision"] = "deny_request"
         state["messages"].append(
             AIMessage(
-                content="📞 I need to verify your visit with your organization. Please wait while I contact them."
+                content="❌ I cannot process your request at this time. Please contact reception for assistance."
             )
         )
         return state
+
+
+def notify_contact(state: State) -> State:
+    """
+    Send email notification to the contact person when visitor is granted access.
+    """
+    profile = state["visitor_profile"]
+    contact_name = profile.get("contact_person")
+    visitor_name = profile.get("name", "Unknown visitor")
+    visitor_purpose = profile.get("purpose", "Unknown purpose")
+    visitor_affiliation = profile.get("affiliation", "Unknown affiliation")
+
+    if contact_name and contact_name in CONTACTS:
+        # Create email content
+        subject = f"Visitor Arrival Notification - {visitor_name}"
+        message = f"""Hello {contact_name},
+
+This is an automated notification that your visitor has arrived:
+
+Visitor Details:
+- Name: {visitor_name}
+- Purpose: {visitor_purpose}
+- Affiliation: {visitor_affiliation}
+- Status: Access Granted
+
+The visitor has been cleared through security and is proceeding to the main entrance.
+
+Best regards,
+Security Gate System"""
+
+        # Use the LLM with tool calling to send the email
+        email_prompt = f"""Send an email notification to the contact person about visitor arrival.
+
+Contact: {contact_name}
+Subject: {subject}
+Message: {message}
+
+Please send this email using the send_email tool."""
+
+        try:
+            # Call LLM with tools to send email
+            response = llm_email.invoke([HumanMessage(content=email_prompt)])
+
+            # Check if there are tool calls to execute
+            tool_calls = getattr(response, "tool_calls", None)
+            if tool_calls:
+                tool_node = ToolNode(tools=tools)
+                # Execute the tool calls
+                tool_result = tool_node.invoke({"messages": [response]})
+
+                state["messages"].append(
+                    AIMessage(
+                        content=f"📧 Notification sent to {contact_name} about your arrival."
+                    )
+                )
+                print(f"✅ Email notification sent to {contact_name}")
+            else:
+                print(f"⚠️ Failed to send email notification to {contact_name}")
+                state["messages"].append(
+                    AIMessage(
+                        content=f"⚠️ Could not send notification to {contact_name}. Please contact them directly."
+                    )
+                )
+
+        except Exception as error:
+            print(f"⚠️ Email notification error: {error}")
+            state["messages"].append(
+                AIMessage(
+                    content=f"⚠️ Could not send notification to {contact_name}. Please contact them directly."
+                )
+            )
+    else:
+        print("ℹ️ No valid contact person found for email notification")
+        state["messages"].append(
+            AIMessage(
+                content="ℹ️ No contact person on file. Please proceed to reception."
+            )
+        )
+
+    return state
+
+
+def check_decision_for_notification(state: State) -> Literal["notify", "end"]:
+    """
+    Check if the decision requires email notification.
+    """
+    decision = state.get("decision", "")
+    if decision == "allow_request":
+        return "notify"
+    else:
+        return "end"
 
 
 # ---- 4. Add Nodes ----
@@ -672,8 +871,10 @@ graph_builder.add_node("reset_conversation", reset_conversation)
 graph_builder.add_node(
     "check_visitor_profile", check_visitor_profile_node
 )  # Use the actual node function
+graph_builder.add_node("validate_contact_person", validate_contact_person)
 graph_builder.add_node("question_visitor", question_visitor)
 graph_builder.add_node("make_decision", make_decision)
+graph_builder.add_node("notify_contact", notify_contact)
 
 # ---- 5. Add Edges (Logic Flow) ----
 graph_builder.set_entry_point("receive_input")
@@ -704,8 +905,9 @@ graph_builder.add_conditional_edges(
 )
 graph_builder.add_edge("summarize", "check_visitor_profile")
 graph_builder.add_edge("reset_conversation", "check_visitor_profile")
+graph_builder.add_edge("check_visitor_profile", "validate_contact_person")
 graph_builder.add_conditional_edges(
-    "check_visitor_profile",
+    "validate_contact_person",
     check_visitor_profile_condition,
     {
         "complete": "make_decision",
@@ -713,7 +915,15 @@ graph_builder.add_conditional_edges(
     },
 )
 graph_builder.add_edge("question_visitor", "receive_input")
-graph_builder.add_edge("make_decision", END)
+graph_builder.add_conditional_edges(
+    "make_decision",
+    check_decision_for_notification,
+    {
+        "notify": "notify_contact",
+        "end": END,
+    },
+)
+graph_builder.add_edge("notify_contact", END)
 
 # ---- 6. Compile the Graph ----
 graph = graph_builder.compile()
