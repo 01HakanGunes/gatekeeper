@@ -128,39 +128,20 @@ def receive_input(state: State) -> State:
     if messages and hasattr(messages[-1], "type") and messages[-1].type == "ai":
         print(f"Agent: {messages[-1].content}")
 
-    user_input = input("User: ")  # Wait for terminal input
-    state["messages"].append(HumanMessage(content=user_input))
+    # Loop until we get valid input
+    while True:
+        user_input = input("User: ")  # Wait for terminal input
 
-    # Print current visitor profile status after each user input for debugging
-    print(f"\n📋 Visitor Profile Status (after user input):")
-    for field, value in state["visitor_profile"].items():
-        status = "✅" if value is not None and value != "-1" else "❌"
-        print(f"  {status} {field}: {value}")
-    print()
+        # Basic check for empty input
+        if not user_input.strip():
+            print("❌ Input validation: Empty input detected")
+            print(
+                "Agent: I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
+            )
+            continue  # Ask for input again
 
-    return state
-
-
-def validate_input(state: State) -> Literal["valid", "unrelated"]:
-    """
-    Validates user input using a less capable model to filter out gibberish,
-    irrelevant content, or malicious inputs before further processing.
-    If invalid, prints feedback message directly to user.
-    """
-    # Get the last user message
-    content = state["messages"][-1].content
-
-    # Basic check for empty input
-    if not content.strip():
-        print("❌ Input validation: Empty input detected")
-        print(
-            "Agent: I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
-        )
-        state["messages"].pop()  # Discard the invalid human response
-        return "unrelated"
-
-    # Create a validation prompt for the LLM
-    validation_prompt = f"""You are an input validator for a security gate system. Your job is to determine if user input is relevant and appropriate for a security checkpoint conversation.
+        # Create a validation prompt for the LLM
+        validation_prompt = f"""You are an input validator for a security gate system. Your job is to determine if user input is relevant and appropriate for a security checkpoint conversation.
 
 VALID inputs include:
 - Personal information (names, company names, purposes)
@@ -181,37 +162,49 @@ Respond with ONLY one word:
 - "valid" if the input is appropriate for a security checkpoint
 - "unrelated" if the input is gibberish, spam, offensive, or completely irrelevant
 
-Input to validate: "{content}"
+Input to validate: "{user_input}"
 
 Response:"""
 
-    try:
-        # Use the centralized validation LLM
-        response = llm_validation.invoke([HumanMessage(content=validation_prompt)])
+        try:
+            # Use the centralized validation LLM
+            response = llm_validation.invoke([HumanMessage(content=validation_prompt)])
 
-        # Extract the response content (handling thinking models)
-        result = extract_answer_from_thinking_model(response).lower()
+            # Extract the response content (handling thinking models)
+            result = extract_answer_from_thinking_model(response).lower()
 
-        # Clean the response - sometimes LLM adds extra text
-        if "valid" in result and "unrelated" not in result:
-            print("✅ Input validation: Input is valid")
-            return "valid"
-        elif "unrelated" in result:
-            print("❌ Input validation: Input is unrelated/invalid")
-            state["messages"].pop()
-            print(
-                "Agent: I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
-            )
-            return "unrelated"
-        else:
-            # Default to valid if unclear response
-            print("⚠️ Input validation: Unclear response, defaulting to valid")
-            return "valid"
+            # Clean the response - sometimes LLM adds extra text
+            if "valid" in result and "unrelated" not in result:
+                print("✅ Input validation: Input is valid")
+                # Valid input - add to messages and break the loop
+                state["messages"].append(HumanMessage(content=user_input))
+                break
+            elif "unrelated" in result:
+                print("❌ Input validation: Input is unrelated/invalid")
+                print(
+                    "Agent: I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
+                )
+                continue  # Ask for input again
+            else:
+                # Default to valid if unclear response
+                print("⚠️ Input validation: Unclear response, defaulting to valid")
+                state["messages"].append(HumanMessage(content=user_input))
+                break
 
-    except Exception as error:
-        print(f"⚠️ Input validation error: {error}")
-        # If validation fails, default to valid to avoid blocking legitimate users
-        return "valid"
+        except Exception as error:
+            print(f"⚠️ Input validation error: {error}")
+            # If validation fails, default to valid to avoid blocking legitimate users
+            state["messages"].append(HumanMessage(content=user_input))
+            break
+
+    # Print current visitor profile status after each user input for debugging
+    print(f"\n📋 Visitor Profile Status (after user input):")
+    for field, value in state["visitor_profile"].items():
+        status = "✅" if value is not None and value != "-1" else "❌"
+        print(f"  {status} {field}: {value}")
+    print()
+
+    return state
 
 
 def detect_session(state: State) -> Literal["same", "new"]:
@@ -220,11 +213,6 @@ def detect_session(state: State) -> Literal["same", "new"]:
     Uses LLM to analyze conversation patterns and detect session changes.
     """
     messages = state["messages"]
-
-    # If this is one of the first few messages, assume same session
-    if len(messages) <= 2:
-        print("🔄 Session detection: Early conversation, assuming same session")
-        return "same"
 
     # Get the last user message and some conversation context
     last_user_message = messages[-1].content
@@ -550,19 +538,28 @@ Extract {field}:"""
 def validate_contact_person(state: State) -> State:
     """
     Dedicated node for validating and matching contact persons against known contacts list.
+    Removes invalid contact persons that are not in the CONTACTS list.
     """
-    # Get current conversation context
-    messages = state["messages"]
-    conversation_text = "\n".join(
-        [
-            f"{msg.type}: {msg.content}"
-            for msg in messages
-            if hasattr(msg, "type") and hasattr(msg, "content")
-        ]
-    )
-
-    # Only process if contact_person is not already set
-    if state["visitor_profile"]["contact_person"] is None:
+    current_contact = state["visitor_profile"]["contact_person"]
+    
+    # Check if current contact_person is invalid (not in CONTACTS list)
+    if current_contact is not None and current_contact != "-1" and current_contact not in CONTACTS:
+        print(f"❌ Removing invalid contact person: '{current_contact}' (not in known contacts)")
+        state["visitor_profile"]["contact_person"] = None
+        current_contact = None
+    
+    # Process contact person extraction if not set or if we just removed an invalid one
+    if current_contact is None:
+        # Get current conversation context
+        messages = state["messages"]
+        conversation_text = "\n".join(
+            [
+                f"{msg.type}: {msg.content}"
+                for msg in messages
+                if hasattr(msg, "type") and hasattr(msg, "content")
+            ]
+        )
+        
         # Create contact validation prompt
         known_contacts_list = "\n".join([f"- {contact}" for contact in CONTACTS.keys()])
 
@@ -594,7 +591,7 @@ Contact person:"""
                 print(f"✅ Contact validation: Matched '{extracted_contact}'")
             elif extracted_contact != "-1":
                 print(
-                    f"⚠️ Contact person '{extracted_contact}' not in known list, treating as unknown"
+                    f"⚠️ Contact person '{extracted_contact}' not in known list, keeping as None"
                 )
             else:
                 print("❌ Contact validation: No known contact found")
@@ -603,7 +600,7 @@ Contact person:"""
             print(f"Error validating contact person: {error}")
     else:
         print(
-            f"ℹ️ Contact validation: Already set to '{state['visitor_profile']['contact_person']}'"
+            f"ℹ️ Contact validation: Valid contact already set to '{current_contact}'"
         )
 
     return state
@@ -858,9 +855,6 @@ def check_decision_for_notification(state: State) -> Literal["notify", "end"]:
 # ---- 4. Add Nodes ----
 graph_builder.add_node("receive_input", receive_input)
 graph_builder.add_node(
-    "validate_input", lambda state: state
-)  # passthrough for decision node
-graph_builder.add_node(
     "detect_session", lambda state: state
 )  # passthrough for decision node
 graph_builder.add_node(
@@ -878,15 +872,7 @@ graph_builder.add_node("notify_contact", notify_contact)
 
 # ---- 5. Add Edges (Logic Flow) ----
 graph_builder.set_entry_point("receive_input")
-graph_builder.add_edge("receive_input", "validate_input")
-graph_builder.add_conditional_edges(
-    "validate_input",
-    validate_input,
-    {
-        "valid": "detect_session",
-        "unrelated": "receive_input",
-    },
-)
+graph_builder.add_edge("receive_input", "detect_session")
 graph_builder.add_conditional_edges(
     "detect_session",
     detect_session,
