@@ -3,13 +3,16 @@ from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langchain_ollama import ChatOllama
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
 
 # ---- 1. Define Shared State ----
+
+
 class VisitorProfile(TypedDict):
     name: Optional[str]
     purpose: Optional[str]
+    contact_person: Optional[str]
     threat_level: Optional[str]
     affiliation: Optional[str]
     id_verified: Optional[bool]
@@ -21,13 +24,21 @@ class State(TypedDict):
     decision: str
 
 
-# ---- 2. Initialize Graph + LLM ----
+# ---- 2. Initialize Graph + LLMs ----
+
 graph_builder = StateGraph(State)
-llm = ChatOllama(model="qwen3:4b", temperature=0)
+
+# Initialize all LLMs
+llm_main = ChatOllama(
+    model="gemma3n:e2b", temperature=0
+)  # Main LLM for core operations
+llm_validation = ChatOllama(model="gemma3n:e2b", temperature=0.1)
+llm_session = ChatOllama(model="gemma3n:e2b", temperature=0.1)
+llm_summary = ChatOllama(model="gemma3n:e2b", temperature=0.1)
+llm_decision = ChatOllama(model="gemma3n:e2b", temperature=0.1)
 
 
 def extract_answer_from_thinking_model(response):
-    """Extract just the answer part from a thinking model response"""
     if hasattr(response, "content"):
         content = response.content
     else:
@@ -45,7 +56,10 @@ def extract_answer_from_thinking_model(response):
 
 
 # ---- 3. Node Implementations ----
+
+
 def receive_input(state: State) -> State:
+
     # Print conversation history
     messages = state["messages"]
     print("\n" + "=" * 50)
@@ -55,16 +69,18 @@ def receive_input(state: State) -> State:
     for i, message in enumerate(messages, 1):
         if hasattr(message, "type") and hasattr(message, "content"):
             if message.type == "system":
-                print(f"{i}. 🤖 Agent: {message.content}")
+                print(f"{i}. 🔧 System: {message.content}")
             elif message.type == "human":
                 print(f"{i}. 👤 User: {message.content}")
+            elif message.type == "ai":
+                print(f"{i}. 🤖 Agent: {message.content}")
             else:
                 print(f"{i}. {message.type}: {message.content}")
 
     print("=" * 50)
 
-    # Display the most recent system message if one exists
-    if messages and hasattr(messages[-1], "type") and messages[-1].type == "system":
+    # Display the most recent AI message if one exists
+    if messages and hasattr(messages[-1], "type") and messages[-1].type == "ai":
         print(f"Agent: {messages[-1].content}")
 
     user_input = input("User: ")  # Wait for terminal input
@@ -95,6 +111,7 @@ def validate_input(state: State) -> Literal["valid", "unrelated"]:
         print(
             "Agent: I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
         )
+        state["messages"].pop()  # Discard the invalid human response
         return "unrelated"
 
     # Create a validation prompt for the LLM
@@ -124,11 +141,8 @@ Input to validate: "{content}"
 Response:"""
 
     try:
-        # Use a simpler, faster model for validation (you could use a different model here)
-        # For now, using the same model but with higher temperature for faster processing
-        validation_llm = ChatOllama(model="qwen3:0.6b", temperature=0.1)
-
-        response = validation_llm.invoke([HumanMessage(content=validation_prompt)])
+        # Use the centralized validation LLM
+        response = llm_validation.invoke([HumanMessage(content=validation_prompt)])
 
         # Extract the response content (handling thinking models)
         result = extract_answer_from_thinking_model(response).lower()
@@ -139,6 +153,7 @@ Response:"""
             return "valid"
         elif "unrelated" in result:
             print("❌ Input validation: Input is unrelated/invalid")
+            state["messages"].pop()
             print(
                 "Agent: I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
             )
@@ -170,9 +185,7 @@ def detect_session(state: State) -> Literal["same", "new"]:
     last_user_message = messages[-1].content
 
     # Get recent conversation context (last 6 messages to keep it manageable)
-    recent_messages = (
-        messages[-6:] if len(messages) >= 6 else messages[1:]
-    )  # Skip initial system message
+    recent_messages = messages[-6:] if len(messages) >= 6 else messages[1:]
     conversation_context = "\n".join(
         [
             f"{msg.type}: {msg.content}"
@@ -181,7 +194,7 @@ def detect_session(state: State) -> Literal["same", "new"]:
         ]
     )
 
-    # Create session detection prompt
+    # Create session detection prompt (prioritize continuing the same session if the session change is not explicit)
     session_prompt = f"""You are a session detector for a security gate system. Determine if the latest message indicates a NEW visitor has arrived or if it's the SAME visitor continuing the conversation. For most case if not apperent, choose SAME visitor.
 
 NEW VISITOR indicators:
@@ -190,7 +203,7 @@ NEW VISITOR indicators:
 - References to being a different person
 
 SAME VISITOR indicators:
-- If not one of the new visitor indicators, for most cases.
+- If not one of the new visitor indicators (for most cases).
 
 CONVERSATION CONTEXT:
 {conversation_context}
@@ -204,14 +217,9 @@ Respond with ONLY one word:
 Response:"""
 
     try:
-        # Use LLM for session detection
-        session_llm = ChatOllama(model="qwen3:4b", temperature=0.1)
-        response = session_llm.invoke([HumanMessage(content=session_prompt)])
-
-        # Extract the response content (handling thinking models)
+        response = llm_session.invoke([HumanMessage(content=session_prompt)])
         result = extract_answer_from_thinking_model(response).lower()
 
-        # Parse the response
         if "new" in result and "same" not in result:
             print("🆕 Session detection: New visitor detected")
             return "new"
@@ -225,33 +233,34 @@ Response:"""
 
     except Exception as error:
         print(f"⚠️ Session detection error: {error}")
-        # If detection fails, default to same session to avoid losing context
         return "same"
 
 
 def check_context_length(state: State) -> Literal["over_limit", "under_limit"]:
     """
-    Check if conversation context is too long using character-based estimation.
+    Check if conversation context is too long by counting human messages.
 
-    For Qwen3:4b (16K context window), we use conservative limits.
+    Limits conversation to x human messages to keep context manageable.
     """
     # Constants
-    CHARS_PER_TOKEN = 4  # Approximate average for English text
-    MAX_ESTIMATED_TOKENS = 10000  # Conservative limit (adjustable)
+    MAX_HUMAN_MESSAGES = 10  # Maximum number of human messages allowed
 
-    # Count total characters in all messages
-    total_chars = 0
+    # Count human messages
+    human_message_count = 0
     for message in state["messages"]:
-        if hasattr(message, "content"):
-            total_chars += len(message.content)
-
-    # Estimate token count
-    estimated_tokens = total_chars // CHARS_PER_TOKEN
+        if hasattr(message, "type") and message.type == "human":
+            human_message_count += 1
 
     # Check against threshold
-    if estimated_tokens > MAX_ESTIMATED_TOKENS:
-        print(f"⚠️ Context length: Estimated {estimated_tokens} tokens exceeds limit")
+    if human_message_count > MAX_HUMAN_MESSAGES:
+        print(
+            f"⚠️ Context length: {human_message_count} human messages exceeds limit of {MAX_HUMAN_MESSAGES}"
+        )
         return "over_limit"
+
+    print(
+        f"✅ Context length: {human_message_count}/{MAX_HUMAN_MESSAGES} human messages"
+    )
     return "under_limit"
 
 
@@ -263,7 +272,7 @@ def summarize(state: State) -> State:
     messages = state["messages"]
 
     # Skip if too few messages
-    if len(messages) < 8:  # Not worth summarizing small conversations
+    if len(messages) < 8:
         return state
 
     # Keep initial system message and 4 most recent messages intact
@@ -303,9 +312,8 @@ Conversation:
 Summary:"""
 
     try:
-        # Use LLM for summarization
-        summary_llm = ChatOllama(model="qwen3:0.6b", temperature=0.1)
-        response = summary_llm.invoke([HumanMessage(content=summary_prompt)])
+        # Use the centralized summary LLM
+        response = llm_summary.invoke([HumanMessage(content=summary_prompt)])
         summary = extract_answer_from_thinking_model(response)
 
         # Create a new condensed message list
@@ -360,6 +368,7 @@ def reset_conversation(state: State) -> State:
     new_visitor_profile: VisitorProfile = {
         "name": None,
         "purpose": None,
+        "contact_person": None,
         "threat_level": None,
         "affiliation": None,
         "id_verified": None,
@@ -398,15 +407,23 @@ def check_visitor_profile_node(state: State) -> State:
     )
 
     # Define fields to extract
-    fields_to_extract = ["name", "purpose", "threat_level", "affiliation"]
+    fields_to_extract = [
+        "name",
+        "purpose",
+        "contact_person",
+        "threat_level",
+        "affiliation",
+    ]  # all visitor profile fields should be extracted. Is there a way to extract not manually so i dont need to update this each time i change the visitor profile?
 
     # Try to extract information using LLM
     for field in fields_to_extract:
         if state["visitor_profile"][field] is None:
             # Define detailed descriptions for each field
+            # Also field description and fields should be somehow paired so no need to manually add both of them in this part. Instead initialized somewhere else.
             field_descriptions = {
                 "name": "The visitor's full name (first and last name). Examples: 'John Smith', 'Maria Garcia', 'David Kim', '-1'",
                 "purpose": "The reason for the visit or what they want to do. Examples: 'meeting', 'delivery', 'tour', 'interview', 'maintenance', '-1'",
+                "contact_person": "The visitor's contact inside the company. Examples: 'David Smith', 'Alice Kimble', 'CEO', 'CTO', 'Mr. John, '-1''",
                 "threat_level": "Security risk assessment based on items carried, behavior, or concerns mentioned. Examples: 'low', 'medium', 'high', '-1'",
                 "affiliation": "Company, organization, or group they represent. Examples: 'Google', 'FedEx', 'University of XYZ', 'independent contractor', '-1'",
             }
@@ -435,10 +452,7 @@ Conversation:
 Extract {field}:"""
 
             try:
-                # Use LLM to extract information
-                response = llm.invoke([HumanMessage(content=extraction_prompt)])
-
-                # Handle the AIMessage response (with thinking model support)
+                response = llm_main.invoke([HumanMessage(content=extraction_prompt)])
                 extracted_value = extract_answer_from_thinking_model(response)
 
                 print(extracted_value)
@@ -519,12 +533,19 @@ def question_visitor(state: State) -> State:
     field_questions = {
         "name": "What is your name?",
         "purpose": "What is the purpose of your visit today?",
+        "contact_person": "Who is your contact?",
         "threat_level": "Are you carrying any restricted items or have any security concerns I should know about?",
         "affiliation": "What company or organization are you with?",
     }
 
     # Find the first missing field that needs to be completed
-    fields_to_check = ["name", "purpose", "threat_level", "affiliation"]
+    fields_to_check = [
+        "name",
+        "purpose",
+        "contact_person",
+        "threat_level",
+        "affiliation",
+    ]
 
     for field in fields_to_check:
         if (
@@ -533,13 +554,13 @@ def question_visitor(state: State) -> State:
         ):
             # Ask specific question for this missing field
             question_text = field_questions[field]
-            question = SystemMessage(content=question_text)
+            question = AIMessage(content=question_text)
             state["messages"].append(question)
             print(f"🤔 Asking for missing field: {field}")
             return state
 
     # Fallback if somehow all fields are filled but we're still here
-    question = SystemMessage(content="Can you tell me more about yourself?")
+    question = AIMessage(content="Can you tell me more about yourself?")
     state["messages"].append(question)
     return state
 
@@ -564,36 +585,26 @@ def make_decision(state: State) -> State:
 
     # Define available decisions
     decisions = {
-        "allow_entry": "Standard access granted - visitor approved for entry",
+        "allow_request": "Standard access granted - visitor approved and the related people notified.",
         "call_security": "Call security immediately - high threat or suspicious behavior",
-        "notify_company": "Contact visitor's organization to verify identity/purpose",
-        "escort_required": "Entry allowed but visitor requires escort/supervision",
-        "deny_access": "Access denied - insufficient credentials or policy violation",
+        "deny_request": "Access denied - insufficient credentials or policy violation",
     }
 
     # Create decision prompt
     decision_prompt = f"""You are a security gate decision system. Based on the visitor profile and conversation, choose the most appropriate security action.
 
 VISITOR PROFILE:
-- Name: {profile.get('name', 'Unknown')}
-- Purpose: {profile.get('purpose', 'Unknown')}
-- Threat Level: {profile.get('threat_level', 'Unknown')}
-- Affiliation: {profile.get('affiliation', 'Unknown')}
-- ID Verified: {profile.get('id_verified', False)}
+- Name: {profile['name']}
+- Purpose: {profile['purpose']}
+- Contact Person: {profile['contact_person']}
+- Threat Level: {profile['threat_level']}
+- Affiliation: {profile['affiliation']}
+- ID Verified: {profile['id_verified']}
+
 
 AVAILABLE DECISIONS:
-1. allow_entry - Standard access granted for approved visitors
-2. call_security - High threat level or suspicious behavior detected
-3. notify_company - Need to verify visitor with their claimed organization
-4. escort_required - Visitor needs supervision but can enter
-5. deny_access - Clear rejection due to missing credentials or policy violation
+{chr(10).join([f"{i+1}. {decision_id} - {description}" for i, (decision_id, description) in enumerate(decisions.items())])}
 
-DECISION CRITERIA:
-- allow_entry: Complete profile, low threat, legitimate purpose, known organization
-- call_security: High threat level, suspicious behavior, security concerns
-- notify_company: Unclear affiliation, need verification, unusual requests
-- escort_required: Medium threat, sensitive areas, contractors/maintenance
-- deny_access: Incomplete profile, no valid purpose, policy violations
 
 RECENT CONVERSATION:
 {conversation_text}
@@ -601,11 +612,7 @@ RECENT CONVERSATION:
 Respond with ONLY the decision ID (e.g., "allow_entry", "call_security", etc.):"""
 
     try:
-        # Use LLM to make decision
-        decision_llm = ChatOllama(model="qwen3:4b", temperature=0.1)
-        response = decision_llm.invoke([HumanMessage(content=decision_prompt)])
-
-        # Extract decision
+        response = llm_decision.invoke([HumanMessage(content=decision_prompt)])
         decision_result = extract_answer_from_thinking_model(response).strip().lower()
 
         # Clean and validate decision
@@ -617,13 +624,11 @@ Respond with ONLY the decision ID (e.g., "allow_entry", "call_security", etc.):"
                 decision_messages = {
                     "allow_entry": "✅ Access granted. Welcome! Please proceed to the main entrance.",
                     "call_security": "⚠️ Please wait here. Security has been notified and will assist you shortly.",
-                    "notify_company": "📞 I need to verify your visit with your organization. Please wait while I contact them.",
-                    "escort_required": "👮 Access granted with escort. Please wait here while I arrange for someone to accompany you.",
                     "deny_access": "❌ Access denied. Please contact the appropriate department to arrange your visit.",
                 }
 
                 state["messages"].append(
-                    SystemMessage(content=decision_messages[decision_id])
+                    AIMessage(content=decision_messages[decision_id])
                 )
                 print(f"🔒 Security Decision: {decision_id.upper()}")
                 print(f"📋 Reason: {decisions[decision_id]}")
@@ -633,7 +638,7 @@ Respond with ONLY the decision ID (e.g., "allow_entry", "call_security", etc.):"
         print("⚠️ Decision making: Unclear response, defaulting to notify_company")
         state["decision"] = "notify_company"
         state["messages"].append(
-            SystemMessage(
+            AIMessage(
                 content="📞 I need to verify your visit with your organization. Please wait while I contact them."
             )
         )
@@ -644,7 +649,7 @@ Respond with ONLY the decision ID (e.g., "allow_entry", "call_security", etc.):"
         # Safe fallback decision
         state["decision"] = "notify_company"
         state["messages"].append(
-            SystemMessage(
+            AIMessage(
                 content="📞 I need to verify your visit with your organization. Please wait while I contact them."
             )
         )
@@ -701,7 +706,7 @@ graph_builder.add_edge("summarize", "check_visitor_profile")
 graph_builder.add_edge("reset_conversation", "check_visitor_profile")
 graph_builder.add_conditional_edges(
     "check_visitor_profile",
-    check_visitor_profile_condition,  # Use the simple conditional function
+    check_visitor_profile_condition,
     {
         "complete": "make_decision",
         "not_complete": "question_visitor",
@@ -726,6 +731,7 @@ initial_state: State = {
     "visitor_profile": {
         "name": None,
         "purpose": None,
+        "contact_person": None,
         "threat_level": None,
         "affiliation": None,
         "id_verified": None,
