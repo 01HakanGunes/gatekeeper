@@ -1,0 +1,24 @@
+{
+  "decision_schema": {
+    "decision": "string (one of: allow_request, call_security, deny_request)",
+    "confidence": "number between 0 and 1",
+    "reasoning": "string with brief explanation",
+    "threat_indicators": "array of strings (any concerning factors found)"
+  },
+  "session_schema": {
+    "session_type": "string (either 'same' or 'new')",
+    "confidence": "number between 0 and 1",
+    "indicators": "array of strings (reasons for the decision)",
+    "greeting_detected": "boolean (true if new greeting/introduction detected)"
+  },
+  "extraction_schema": {
+    "extracted_fields": "object with field names as keys and extracted values as strings or null",
+    "confidence": "object with field names as keys and confidence scores as numbers between 0 and 1"
+  },
+  "contact_validation_schema": {
+    "extracted_contact": "string (the contact person mentioned in conversation)",
+    "matched_contact": "string or null (exact match from known contacts list)",
+    "confidence": "number between 0 and 1",
+    "is_valid_contact": "boolean (true if matched_contact is not null)"
+  }
+}

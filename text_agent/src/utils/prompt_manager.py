@@ -1,4 +1,5 @@
 import yaml
+import json
 from pathlib import Path
 from typing import Dict, Any, Optional
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
@@ -17,8 +18,10 @@ class PromptManager:
         self._templates: Dict[str, Dict[str, BasePromptTemplate]] = {}
         self._data: Dict[str, Any] = {}
         self._field_data: Dict[str, Any] = {}
+        self._schemas: Dict[str, Any] = {}
         self._load_prompts()
         self._load_field_data()
+        self._load_schemas()
 
     def _load_prompts(self):
         """Load all prompt templates from YAML/JSON files"""
@@ -57,6 +60,14 @@ class PromptManager:
         if field_file.exists():
             with open(field_file, "r", encoding="utf-8") as f:
                 self._field_data = yaml.safe_load(f)
+
+    def _load_schemas(self):
+        """Load JSON schemas from schemas.json file"""
+        schemas_file = self.prompts_dir / "schemas.json"
+
+        if schemas_file.exists():
+            with open(schemas_file, "r", encoding="utf-8") as f:
+                self._schemas = json.load(f)
 
     def get_prompt(self, category: str, name: str) -> Optional[BasePromptTemplate]:
         """Get a prompt template by category and name"""
@@ -118,6 +129,10 @@ class PromptManager:
             )
             formatted_prefixes.append(formatted_prefix)
         return formatted_prefixes
+
+    def get_schema(self, schema_name: str) -> Dict[str, Any]:
+        """Get a JSON schema by name"""
+        return self._schemas.get(schema_name, {})
 
 
 # Global instance

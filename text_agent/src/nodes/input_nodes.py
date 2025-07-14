@@ -118,13 +118,8 @@ def detect_session(state: State) -> Literal["same", "new"]:
         ]
     )
 
-    # Define JSON schema for session detection
-    session_schema = {
-        "session_type": "string (either 'same' or 'new')",
-        "confidence": "number between 0 and 1",
-        "indicators": "array of strings (reasons for the decision)",
-        "greeting_detected": "boolean (true if new greeting/introduction detected)",
-    }
+    # Get JSON schema from prompt manager
+    session_schema = prompt_manager.get_schema("session_schema")
 
     # Create session detection prompt using prompt manager with JSON schema
     try:

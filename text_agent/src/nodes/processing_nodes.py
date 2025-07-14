@@ -39,7 +39,8 @@ def check_visitor_profile_node(state: State) -> State:
         print("✅ All fields already extracted")
         return state
 
-    # Define JSON schema for structured extraction
+    # Get JSON schema template from prompt manager and customize for missing fields
+    base_schema = prompt_manager.get_schema("extraction_schema")
     extraction_schema = {
         "extracted_fields": {
             field: "string or null (if not found)" for field in missing_fields
@@ -137,12 +138,8 @@ def validate_contact_person(state: State) -> State:
         # Create contact validation prompt using prompt manager with JSON schema
         known_contacts_list = list(CONTACTS.keys())
 
-        validation_schema = {
-            "extracted_contact": "string (the contact person mentioned in conversation)",
-            "matched_contact": "string or null (exact match from known contacts list)",
-            "confidence": "number between 0 and 1",
-            "is_valid_contact": "boolean (true if matched_contact is not null)",
-        }
+        # Get JSON schema from prompt manager
+        validation_schema = prompt_manager.get_schema("contact_validation_schema")
 
         prompt_value = prompt_manager.invoke_prompt(
             "processing",

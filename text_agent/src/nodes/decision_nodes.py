@@ -39,13 +39,8 @@ def make_decision(state: State) -> State:
         ]
     )
 
-    # Define JSON schema for structured decision output
-    decision_schema = {
-        "decision": "string (one of: allow_request, call_security, deny_request)",
-        "confidence": "number between 0 and 1",
-        "reasoning": "string with brief explanation",
-        "threat_indicators": "array of strings (any concerning factors found)",
-    }
+    # Get JSON schema from prompt manager
+    decision_schema = prompt_manager.get_schema("decision_schema")
 
     prompt_value = prompt_manager.invoke_prompt(
         "decision",
