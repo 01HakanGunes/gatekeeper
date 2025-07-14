@@ -1,13 +1,9 @@
 # Security Gate System - To-Do List
 
-### **✅ Relocate PromptManager to Utils Package (COMPLETED)**
-- ✅ Move `prompts/manager.py` to `src/utils/prompt_manager.py` to better organize utility functions
-- ✅ Update import statements across all modules that use the PromptManager
-
 ### **Implement Structured JSON Output for LLM Responses**
 - Convert LLM outputs that are not AI messages to humans into structured JSON format
 - Focus on field extraction in `check_visitor_profile_node` and decision making in `make_decision`
-- Use Pydantic models or JSON schemas to enforce consistent output formats
+- Use JSON schemas to enforce consistent output formats
 
 ### **Add Message History Management Options**
 - Implement a "shorten" strategy alongside the existing "summarize" function in `src/nodes/input_nodes.py`
@@ -26,7 +22,7 @@
 
 ### **Complete Email Notification Implementation**
 - The `send_email` tool is currently a mock implementation
-- Integrate with a real email service (SMTP, SendGrid, or similar)
+- Integrate with a real email service (gmail direct main sending)
 - Add email template management through the PromptManager
 
 ### **Refine Node Organization and Categories**

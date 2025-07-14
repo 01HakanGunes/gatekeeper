@@ -1,5 +1,5 @@
 from langchain_core.tools import tool
-from ..data.contacts import CONTACTS
+from data.contacts import CONTACTS
 
 
 @tool

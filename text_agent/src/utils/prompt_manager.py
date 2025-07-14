@@ -8,9 +8,9 @@ from langchain_core.prompts.base import BasePromptTemplate
 class PromptManager:
     def __init__(self, prompts_dir: Optional[str] = None):
         if prompts_dir is None:
-            # Get the prompts directory relative to the project root
+            # Get the config/prompts directory relative to the project root
             current_dir = Path(__file__).parent.parent.parent  # Go up to text_agent/
-            self.prompts_dir = current_dir / "prompts"
+            self.prompts_dir = current_dir / "config" / "prompts"
         else:
             self.prompts_dir = Path(prompts_dir)
 
