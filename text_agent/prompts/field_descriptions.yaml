@@ -1,0 +1,28 @@
+visitor_profile_fields:
+  name: "The visitor's full name (first and last name). Examples: 'John Smith', 'Maria Garcia', 'David Kim', '-1'"
+  purpose: "The reason for the visit or what they want to do. Examples: 'meeting', 'delivery', 'tour', 'interview', 'maintenance', '-1'"
+  contact_person: "The visitor's contact inside the company. Examples: 'David Smith', 'Alice Kimble', 'CEO', 'CTO', 'Mr. John', '-1'"
+  threat_level: "Security risk assessment based on items carried, behavior, or concerns mentioned. Examples: 'low', 'medium', 'high', '-1'"
+  affiliation: "Company, organization, or group they represent. Examples: 'Google', 'FedEx', 'University of XYZ', 'independent contractor', '-1'"
+
+field_questions:
+  name: "What is your name?"
+  purpose: "What is the purpose of your visit today?"
+  contact_person: "Who is your contact? (Known contacts include: {known_contacts})"
+  threat_level: "Are you carrying any restricted items or have any security concerns I should know about?"
+  affiliation: "What company or organization are you with?"
+
+input_validation:
+  empty_input_message: "I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
+  invalid_input_message: "Please provide information relevant to your security checkpoint visit. I need details about your name, purpose, and who you're visiting."
+  fallback_question: "Can you tell me more about yourself?"
+
+extraction_prefixes:
+  - "{field}:"
+  - "{field_capitalized}:"
+  - "Answer:"
+  - "Response:"
+  - "Value:"
+  - "Result:"
+  - "The {field} is"
+  - "Their {field} is"

@@ -13,3 +13,5 @@
 - sec check is not passable
 
 - print graph
+
+- implement the send email fully.

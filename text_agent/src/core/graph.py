@@ -1,6 +1,5 @@
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage
-
 from .state import State
 from ..nodes.input_nodes import (
     receive_input,
@@ -67,7 +66,6 @@ def create_security_graph():
         },
     )
     graph_builder.add_edge("summarize", "check_visitor_profile")
-    graph_builder.add_edge("summarize", "check_visitor_profile")
     graph_builder.add_edge("reset_conversation", "check_visitor_profile")
     graph_builder.add_edge("check_visitor_profile", "validate_contact_person")
     graph_builder.add_conditional_edges(
@@ -100,10 +98,11 @@ def create_initial_state() -> State:
     Returns:
         State: Initial state with system message and empty visitor profile
     """
+    from prompts.manager import prompt_manager
+
+    system_msg_content = prompt_manager.format_prompt("input", "system_message")
     initial_messages = [
-        SystemMessage(
-            content="You are a helpful assistant at the gate. Ask necessary questions and decide on access."
-        ),
+        SystemMessage(content=system_msg_content),
     ]
 
     return {

@@ -6,6 +6,7 @@ from ..data.contacts import CONTACTS
 from ..utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_decision, llm_email
 from ..tools.communication import tools
+from prompts.manager import prompt_manager
 
 
 def make_decision(state: State) -> State:
@@ -26,36 +27,32 @@ def make_decision(state: State) -> State:
         ]
     )
 
-    # Define available decisions
-    decisions = {
-        "allow_request": "Standard access granted - visitor approved and the related people notified.",
-        "call_security": "Call security immediately - high threat or suspicious behavior",
-        "deny_request": "Access denied - insufficient credentials or policy violation",
-    }
+    # Define available decisions from prompt manager
+    decisions = prompt_manager.get_data("decision", "available_decisions")
 
-    # Create decision prompt
-    decision_prompt = f"""You are a security gate decision system. Based on the visitor profile and conversation, choose the most appropriate security action.
+    # Create decision prompt using prompt manager
+    decisions_list = "\n".join(
+        [
+            f"{i+1}. {decision_id} - {description}"
+            for i, (decision_id, description) in enumerate(decisions.items())
+        ]
+    )
 
-VISITOR PROFILE:
-- Name: {profile['name']}
-- Purpose: {profile['purpose']}
-- Contact Person: {profile['contact_person']}
-- Threat Level: {profile['threat_level']}
-- Affiliation: {profile['affiliation']}
-- ID Verified: {profile['id_verified']}
-
-
-AVAILABLE DECISIONS:
-{chr(10).join([f"{i+1}. {decision_id} - {description}" for i, (decision_id, description) in enumerate(decisions.items())])}
-
-
-RECENT CONVERSATION:
-{conversation_text}
-
-Respond with ONLY the decision ID (e.g., "allow_request", "call_security", etc.):"""
+    prompt_value = prompt_manager.invoke_prompt(
+        "decision",
+        "make_decision",
+        profile_name=profile["name"],
+        profile_purpose=profile["purpose"],
+        profile_contact_person=profile["contact_person"],
+        profile_threat_level=profile["threat_level"],
+        profile_affiliation=profile["affiliation"],
+        profile_id_verified=profile["id_verified"],
+        decisions_list=decisions_list,
+        conversation_text=conversation_text,
+    )
 
     try:
-        response = llm_decision.invoke([HumanMessage(content=decision_prompt)])
+        response = llm_decision.invoke(prompt_value)
         decision_result = extract_answer_from_thinking_model(response).strip().lower()
 
         # Clean and validate decision
@@ -63,13 +60,10 @@ Respond with ONLY the decision ID (e.g., "allow_request", "call_security", etc.)
             if decision_id in decision_result:
                 state["decision"] = decision_id
 
-                # Add appropriate response message
-                decision_messages = {
-                    "allow_request": "✅ Access granted. Welcome! Please proceed to the main entrance.",
-                    "call_security": "⚠️ Please wait here. Security has been notified and will assist you shortly.",
-                    "deny_request": "❌ Access denied. Please contact the appropriate department to arrange your visit.",
-                }
-
+                # Add appropriate response message from prompt manager
+                decision_messages = prompt_manager.get_data(
+                    "decision", "decision_messages"
+                )
                 state["messages"].append(
                     AIMessage(content=decision_messages[decision_id])
                 )
@@ -80,22 +74,20 @@ Respond with ONLY the decision ID (e.g., "allow_request", "call_security", etc.)
         # Fallback if no valid decision found
         print("⚠️ Decision making: Unclear response, defaulting to deny_request")
         state["decision"] = "deny_request"
-        state["messages"].append(
-            AIMessage(
-                content="❌ I cannot process your request at this time. Please contact reception for assistance."
-            )
-        )
+        fallback_message = prompt_manager.get_data("decision", "fallback_messages")[
+            "unclear_decision"
+        ]
+        state["messages"].append(AIMessage(content=fallback_message))
         return state
 
     except Exception as error:
         print(f"⚠️ Decision making error: {error}")
         # Safe fallback decision
         state["decision"] = "deny_request"
-        state["messages"].append(
-            AIMessage(
-                content="❌ I cannot process your request at this time. Please contact reception for assistance."
-            )
-        )
+        error_message = prompt_manager.get_data("decision", "fallback_messages")[
+            "error_decision"
+        ]
+        state["messages"].append(AIMessage(content=error_message))
         return state
 
 
@@ -110,31 +102,28 @@ def notify_contact(state: State) -> State:
     visitor_affiliation = profile.get("affiliation", "Unknown affiliation")
 
     if contact_name and contact_name in CONTACTS:
-        # Create email content
-        subject = f"Visitor Arrival Notification - {visitor_name}"
-        message = f"""Hello {contact_name},
+        # Create email content using prompt manager
+        subject = prompt_manager.format_prompt(
+            "communication", "email_subject", visitor_name=visitor_name
+        )
 
-This is an automated notification that your visitor has arrived:
-
-Visitor Details:
-- Name: {visitor_name}
-- Purpose: {visitor_purpose}
-- Affiliation: {visitor_affiliation}
-- Status: Access Granted
-
-The visitor has been cleared through security and is proceeding to the main entrance.
-
-Best regards,
-Security Gate System"""
+        message = prompt_manager.format_prompt(
+            "communication",
+            "email_body",
+            contact_name=contact_name,
+            visitor_name=visitor_name,
+            visitor_purpose=visitor_purpose,
+            visitor_affiliation=visitor_affiliation,
+        )
 
         # Use the LLM with tool calling to send the email
-        email_prompt = f"""Send an email notification to the contact person about visitor arrival.
-
-Contact: {contact_name}
-Subject: {subject}
-Message: {message}
-
-Please send this email using the send_email tool."""
+        email_prompt = prompt_manager.format_prompt(
+            "communication",
+            "email_notification",
+            contact_name=contact_name,
+            subject=subject,
+            message=message,
+        )
 
         try:
             # Call LLM with tools to send email
@@ -147,34 +136,36 @@ Please send this email using the send_email tool."""
                 # Execute the tool calls
                 tool_result = tool_node.invoke({"messages": [response]})
 
+                success_message = prompt_manager.get_data(
+                    "communication", "notification_messages"
+                )["success"]
                 state["messages"].append(
-                    AIMessage(
-                        content=f"📧 Notification sent to {contact_name} about your arrival."
-                    )
+                    AIMessage(content=success_message.format(contact_name=contact_name))
                 )
                 print(f"✅ Email notification sent to {contact_name}")
             else:
                 print(f"⚠️ Failed to send email notification to {contact_name}")
+                failure_message = prompt_manager.get_data(
+                    "communication", "notification_messages"
+                )["failure"]
                 state["messages"].append(
-                    AIMessage(
-                        content=f"⚠️ Could not send notification to {contact_name}. Please contact them directly."
-                    )
+                    AIMessage(content=failure_message.format(contact_name=contact_name))
                 )
 
         except Exception as error:
             print(f"⚠️ Email notification error: {error}")
+            failure_message = prompt_manager.get_data(
+                "communication", "notification_messages"
+            )["failure"]
             state["messages"].append(
-                AIMessage(
-                    content=f"⚠️ Could not send notification to {contact_name}. Please contact them directly."
-                )
+                AIMessage(content=failure_message.format(contact_name=contact_name))
             )
     else:
         print("ℹ️ No valid contact person found for email notification")
-        state["messages"].append(
-            AIMessage(
-                content="ℹ️ No contact person on file. Please proceed to reception."
-            )
-        )
+        no_contact_message = prompt_manager.get_data(
+            "communication", "notification_messages"
+        )["no_contact"]
+        state["messages"].append(AIMessage(content=no_contact_message))
 
     return state
 

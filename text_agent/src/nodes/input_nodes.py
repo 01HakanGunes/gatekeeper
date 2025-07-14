@@ -4,6 +4,7 @@ from ..core.state import State
 from config.settings import MAX_HUMAN_MESSAGES
 from ..utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_validation, llm_session, llm_summary
+from prompts.manager import prompt_manager
 
 
 def receive_input(state: State) -> State:
@@ -45,34 +46,14 @@ def receive_input(state: State) -> State:
             )
             continue  # Ask for input again
 
-        # Create a validation prompt for the LLM
-        validation_prompt = f"""You are an input validator for a security gate system. Your job is to determine if user input is relevant and appropriate for a security checkpoint conversation.
-
-VALID inputs include:
-- Personal information (names, company names, purposes)
-- Responses to security questions
-- Regular conversations
-- Questions about the facility or visit process
-- Explanations about their visit purpose
-- Description of their belongings, visuals for thread assessment, behaviour (i am angry/chill/funny)
-
-INVALID inputs include:
-- Complete gibberish or random characters
-- Curse words
-- Spam or repetitive nonsense
-- Completely irrelevant topics (sports, weather, unrelated subjects)
-
-Respond with ONLY one word:
-- "valid" if the input is appropriate for a security checkpoint
-- "unrelated" if the input is gibberish, spam, offensive, or completely irrelevant
-
-Input to validate: "{user_input}"
-
-Response:"""
-
+        # Create a validation prompt using prompt manager
         try:
+            prompt_value = prompt_manager.invoke_prompt(
+                "input", "validate_input", user_input=user_input
+            )
+
             # Use the centralized validation LLM
-            response = llm_validation.invoke([HumanMessage(content=validation_prompt)])
+            response = llm_validation.invoke(prompt_value)
 
             # Extract the response content (handling thinking models)
             result = extract_answer_from_thinking_model(response).lower()
@@ -85,9 +66,10 @@ Response:"""
                 break
             elif "unrelated" in result:
                 print("❌ Input validation: Input is unrelated/invalid")
-                print(
-                    "Agent: I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
-                )
+                invalid_message = prompt_manager.get_field_data("input_validation")[
+                    "invalid_input_message"
+                ]
+                print(f"Agent: {invalid_message}")
                 continue  # Ask for input again
             else:
                 # Default to valid if unclear response
@@ -131,30 +113,16 @@ def detect_session(state: State) -> Literal["same", "new"]:
         ]
     )
 
-    # Create session detection prompt (prioritize continuing the same session if the session change is not explicit)
-    session_prompt = f"""You are a session detector for a security gate system. Determine if the latest message indicates a NEW visitor has arrived or if it's the SAME visitor continuing the conversation. For most case if not apperent, choose SAME visitor.
-
-NEW VISITOR indicators:
-- Introductions with different names ("Hi, I'm John" when previous visitor was "Mary")
-- Greetings that suggest a fresh start ("Hello", "Hi there", "Good morning" at unexpected times)
-- References to being a different person
-
-SAME VISITOR indicators:
-- If not one of the new visitor indicators (for most cases).
-
-CONVERSATION CONTEXT:
-{conversation_context}
-
-LATEST MESSAGE: {last_user_message}
-
-Respond with ONLY one word:
-- "new" if this appears to be a new visitor
-- "same" if this is the same visitor continuing
-
-Response:"""
-
+    # Create session detection prompt using prompt manager
     try:
-        response = llm_session.invoke([HumanMessage(content=session_prompt)])
+        prompt_value = prompt_manager.invoke_prompt(
+            "input",
+            "detect_session",
+            conversation_context=conversation_context,
+            last_user_message=last_user_message,
+        )
+
+        response = llm_session.invoke(prompt_value)
         result = extract_answer_from_thinking_model(response).lower()
 
         if "new" in result and "same" not in result:
@@ -232,22 +200,14 @@ def summarize(state: State) -> State:
         ]
     )
 
-    summary_prompt = f"""Summarize the following conversation between a security gate assistant and a visitor.
-Focus ONLY on:
-1. Key visitor information (name, purpose, affiliation)
-2. Security-relevant details
-3. Important context needed to continue the conversation
-
-Keep the summary concise and focused on essential information.
-
-Conversation:
-{conversation_text}
-
-Summary:"""
-
     try:
+        # Use prompt manager for summarization
+        prompt_value = prompt_manager.invoke_prompt(
+            "input", "summarize_conversation", conversation_text=conversation_text
+        )
+
         # Use the centralized summary LLM
-        response = llm_summary.invoke([HumanMessage(content=summary_prompt)])
+        response = llm_summary.invoke(prompt_value)
         summary = extract_answer_from_thinking_model(response)
 
         # Create a new condensed message list
@@ -293,10 +253,9 @@ def reset_conversation(state: State) -> State:
     new_visitor_message = state["messages"][-1]
 
     # Create new message list with initial system message and new visitor's message
+    system_msg_content = prompt_manager.format_prompt("input", "system_message")
     new_messages = [
-        SystemMessage(
-            content="You are a helpful assistant at the gate. Ask necessary questions and decide on access."
-        ),
+        SystemMessage(content=system_msg_content),
         new_visitor_message,
     ]
 

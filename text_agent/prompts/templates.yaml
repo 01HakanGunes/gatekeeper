@@ -1,0 +1,256 @@
+decision:
+  make_decision:
+    template: |
+      You are a security gate decision system. Based on the visitor profile and conversation, choose the most appropriate security action.
+
+      VISITOR PROFILE:
+      - Name: {profile_name}
+      - Purpose: {profile_purpose}
+      - Contact Person: {profile_contact_person}
+      - Threat Level: {profile_threat_level}
+      - Affiliation: {profile_affiliation}
+      - ID Verified: {profile_id_verified}
+
+      AVAILABLE DECISIONS:
+      {decisions_list}
+
+      RECENT CONVERSATION:
+      {conversation_text}
+
+      Respond with ONLY the decision ID (e.g., "allow_request", "call_security", etc.):
+    type: "string"
+    input_variables: 
+      - "profile_name"
+      - "profile_purpose"
+      - "profile_contact_person"
+      - "profile_threat_level"
+      - "profile_affiliation"
+      - "profile_id_verified"
+      - "decisions_list"
+      - "conversation_text"
+
+  decision_messages:
+    allow_request: "✅ Access granted. Welcome! Please proceed to the main entrance."
+    call_security: "⚠️ Please wait here. Security has been notified and will assist you shortly."
+    deny_request: "❌ Access denied. Please contact the appropriate department to arrange your visit."
+
+  available_decisions:
+    allow_request: "Standard access granted - visitor approved and the related people notified."
+    call_security: "Call security immediately - high threat or suspicious behavior"
+    deny_request: "Access denied - insufficient credentials or policy violation"
+
+  fallback_messages:
+    unclear_decision: "❌ I cannot process your request at this time. Please contact reception for assistance."
+    error_decision: "❌ I cannot process your request at this time. Please contact reception for assistance."
+
+processing:
+  extract_field:
+    template: |
+      You are a data extraction tool. Your task is to extract ONLY the {field} value from the conversation.
+
+      FIELD DESCRIPTION:
+      {field} = {field_description}
+
+      STRICT RULES:
+      - Respond with ONLY the {field} value (no explanations, no sentences)
+      - If you cannot clearly determine the {field} from the conversation, respond with exactly: -1
+      - Maximum 3 words for the response
+      - No punctuation except necessary hyphens or periods
+
+      Examples:
+      - If extracting "name" and conversation mentions "I'm John Smith" → respond: John Smith
+      - If extracting "purpose" and visitor says "here for the meeting" → respond: meeting
+      - If extracting "affiliation" and they say "I work at Google" → respond: Google
+      - If extracting "threat_level" and they say "I have no restricted items" → respond: low
+      - If cannot determine the value → respond: -1
+
+      Conversation:
+      {conversation_text}
+
+      Extract {field}:
+    type: "string"
+    input_variables:
+      - "field"
+      - "field_description"
+      - "conversation_text"
+
+  ask_missing_field:
+    template: |
+      You are a security gate assistant. The visitor is missing some required information. 
+      Ask a specific question to gather the missing {field} information in a friendly but professional manner.
+
+      FIELD TO ASK ABOUT: {field}
+      FIELD DESCRIPTION: {field_description}
+      SUGGESTED QUESTION: {field_question}
+
+      Keep the question concise and clear. Be professional but welcoming.
+
+      Question:
+    type: "string"
+    input_variables:
+      - "field"
+      - "field_description"
+      - "field_question"
+
+  validate_contact:
+    template: |
+      You are a strict contact person validator. Your task is to determine if the visitor is referring to any of the known contacts in our organization.
+
+      KNOWN CONTACTS:
+      {known_contacts}
+
+      STRICT MATCHING RULES:
+      - ONLY match if the visitor mentions a name that is clearly the SAME PERSON as one of the known contacts
+      - Match variations like "David", "Mr. Smith", "Dave Smith" to "David Smith" 
+      - Match "Alice", "Ms. Kimble", "Alice K" to "Alice Kimble"
+      - Match "John", "Martinez", "J. Martinez" to "John Martinez"
+      - DO NOT match similar sounding but different names: "Ahmad Kim" is NOT "Alice Kimble"
+      - DO NOT match partial similarities: "Mike Chen" is NOT "Michael Chen" unless clearly referring to the same person
+      - If the names are completely different people, respond with -1
+      - Only respond with the EXACT name from the list if you are certain it's the same person
+      - When in doubt, respond with -1
+
+      Examples:
+      - Visitor says "Ahmad Kim" → -1 (not in our list)
+      - Visitor says "Dave" or "David" → "David Smith" (clear match)
+      - Visitor says "Alice" or "Ms. Kimble" → "Alice Kimble" (clear match)
+      - Visitor says "Johnson" → -1 (could be Sarah Johnson but not specific enough)
+
+      Conversation:
+      {conversation_text}
+
+      Contact person:
+    type: "string"
+    input_variables:
+      - "known_contacts"
+      - "conversation_text"
+
+input:
+  validate_input:
+    template: |
+      You are an input validator for a security gate system. Your job is to determine if user input is relevant and appropriate for a security checkpoint conversation.
+
+      VALID inputs include:
+      - Personal information (names, company names, purposes)
+      - Responses to security questions
+      - Regular conversations
+      - Questions about the facility or visit process
+      - Explanations about their visit purpose
+      - Description of their belongings, visuals for thread assessment, behaviour (i am angry/chill/funny)
+
+      INVALID inputs include:
+      - Complete gibberish or random characters
+      - Curse words
+      - Spam or repetitive nonsense
+      - Completely irrelevant topics (sports, weather, unrelated subjects)
+
+      Respond with ONLY one word:
+      - "valid" if the input is appropriate for a security checkpoint
+      - "unrelated" if the input is gibberish, spam, offensive, or completely irrelevant
+
+      Input to validate: "{user_input}"
+
+      Response:
+    type: "string"
+    input_variables:
+      - "user_input"
+
+  system_message:
+    template: "You are a helpful assistant at the gate. Ask necessary questions and decide on access."
+    type: "string"
+    input_variables: []
+
+  detect_session:
+    template: |
+      You are a session detector for a security gate system. Determine if the latest message indicates a NEW visitor has arrived or if it's the SAME visitor continuing the conversation. For most case if not apparent, choose SAME visitor.
+
+      NEW VISITOR indicators:
+      - Introductions with different names ("Hi, I'm John" when previous visitor was "Mary")
+      - Greetings that suggest a fresh start ("Hello", "Hi there", "Good morning" at unexpected times)
+      - References to being a different person
+
+      SAME VISITOR indicators:
+      - If not one of the new visitor indicators (for most cases).
+
+      CONVERSATION CONTEXT:
+      {conversation_context}
+
+      LATEST MESSAGE: {last_user_message}
+
+      Respond with ONLY one word:
+      - "new" if this appears to be a new visitor
+      - "same" if this is the same visitor continuing
+
+      Response:
+    type: "string"
+    input_variables:
+      - "conversation_context"
+      - "last_user_message"
+
+  summarize_conversation:
+    template: |
+      Summarize the following conversation between a security gate assistant and a visitor.
+      Focus ONLY on:
+      1. Key visitor information (name, purpose, affiliation)
+      2. Security-relevant details
+      3. Important context needed to continue the conversation
+
+      Keep the summary concise and focused on essential information.
+
+      Conversation:
+      {conversation_text}
+
+      Summary:
+    type: "string"
+    input_variables:
+      - "conversation_text"
+
+communication:
+  email_notification:
+    template: |
+      Send an email notification to the contact person about visitor arrival.
+
+      Contact: {contact_name}
+      Subject: {subject}
+      Message: {message}
+
+      Please send this email using the send_email tool.
+    type: "string"
+    input_variables:
+      - "contact_name"
+      - "subject"
+      - "message"
+
+  email_subject:
+    template: "Visitor Arrival Notification - {visitor_name}"
+    type: "string"
+    input_variables:
+      - "visitor_name"
+
+  email_body:
+    template: |
+      Hello {contact_name},
+
+      This is an automated notification that your visitor has arrived:
+
+      Visitor Details:
+      - Name: {visitor_name}
+      - Purpose: {visitor_purpose}
+      - Affiliation: {visitor_affiliation}
+      - Status: Access Granted
+
+      The visitor has been cleared through security and is proceeding to the main entrance.
+
+      Best regards,
+      Security Gate System
+    type: "string"
+    input_variables:
+      - "contact_name"
+      - "visitor_name"
+      - "visitor_purpose"
+      - "visitor_affiliation"
+
+  notification_messages:
+    success: "📧 Notification sent to {contact_name} about your arrival."
+    failure: "⚠️ Could not send notification to {contact_name}. Please contact them directly."
+    no_contact: "ℹ️ No contact person on file. Please proceed to reception."

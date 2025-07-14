@@ -4,6 +4,7 @@ from ..core.state import State
 from ..data.contacts import CONTACTS
 from ..utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_main
+from prompts.manager import prompt_manager
 
 
 def check_visitor_profile_node(state: State) -> State:
@@ -31,57 +32,27 @@ def check_visitor_profile_node(state: State) -> State:
     # Try to extract information using LLM
     for field in fields_to_extract:
         if state["visitor_profile"][field] is None:
-            # Define detailed descriptions for each field
-            field_descriptions = {
-                "name": "The visitor's full name (first and last name). Examples: 'John Smith', 'Maria Garcia', 'David Kim', '-1'",
-                "purpose": "The reason for the visit or what they want to do. Examples: 'meeting', 'delivery', 'tour', 'interview', 'maintenance', '-1'",
-                "contact_person": "The visitor's contact inside the company. Examples: 'David Smith', 'Alice Kimble', 'CEO', 'CTO', 'Mr. John, '-1''",
-                "threat_level": "Security risk assessment based on items carried, behavior, or concerns mentioned. Examples: 'low', 'medium', 'high', '-1'",
-                "affiliation": "Company, organization, or group they represent. Examples: 'Google', 'FedEx', 'University of XYZ', 'independent contractor', '-1'",
-            }
+            # Get field description from prompt manager
+            field_description = prompt_manager.get_field_description(field)
 
-            # Create extraction prompt with field-specific description
-            extraction_prompt = f"""You are a data extraction tool. Your task is to extract ONLY the {field} value from the conversation.
-
-FIELD DESCRIPTION:
-{field} = {field_descriptions[field]}
-
-STRICT RULES:
-- Respond with ONLY the {field} value (no explanations, no sentences)
-- If you cannot clearly determine the {field} from the conversation, respond with exactly: -1
-- Maximum 3 words for the response
-- No punctuation except necessary hyphens or periods
-
-Examples:
-- If extracting "name" and conversation mentions "I'm John Smith" → respond: John Smith
-- If extracting "purpose" and visitor says "here for the meeting" → respond: meeting
-- If extracting "affiliation" and they say "I work at Google" → respond: Google
-- If extracting "threat_level" and they say "I have no restricted items" → respond: low
-- If cannot determine the value → respond: -1
-
-Conversation:
-{conversation_text}
-
-Extract {field}:"""
+            # Create extraction prompt using prompt manager
+            prompt_value = prompt_manager.invoke_prompt(
+                "processing",
+                "extract_field",
+                field=field,
+                field_description=field_description,
+                conversation_text=conversation_text,
+            )
 
             try:
-                response = llm_main.invoke([HumanMessage(content=extraction_prompt)])
+                response = llm_main.invoke(prompt_value)
                 extracted_value = extract_answer_from_thinking_model(response)
 
                 print(extracted_value)
 
                 # Additional cleaning to ensure we get only the value
-                # Remove common prefixes that LLM might add
-                prefixes_to_remove = [
-                    f"{field}:",
-                    f"{field.capitalize()}:",
-                    "Answer:",
-                    "Response:",
-                    "Value:",
-                    "Result:",
-                    "The " + field + " is",
-                    "Their " + field + " is",
-                ]
+                # Get removal prefixes from prompt manager
+                prefixes_to_remove = prompt_manager.get_extraction_prefixes(field)
 
                 for prefix in prefixes_to_remove:
                     if extracted_value.startswith(prefix):
@@ -132,38 +103,18 @@ def validate_contact_person(state: State) -> State:
             ]
         )
 
-        # Create contact validation prompt
+        # Create contact validation prompt using prompt manager
         known_contacts_list = "\n".join([f"- {contact}" for contact in CONTACTS.keys()])
 
-        validation_prompt = f"""You are a strict contact person validator. Your task is to determine if the visitor is referring to any of the known contacts in our organization.
-
-KNOWN CONTACTS:
-{known_contacts_list}
-
-STRICT MATCHING RULES:
-- ONLY match if the visitor mentions a name that is clearly the SAME PERSON as one of the known contacts
-- Match variations like "David", "Mr. Smith", "Dave Smith" to "David Smith" 
-- Match "Alice", "Ms. Kimble", "Alice K" to "Alice Kimble"
-- Match "John", "Martinez", "J. Martinez" to "John Martinez"
-- DO NOT match similar sounding but different names: "Ahmad Kim" is NOT "Alice Kimble"
-- DO NOT match partial similarities: "Mike Chen" is NOT "Michael Chen" unless clearly referring to the same person
-- If the names are completely different people, respond with -1
-- Only respond with the EXACT name from the list if you are certain it's the same person
-- When in doubt, respond with -1
-
-Examples:
-- Visitor says "Ahmad Kim" → -1 (not in our list)
-- Visitor says "Dave" or "David" → "David Smith" (clear match)
-- Visitor says "Alice" or "Ms. Kimble" → "Alice Kimble" (clear match)
-- Visitor says "Johnson" → -1 (could be Sarah Johnson but not specific enough)
-
-Conversation:
-{conversation_text}
-
-Contact person:"""
+        prompt_value = prompt_manager.invoke_prompt(
+            "processing",
+            "validate_contact",
+            known_contacts=known_contacts_list,
+            conversation_text=conversation_text,
+        )
 
         try:
-            response = llm_main.invoke([HumanMessage(content=validation_prompt)])
+            response = llm_main.invoke(prompt_value)
             extracted_contact = extract_answer_from_thinking_model(response).strip()
 
             # Only set contact_person if it's a valid contact from our list
@@ -218,15 +169,8 @@ def question_visitor(state: State) -> State:
     """
     Ask specific questions for missing visitor profile fields.
     """
-    # Define specific questions for each field
+    # Get questions from prompt manager
     known_contacts_list = ", ".join(CONTACTS.keys())
-    field_questions = {
-        "name": "What is your name?",
-        "purpose": "What is the purpose of your visit today?",
-        "contact_person": f"Who is your contact? (Known contacts include: {known_contacts_list})",
-        "threat_level": "Are you carrying any restricted items or have any security concerns I should know about?",
-        "affiliation": "What company or organization are you with?",
-    }
 
     # Find the first missing field that needs to be completed
     fields_to_check = [
@@ -242,14 +186,23 @@ def question_visitor(state: State) -> State:
             state["visitor_profile"][field] is None
             or state["visitor_profile"][field] == "-1"
         ):
-            # Ask specific question for this missing field
-            question_text = field_questions[field]
+            # Get question for this field from prompt manager
+            if field == "contact_person":
+                question_text = prompt_manager.get_field_question(
+                    field, known_contacts=known_contacts_list
+                )
+            else:
+                question_text = prompt_manager.get_field_question(field)
+
             question = AIMessage(content=question_text)
             state["messages"].append(question)
             print(f"🤔 Asking for missing field: {field}")
             return state
 
     # Fallback if somehow all fields are filled but we're still here
-    question = AIMessage(content="Can you tell me more about yourself?")
+    fallback_question = prompt_manager.get_field_data("input_validation")[
+        "fallback_question"
+    ]
+    question = AIMessage(content=fallback_question)
     state["messages"].append(question)
     return state
