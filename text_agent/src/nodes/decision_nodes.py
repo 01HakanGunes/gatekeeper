@@ -2,7 +2,7 @@ from typing import Literal
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.prebuilt import ToolNode
 from ..core.state import State
-from ..core.constants import CONTACTS
+from ..data.contacts import CONTACTS
 from ..utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_decision, llm_email
 from ..tools.communication import tools

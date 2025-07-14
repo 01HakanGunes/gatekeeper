@@ -6,6 +6,3 @@ CONTACTS = {
     "Sarah Johnson": "sarah.johnson@company.com",
     "Michael Chen": "michael.chen@company.com",
 }
-
-# Maximum number of human messages allowed before summarization
-MAX_HUMAN_MESSAGES = 10

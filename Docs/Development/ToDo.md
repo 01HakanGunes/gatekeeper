@@ -1,7 +1,7 @@
 
-- i need to switch the some llm outputs to the json format (that are not ai_message to the human).
-
 - Manage Prompts in a different controlled place. Add fallbacks or prompt switches to the nodes
+
+- i need to switch the some llm outputs to the json format (that are not ai_message to the human).
 
 - Change summarize with shorten where we only keep the last x messages always
 
