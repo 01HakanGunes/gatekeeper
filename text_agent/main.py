@@ -20,6 +20,26 @@ def main():
     # Create the security graph
     graph = create_security_graph()
 
+    # Generate and save graph visualization
+    print("📊 Generating graph visualization...")
+    try:
+        # Get the PNG bytes from the compiled graph
+        png_data = graph.get_graph().draw_mermaid_png()
+
+        # Save the PNG bytes to a file
+        if png_data:
+            output_filename = (
+                "mermaid_diagram.png"  # You can change the filename as needed
+            )
+            with open(output_filename, "wb") as f:
+                f.write(png_data)
+            print(f"✅ Mermaid diagram saved to {output_filename}")
+        else:
+            print("❌ Could not generate Mermaid PNG data.")
+    except Exception as e:
+        print(f"⚠️ Could not generate graph diagram: {e}")
+        print("   (This is optional and won't affect the main functionality)")
+
     # Create initial state
     initial_state = create_initial_state()
 
