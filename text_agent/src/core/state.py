@@ -16,3 +16,5 @@ class State(TypedDict):
     messages: Annotated[list, add_messages]
     visitor_profile: VisitorProfile
     decision: str
+    decision_confidence: Optional[float]
+    decision_reasoning: Optional[str]

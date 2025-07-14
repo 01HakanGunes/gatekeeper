@@ -1,10 +1,5 @@
 # Security Gate System - To-Do List
 
-### **Implement Structured JSON Output for LLM Responses**
-- Convert LLM outputs that are not AI messages to humans into structured JSON format
-- Focus on field extraction in `check_visitor_profile_node` and decision making in `make_decision`
-- Use JSON schemas to enforce consistent output formats
-
 ### **Add Message History Management Options**
 - Implement a "shorten" strategy alongside the existing "summarize" function in `src/nodes/input_nodes.py`
 - Add command-line argument `--history-mode` with options: `summarize` or `shorten`

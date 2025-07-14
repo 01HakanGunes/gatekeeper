@@ -1,15 +1,16 @@
 from typing import Literal
+import json
 from langchain_core.messages import HumanMessage, AIMessage
 from ..core.state import State
 from data.contacts import CONTACTS
 from ..utils.extraction import extract_answer_from_thinking_model
-from models.llm_config import llm_main
+from models.llm_config import llm_main_json, llm_validation_json
 from ..utils.prompt_manager import prompt_manager
 
 
 def check_visitor_profile_node(state: State) -> State:
     """
-    Node function that performs LLM extraction and updates the visitor profile.
+    Node function that performs LLM extraction and updates the visitor profile using structured JSON output.
     """
     # Get current conversation context
     messages = state["messages"]
@@ -27,54 +28,84 @@ def check_visitor_profile_node(state: State) -> State:
         "purpose",
         "threat_level",
         "affiliation",
-    ]  # contact_person is exclusively handled by validate_contact_person node
+    ]
 
-    # Try to extract information using LLM
-    for field in fields_to_extract:
-        if state["visitor_profile"][field] is None:
-            # Get field description from prompt manager
-            field_description = prompt_manager.get_field_description(field)
+    # Check which fields are missing
+    missing_fields = [
+        field for field in fields_to_extract if state["visitor_profile"][field] is None
+    ]
 
-            # Create extraction prompt using prompt manager
-            prompt_value = prompt_manager.invoke_prompt(
-                "processing",
-                "extract_field",
-                field=field,
-                field_description=field_description,
-                conversation_text=conversation_text,
-            )
+    if not missing_fields:
+        print("✅ All fields already extracted")
+        return state
 
-            try:
-                response = llm_main.invoke(prompt_value)
-                extracted_value = extract_answer_from_thinking_model(response)
+    # Define JSON schema for structured extraction
+    extraction_schema = {
+        "extracted_fields": {
+            field: "string or null (if not found)" for field in missing_fields
+        },
+        "confidence": {field: "number between 0 and 1" for field in missing_fields},
+    }
 
-                print(extracted_value)
+    # Create unified extraction prompt using prompt manager
+    fields_descriptions = {
+        field: prompt_manager.get_field_description(field) for field in missing_fields
+    }
 
-                # Additional cleaning to ensure we get only the value
-                # Get removal prefixes from prompt manager
-                prefixes_to_remove = prompt_manager.get_extraction_prefixes(field)
+    prompt_value = prompt_manager.invoke_prompt(
+        "processing",
+        "extract_multiple_fields_json",
+        fields_to_extract=", ".join(missing_fields),
+        fields_descriptions=json.dumps(fields_descriptions, indent=2),
+        conversation_text=conversation_text,
+        json_schema=json.dumps(extraction_schema, indent=2),
+    )
 
-                for prefix in prefixes_to_remove:
-                    if extracted_value.startswith(prefix):
-                        extracted_value = extracted_value[len(prefix) :].strip()
+    try:
+        response = llm_main_json.invoke(prompt_value)
+        # Handle response content properly
+        if hasattr(response, "content"):
+            content = response.content
+        else:
+            content = str(response)
 
-                # Remove quotes if present
-                extracted_value = extracted_value.strip("\"'")
+        if isinstance(content, str):
+            extraction_data = json.loads(content)
+        else:
+            raise ValueError("Response content is not a string")
 
-                # Take only the first few words if response is too long
-                words = extracted_value.split()
-                if len(words) > 3:
-                    extracted_value = " ".join(words[-3:])
+        # Update profile with extracted fields
+        extracted_fields = extraction_data.get("extracted_fields", {})
+        confidence_scores = extraction_data.get("confidence", {})
 
-                # Update profile if valid information found
-                if extracted_value != "-1" and extracted_value:
-                    state["visitor_profile"][field] = extracted_value
-                    print(f"✅ Extracted {field}: '{extracted_value}'")
+        for field in missing_fields:
+            if field in extracted_fields:
+                value = extracted_fields[field]
+                confidence = confidence_scores.get(field, 0.0)
 
-            except Exception as error:
-                print(f"Error extracting {field}: {error}")
-                # Continue with other fields if one fails
-                continue
+                # Validate and clean the extracted value
+                if value and value != "-1" and value.lower() != "null":
+                    # Additional cleaning
+                    value = str(value).strip("\"'")
+
+                    # Take only the first few words if response is too long
+                    words = value.split()
+                    if len(words) > 3:
+                        value = " ".join(words[-3:])
+
+                    state["visitor_profile"][field] = value
+                    print(
+                        f"✅ Extracted {field}: '{value}' (confidence: {confidence:.2f})"
+                    )
+                else:
+                    print(f"❌ Could not extract {field}")
+
+    except (json.JSONDecodeError, KeyError, Exception) as error:
+        print(f"⚠️ JSON extraction failed: {error}")
+        # Set fields as None if JSON extraction fails
+        for field in missing_fields:
+            if state["visitor_profile"][field] is None:
+                print(f"❌ Could not extract {field}")
 
     # Print current visitor profile status for debugging
     print(f"\n📋 Current Visitor Profile:")
@@ -88,7 +119,7 @@ def check_visitor_profile_node(state: State) -> State:
 
 def validate_contact_person(state: State) -> State:
     """
-    Dedicated node for extracting and validating contact persons against known contacts list.
+    Dedicated node for extracting and validating contact persons against known contacts list using JSON output.
     This is the only node that handles contact_person field.
     """
     # Only process if contact_person is not already set
@@ -103,33 +134,59 @@ def validate_contact_person(state: State) -> State:
             ]
         )
 
-        # Create contact validation prompt using prompt manager
-        known_contacts_list = "\n".join([f"- {contact}" for contact in CONTACTS.keys()])
+        # Create contact validation prompt using prompt manager with JSON schema
+        known_contacts_list = list(CONTACTS.keys())
+
+        validation_schema = {
+            "extracted_contact": "string (the contact person mentioned in conversation)",
+            "matched_contact": "string or null (exact match from known contacts list)",
+            "confidence": "number between 0 and 1",
+            "is_valid_contact": "boolean (true if matched_contact is not null)",
+        }
 
         prompt_value = prompt_manager.invoke_prompt(
             "processing",
-            "validate_contact",
-            known_contacts=known_contacts_list,
+            "validate_contact_json",
+            known_contacts=json.dumps(known_contacts_list),
             conversation_text=conversation_text,
+            json_schema=json.dumps(validation_schema, indent=2),
         )
 
         try:
-            response = llm_main.invoke(prompt_value)
-            extracted_contact = extract_answer_from_thinking_model(response).strip()
+            response = llm_validation_json.invoke(prompt_value)
+            # Handle response content properly
+            if hasattr(response, "content"):
+                content = response.content
+            else:
+                content = str(response)
+
+            if isinstance(content, str):
+                validation_data = json.loads(content)
+            else:
+                raise ValueError("Response content is not a string")
+
+            extracted_contact = validation_data.get("extracted_contact", "")
+            matched_contact = validation_data.get("matched_contact")
+            confidence = validation_data.get("confidence", 0.0)
+            is_valid = validation_data.get("is_valid_contact", False)
 
             # Only set contact_person if it's a valid contact from our list
-            if extracted_contact in CONTACTS:
-                state["visitor_profile"]["contact_person"] = extracted_contact
-                print(f"✅ Contact validation: Matched '{extracted_contact}'")
-            elif extracted_contact != "-1":
+            if is_valid and matched_contact and matched_contact in CONTACTS:
+                state["visitor_profile"]["contact_person"] = matched_contact
                 print(
-                    f"⚠️ Contact person '{extracted_contact}' not in known list, keeping as None"
+                    f"✅ Contact validation: Matched '{matched_contact}' (confidence: {confidence:.2f})"
+                )
+            elif extracted_contact and extracted_contact != "-1":
+                print(
+                    f"⚠️ Contact person '{extracted_contact}' not in known list, keeping as None (confidence: {confidence:.2f})"
                 )
             else:
-                print("❌ Contact validation: No known contact found")
+                print("❌ Contact validation: No contact person found in conversation")
 
-        except Exception as error:
-            print(f"Error validating contact person: {error}")
+        except (json.JSONDecodeError, KeyError, Exception) as error:
+            print(f"⚠️ JSON contact validation failed: {error}")
+            # Keep contact_person as None if JSON validation fails
+            print("❌ Contact validation: Failed to process contact information")
     else:
         print(
             f"ℹ️ Contact validation: Already set to '{state['visitor_profile']['contact_person']}'"

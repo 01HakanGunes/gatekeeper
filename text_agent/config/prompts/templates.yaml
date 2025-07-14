@@ -1,5 +1,6 @@
 decision:
-  make_decision:
+
+  make_decision_json:
     template: |
       You are a security gate decision system. Based on the visitor profile and conversation, choose the most appropriate security action.
 
@@ -17,7 +18,17 @@ decision:
       RECENT CONVERSATION:
       {conversation_text}
 
-      Respond with ONLY the decision ID (e.g., "allow_request", "call_security", etc.):
+      You must respond with a valid JSON object following this exact schema:
+      {json_schema}
+
+      Analyze the visitor profile and conversation to make an informed security decision. Consider:
+      - Completeness and consistency of visitor information
+      - Legitimacy of stated purpose and affiliation
+      - Valid contact person from known list
+      - Any suspicious behavior or inconsistencies
+      - Overall threat assessment
+
+      Return ONLY valid JSON with no additional text:
     type: "string"
     input_variables: 
       - "profile_name"
@@ -28,6 +39,7 @@ decision:
       - "profile_id_verified"
       - "decisions_list"
       - "conversation_text"
+      - "json_schema"
 
   decision_messages:
     allow_request: "✅ Access granted. Welcome! Please proceed to the main entrance."
@@ -44,35 +56,36 @@ decision:
     error_decision: "❌ I cannot process your request at this time. Please contact reception for assistance."
 
 processing:
-  extract_field:
+
+  extract_multiple_fields_json:
     template: |
-      You are a data extraction tool. Your task is to extract ONLY the {field} value from the conversation.
+      You are a data extraction tool. Your task is to extract multiple visitor information fields from the conversation using structured JSON output.
 
-      FIELD DESCRIPTION:
-      {field} = {field_description}
+      FIELDS TO EXTRACT: {fields_to_extract}
 
-      STRICT RULES:
-      - Respond with ONLY the {field} value (no explanations, no sentences)
-      - If you cannot clearly determine the {field} from the conversation, respond with exactly: -1
-      - Maximum 3 words for the response
-      - No punctuation except necessary hyphens or periods
+      FIELD DESCRIPTIONS:
+      {fields_descriptions}
 
-      Examples:
-      - If extracting "name" and conversation mentions "I'm John Smith" → respond: John Smith
-      - If extracting "purpose" and visitor says "here for the meeting" → respond: meeting
-      - If extracting "affiliation" and they say "I work at Google" → respond: Google
-      - If extracting "threat_level" and they say "I have no restricted items" → respond: low
-      - If cannot determine the value → respond: -1
-
-      Conversation:
+      CONVERSATION:
       {conversation_text}
 
-      Extract {field}:
+      You must respond with a valid JSON object following this exact schema:
+      {json_schema}
+
+      Instructions:
+      - Extract only the specific information requested for each field
+      - If a field cannot be found or determined, set its value to null
+      - Provide confidence scores between 0 and 1 for each extraction
+      - Be precise and avoid making assumptions
+      - Look for exact matches and clear statements
+
+      Return ONLY valid JSON with no additional text:
     type: "string"
     input_variables:
-      - "field"
-      - "field_description"
+      - "fields_to_extract"
+      - "fields_descriptions"
       - "conversation_text"
+      - "json_schema"
 
   ask_missing_field:
     template: |
@@ -92,100 +105,70 @@ processing:
       - "field_description"
       - "field_question"
 
-  validate_contact:
+  validate_contact_json:
     template: |
-      You are a strict contact person validator. Your task is to determine if the visitor is referring to any of the known contacts in our organization.
+      You are a contact validation system. Your task is to identify if a contact person is mentioned in the conversation and validate it against the known contacts list.
 
-      KNOWN CONTACTS:
+      KNOWN CONTACTS LIST:
       {known_contacts}
 
-      STRICT MATCHING RULES:
-      - ONLY match if the visitor mentions a name that is clearly the SAME PERSON as one of the known contacts
-      - Match variations like "David", "Mr. Smith", "Dave Smith" to "David Smith" 
-      - Match "Alice", "Ms. Kimble", "Alice K" to "Alice Kimble"
-      - Match "John", "Martinez", "J. Martinez" to "John Martinez"
-      - DO NOT match similar sounding but different names: "Ahmad Kim" is NOT "Alice Kimble"
-      - DO NOT match partial similarities: "Mike Chen" is NOT "Michael Chen" unless clearly referring to the same person
-      - If the names are completely different people, respond with -1
-      - Only respond with the EXACT name from the list if you are certain it's the same person
-      - When in doubt, respond with -1
-
-      Examples:
-      - Visitor says "Ahmad Kim" → -1 (not in our list)
-      - Visitor says "Dave" or "David" → "David Smith" (clear match)
-      - Visitor says "Alice" or "Ms. Kimble" → "Alice Kimble" (clear match)
-      - Visitor says "Johnson" → -1 (could be Sarah Johnson but not specific enough)
-
-      Conversation:
+      CONVERSATION:
       {conversation_text}
 
-      Contact person:
+      You must respond with a valid JSON object following this exact schema:
+      {json_schema}
+
+      Instructions:
+      - Look for any mention of a contact person, colleague, or someone the visitor wants to meet
+      - Check if the mentioned contact exactly matches someone from the known contacts list
+      - If there's a match, set matched_contact to the exact name from the list
+      - If no contact is mentioned or no match found, set matched_contact to null
+      - Provide confidence score based on clarity of the mention
+
+      Return ONLY valid JSON with no additional text:
     type: "string"
     input_variables:
       - "known_contacts"
       - "conversation_text"
+      - "json_schema"
 
 input:
-  validate_input:
-    template: |
-      You are an input validator for a security gate system. Your job is to determine if user input is relevant and appropriate for a security checkpoint conversation.
-
-      VALID inputs include:
-      - Personal information (names, company names, purposes)
-      - Responses to security questions
-      - Regular conversations
-      - Questions about the facility or visit process
-      - Explanations about their visit purpose
-      - Description of their belongings, visuals for thread assessment, behaviour (i am angry/chill/funny)
-
-      INVALID inputs include:
-      - Complete gibberish or random characters
-      - Curse words
-      - Spam or repetitive nonsense
-      - Completely irrelevant topics (sports, weather, unrelated subjects)
-
-      Respond with ONLY one word:
-      - "valid" if the input is appropriate for a security checkpoint
-      - "unrelated" if the input is gibberish, spam, offensive, or completely irrelevant
-
-      Input to validate: "{user_input}"
-
-      Response:
-    type: "string"
-    input_variables:
-      - "user_input"
-
   system_message:
     template: "You are a helpful assistant at the gate. Ask necessary questions and decide on access."
     type: "string"
     input_variables: []
 
-  detect_session:
+  detect_session_json:
     template: |
-      You are a session detector for a security gate system. Determine if the latest message indicates a NEW visitor has arrived or if it's the SAME visitor continuing the conversation. For most case if not apparent, choose SAME visitor.
-
-      NEW VISITOR indicators:
-      - Introductions with different names ("Hi, I'm John" when previous visitor was "Mary")
-      - Greetings that suggest a fresh start ("Hello", "Hi there", "Good morning" at unexpected times)
-      - References to being a different person
-
-      SAME VISITOR indicators:
-      - If not one of the new visitor indicators (for most cases).
+      You are a session detection system. Analyze the conversation to determine if this is the same visitor continuing or a new visitor starting.
 
       CONVERSATION CONTEXT:
       {conversation_context}
 
-      LATEST MESSAGE: {last_user_message}
+      LATEST USER MESSAGE:
+      {last_user_message}
 
-      Respond with ONLY one word:
-      - "new" if this appears to be a new visitor
-      - "same" if this is the same visitor continuing
+      You must respond with a valid JSON object following this exact schema:
+      {json_schema}
 
-      Response:
+      Look for indicators of a new session:
+      - New greetings or introductions ("Hi", "Hello", "I'm...", etc.)
+      - Complete change of topic or context
+      - New person identifying themselves
+      - References to being a different person
+
+      Look for indicators of same session continuing:
+      - Follow-up responses to previous questions
+      - Continuation of established context
+      - Building on previously mentioned information
+      - No new introductions
+
+      Return ONLY valid JSON with no additional text:
     type: "string"
     input_variables:
       - "conversation_context"
       - "last_user_message"
+      - "json_schema"
 
   summarize_conversation:
     template: |
@@ -204,6 +187,35 @@ input:
     type: "string"
     input_variables:
       - "conversation_text"
+
+  validate_input:
+    template: |
+      You are an input validator for a security gate system. Your job is to determine if user input is relevant and appropriate for a security checkpoint conversation.
+
+      VALID inputs include:
+      - Personal information (names, company names, purposes)
+      - Responses to security questions
+      - Regular conversations
+      - Questions about the facility or visit process
+      - Explanations about their visit purpose
+      - Description of their belongings, visuals for threat assessment, behaviour (i am angry/chill/funny)
+
+      INVALID inputs include:
+      - Complete gibberish or random characters
+      - Curse words
+      - Spam or repetitive nonsense
+      - Completely irrelevant topics (sports, weather, unrelated subjects)
+
+      Respond with ONLY one word:
+      - "valid" if the input is appropriate for a security checkpoint
+      - "unrelated" if the input is gibberish, spam, offensive, or completely irrelevant
+
+      Input to validate: "{user_input}"
+
+      Response:
+    type: "string"
+    input_variables:
+      - "user_input"
 
 communication:
   email_notification:

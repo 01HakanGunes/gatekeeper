@@ -1,9 +1,10 @@
 from typing import Literal
+import json
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from ..core.state import State
 from config.settings import MAX_HUMAN_MESSAGES
 from ..utils.extraction import extract_answer_from_thinking_model
-from models.llm_config import llm_validation, llm_session, llm_summary
+from models.llm_config import llm_summary, llm_session_json
 from ..utils.prompt_manager import prompt_manager
 
 
@@ -41,18 +42,22 @@ def receive_input(state: State) -> State:
         # Basic check for empty input
         if not user_input.strip():
             print("❌ Input validation: Empty input detected")
-            print(
-                "Agent: I didn't understand that. Please provide relevant information for your visit. I need to know your name, purpose of visit, company/organization, and any security-related information."
-            )
+            empty_message = prompt_manager.get_field_data("input_validation")[
+                "empty_input_message"
+            ]
+            print(f"Agent: {empty_message}")
             continue  # Ask for input again
 
         # Create a validation prompt using prompt manager
         try:
+            # Use prompt manager to get validation prompt
             prompt_value = prompt_manager.invoke_prompt(
                 "input", "validate_input", user_input=user_input
             )
 
             # Use the centralized validation LLM
+            from models.llm_config import llm_validation
+
             response = llm_validation.invoke(prompt_value)
 
             # Extract the response content (handling thinking models)
@@ -95,7 +100,7 @@ def receive_input(state: State) -> State:
 
 def detect_session(state: State) -> Literal["same", "new"]:
     """
-    Detects if the current input is from a new visitor or the same visitor.
+    Detects if the current input is from a new visitor or the same visitor using structured JSON output.
     Uses LLM to analyze conversation patterns and detect session changes.
     """
     messages = state["messages"]
@@ -113,31 +118,60 @@ def detect_session(state: State) -> Literal["same", "new"]:
         ]
     )
 
-    # Create session detection prompt using prompt manager
+    # Define JSON schema for session detection
+    session_schema = {
+        "session_type": "string (either 'same' or 'new')",
+        "confidence": "number between 0 and 1",
+        "indicators": "array of strings (reasons for the decision)",
+        "greeting_detected": "boolean (true if new greeting/introduction detected)",
+    }
+
+    # Create session detection prompt using prompt manager with JSON schema
     try:
         prompt_value = prompt_manager.invoke_prompt(
             "input",
-            "detect_session",
+            "detect_session_json",
             conversation_context=conversation_context,
             last_user_message=last_user_message,
+            json_schema=json.dumps(session_schema, indent=2),
         )
 
-        response = llm_session.invoke(prompt_value)
-        result = extract_answer_from_thinking_model(response).lower()
+        response = llm_session_json.invoke(prompt_value)
 
-        if "new" in result and "same" not in result:
-            print("🆕 Session detection: New visitor detected")
-            return "new"
-        elif "same" in result:
-            print("🔄 Session detection: Same visitor continuing")
-            return "same"
+        # Handle response content properly
+        if hasattr(response, "content"):
+            content = response.content
         else:
-            # Default to same session if unclear
-            print("⚠️ Session detection: Unclear response, defaulting to same session")
+            content = str(response)
+
+        if isinstance(content, str):
+            session_data = json.loads(content)
+        else:
+            raise ValueError("Response content is not a string")
+
+        session_type = session_data.get("session_type", "same").lower()
+        confidence = session_data.get("confidence", 0.0)
+        indicators = session_data.get("indicators", [])
+        greeting_detected = session_data.get("greeting_detected", False)
+
+        # Validate session type
+        if session_type in ["new", "same"]:
+            print(
+                f"🔍 Session detection: {session_type.upper()} (confidence: {confidence:.2f})"
+            )
+            if indicators:
+                print(f"📝 Indicators: {', '.join(indicators)}")
+            if greeting_detected:
+                print("👋 New greeting/introduction detected")
+            return session_type
+        else:
+            print("⚠️ Invalid session type in JSON response, defaulting to same session")
             return "same"
 
-    except Exception as error:
-        print(f"⚠️ Session detection error: {error}")
+    except (json.JSONDecodeError, KeyError, Exception) as error:
+        print(f"⚠️ JSON session detection failed: {error}")
+        # Default to same session if JSON detection fails
+        print("🔄 Session detection: Defaulting to same session")
         return "same"
 
 

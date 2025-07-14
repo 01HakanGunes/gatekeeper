@@ -117,4 +117,6 @@ def create_initial_state() -> State:
             "id_verified": None,
         },
         "decision": "",
+        "decision_confidence": None,
+        "decision_reasoning": None,
     }

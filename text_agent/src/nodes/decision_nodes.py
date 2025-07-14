@@ -1,10 +1,11 @@
 from typing import Literal
+import json
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.prebuilt import ToolNode
 from ..core.state import State
 from data.contacts import CONTACTS
 from ..utils.extraction import extract_answer_from_thinking_model
-from models.llm_config import llm_decision, llm_email
+from models.llm_config import llm_email, llm_decision_json
 from ..tools.communication import tools
 from ..utils.prompt_manager import prompt_manager
 
@@ -12,7 +13,7 @@ from ..utils.prompt_manager import prompt_manager
 def make_decision(state: State) -> State:
     """
     Make a security decision based on visitor profile and conversation context.
-    Uses LLM to analyze all information and choose appropriate action.
+    Uses LLM to analyze all information and choose appropriate action with structured JSON output.
     """
     # Get visitor profile and conversation context
     profile = state["visitor_profile"]
@@ -30,7 +31,7 @@ def make_decision(state: State) -> State:
     # Define available decisions from prompt manager
     decisions = prompt_manager.get_data("decision", "available_decisions")
 
-    # Create decision prompt using prompt manager
+    # Create decision prompt using prompt manager with JSON schema
     decisions_list = "\n".join(
         [
             f"{i+1}. {decision_id} - {description}"
@@ -38,9 +39,17 @@ def make_decision(state: State) -> State:
         ]
     )
 
+    # Define JSON schema for structured decision output
+    decision_schema = {
+        "decision": "string (one of: allow_request, call_security, deny_request)",
+        "confidence": "number between 0 and 1",
+        "reasoning": "string with brief explanation",
+        "threat_indicators": "array of strings (any concerning factors found)",
+    }
+
     prompt_value = prompt_manager.invoke_prompt(
         "decision",
-        "make_decision",
+        "make_decision_json",
         profile_name=profile["name"],
         profile_purpose=profile["purpose"],
         profile_contact_person=profile["contact_person"],
@@ -49,41 +58,72 @@ def make_decision(state: State) -> State:
         profile_id_verified=profile["id_verified"],
         decisions_list=decisions_list,
         conversation_text=conversation_text,
+        json_schema=json.dumps(decision_schema, indent=2),
     )
 
     try:
-        response = llm_decision.invoke(prompt_value)
-        decision_result = extract_answer_from_thinking_model(response).strip().lower()
+        response = llm_decision_json.invoke(prompt_value)
+        # Handle response content properly - it might be a string or have .content attribute
+        if hasattr(response, "content"):
+            content = response.content
+        else:
+            content = str(response)
 
-        # Clean and validate decision
-        for decision_id in decisions.keys():
-            if decision_id in decision_result:
-                state["decision"] = decision_id
+        # Ensure content is a string for JSON parsing
+        if isinstance(content, str):
+            decision_data = json.loads(content)
+        else:
+            raise ValueError("Response content is not a string")
 
-                # Add appropriate response message from prompt manager
-                decision_messages = prompt_manager.get_data(
-                    "decision", "decision_messages"
+        # Validate decision is one of the allowed options
+        decision_result = decision_data.get("decision", "").strip().lower()
+        confidence = decision_data.get("confidence", 0.0)
+        reasoning = decision_data.get("reasoning", "No reasoning provided")
+
+        if decision_result in decisions.keys():
+            state["decision"] = decision_result
+            state["decision_confidence"] = confidence
+            state["decision_reasoning"] = reasoning
+
+            # Add appropriate response message from prompt manager
+            decision_messages = prompt_manager.get_data("decision", "decision_messages")
+            message_content = (
+                f"{decision_messages[decision_result]} (Confidence: {confidence:.2f})"
+            )
+            state["messages"].append(AIMessage(content=message_content))
+
+            print(f"🔒 Security Decision: {decision_result.upper()}")
+            print(f"📊 Confidence: {confidence:.2f}")
+            print(f"📋 Reason: {reasoning}")
+
+            # Log threat indicators if any
+            if (
+                "threat_indicators" in decision_data
+                and decision_data["threat_indicators"]
+            ):
+                print(
+                    f"⚠️ Threat Indicators: {', '.join(decision_data['threat_indicators'])}"
                 )
-                state["messages"].append(
-                    AIMessage(content=decision_messages[decision_id])
-                )
-                print(f"🔒 Security Decision: {decision_id.upper()}")
-                print(f"📋 Reason: {decisions[decision_id]}")
-                return state
 
-        # Fallback if no valid decision found
-        print("⚠️ Decision making: Unclear response, defaulting to deny_request")
+            return state
+
+        # Fallback if invalid decision
+        print(
+            "⚠️ Decision making: Invalid decision in JSON response, defaulting to deny_request"
+        )
         state["decision"] = "deny_request"
+        state["decision_confidence"] = 0.0
         fallback_message = prompt_manager.get_data("decision", "fallback_messages")[
             "unclear_decision"
         ]
         state["messages"].append(AIMessage(content=fallback_message))
         return state
 
-    except Exception as error:
+    except (json.JSONDecodeError, KeyError, Exception) as error:
         print(f"⚠️ Decision making error: {error}")
-        # Safe fallback decision
+        # Set default fallback decision
         state["decision"] = "deny_request"
+        state["decision_confidence"] = 0.0
         error_message = prompt_manager.get_data("decision", "fallback_messages")[
             "error_decision"
         ]
