@@ -3,8 +3,6 @@
 Security Gate System - Main Application
 
 This is the main entry point for the security gate system.
-It demonstrates how to use the modularized components to create
-a complete security screening workflow.
 """
 
 from src.core.graph import create_security_graph, create_initial_state
@@ -12,11 +10,8 @@ from config.settings import DEFAULT_RECURSION_LIMIT
 
 
 def main():
-    """
-    Run the security gate system with the reorganized modular structure.
-    """
     print("=" * 60)
-    print("🏢 SECURITY GATE SYSTEM - MODULAR VERSION")
+    print("🏢 SECURITY GATE SYSTEM")
     print("=" * 60)
     print("Welcome to the security checkpoint!")
     print("This system will ask you questions to verify your visit.")
