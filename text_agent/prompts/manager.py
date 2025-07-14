@@ -1,7 +1,6 @@
 import yaml
-import json
 from pathlib import Path
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.prompts.base import BasePromptTemplate
 
