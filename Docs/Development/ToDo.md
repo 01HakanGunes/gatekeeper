@@ -1,8 +1,8 @@
 # Security Gate System - To-Do List
 
-### **Relocate PromptManager to Utils Package**
-- Move `prompts/manager.py` to `src/utils/prompt_manager.py` to better organize utility functions
-- Update import statements across all modules that use the PromptManager
+### **✅ Relocate PromptManager to Utils Package (COMPLETED)**
+- ✅ Move `prompts/manager.py` to `src/utils/prompt_manager.py` to better organize utility functions
+- ✅ Update import statements across all modules that use the PromptManager
 
 ### **Implement Structured JSON Output for LLM Responses**
 - Convert LLM outputs that are not AI messages to humans into structured JSON format

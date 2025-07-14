@@ -6,7 +6,7 @@ from ..data.contacts import CONTACTS
 from ..utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_decision, llm_email
 from ..tools.communication import tools
-from prompts.manager import prompt_manager
+from ..utils.prompt_manager import prompt_manager
 
 
 def make_decision(state: State) -> State:

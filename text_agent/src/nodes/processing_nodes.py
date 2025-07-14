@@ -4,7 +4,7 @@ from ..core.state import State
 from ..data.contacts import CONTACTS
 from ..utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_main
-from prompts.manager import prompt_manager
+from ..utils.prompt_manager import prompt_manager
 
 
 def check_visitor_profile_node(state: State) -> State:

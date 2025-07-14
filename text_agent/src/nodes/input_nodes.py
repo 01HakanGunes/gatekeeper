@@ -4,7 +4,7 @@ from ..core.state import State
 from config.settings import MAX_HUMAN_MESSAGES
 from ..utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_validation, llm_session, llm_summary
-from prompts.manager import prompt_manager
+from ..utils.prompt_manager import prompt_manager
 
 
 def receive_input(state: State) -> State:

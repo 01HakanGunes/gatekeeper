@@ -1,6 +1,8 @@
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage
 from .state import State
+from ..utils.prompt_manager import prompt_manager
+
 from ..nodes.input_nodes import (
     receive_input,
     detect_session,
@@ -98,7 +100,6 @@ def create_initial_state() -> State:
     Returns:
         State: Initial state with system message and empty visitor profile
     """
-    from prompts.manager import prompt_manager
 
     system_msg_content = prompt_manager.format_prompt("input", "system_message")
     initial_messages = [
