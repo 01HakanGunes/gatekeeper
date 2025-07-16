@@ -58,11 +58,14 @@ def make_decision(state: State) -> State:
 
     try:
         response = llm_decision_json.invoke(prompt_value)
+
         # Handle response content properly - it might be a string or have .content attribute
         if hasattr(response, "content"):
             content = response.content
         else:
             content = str(response)
+
+        content = extract_answer_from_thinking_model(response)
 
         # Ensure content is a string for JSON parsing
         if isinstance(content, str):

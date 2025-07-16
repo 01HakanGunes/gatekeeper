@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from ..core.state import State
 from data.contacts import CONTACTS
 from ..utils.extraction import extract_answer_from_thinking_model
-from models.llm_config import llm_main_json, llm_validation_json
+from models.llm_config import llm_profiler_json
 from ..utils.prompt_manager import prompt_manager
 
 
@@ -22,10 +22,11 @@ def check_visitor_profile_node(state: State) -> State:
         ]
     )
 
-    # Define fields to extract (excluding contact_person which is handled by validate_contact_person node)
+    # Define fields to extract (including contact_person for single LLM call optimization)
     fields_to_extract = [
         "name",
         "purpose",
+        "contact_person",
         "threat_level",
         "affiliation",
     ]
@@ -63,7 +64,7 @@ def check_visitor_profile_node(state: State) -> State:
     )
 
     try:
-        response = llm_main_json.invoke(prompt_value)
+        response = llm_profiler_json.invoke(prompt_value)
         # Handle response content properly
         if hasattr(response, "content"):
             content = response.content
@@ -89,10 +90,11 @@ def check_visitor_profile_node(state: State) -> State:
                     # Additional cleaning
                     value = str(value).strip("\"'")
 
-                    # Take only the first few words if response is too long
-                    words = value.split()
-                    if len(words) > 3:
-                        value = " ".join(words[-3:])
+                    # For contact_person, keep the full name, for others limit to 3 words
+                    if field != "contact_person":
+                        words = value.split()
+                        if len(words) > 3:
+                            value = " ".join(words[-3:])
 
                     state["visitor_profile"][field] = value
                     print(
@@ -120,74 +122,42 @@ def check_visitor_profile_node(state: State) -> State:
 
 def validate_contact_person(state: State) -> State:
     """
-    Dedicated node for extracting and validating contact persons against known contacts list using JSON output.
-    This is the only node that handles contact_person field.
+    Simplified node for validating the already-extracted contact person against known contacts list.
+    No LLM call needed - pure validation logic.
     """
-    # Only process if contact_person is not already set
-    if state["visitor_profile"]["contact_person"] is None:
-        # Get current conversation context
-        messages = state["messages"]
-        conversation_text = "\n".join(
-            [
-                f"{msg.type}: {msg.content}"
-                for msg in messages
-                if hasattr(msg, "type") and hasattr(msg, "content")
-            ]
-        )
+    contact_person = state["visitor_profile"]["contact_person"]
 
-        # Create contact validation prompt using prompt manager with JSON schema
-        known_contacts_list = list(CONTACTS.keys())
+    # If no contact person was extracted, keep as None
+    if not contact_person or contact_person == "-1":
+        print("❌ Contact validation: No contact person found in conversation")
+        state["visitor_profile"]["contact_person"] = None
+        return state
 
-        # Get JSON schema from prompt manager
-        validation_schema = prompt_manager.get_schema("contact_validation_schema")
-
-        prompt_value = prompt_manager.invoke_prompt(
-            "processing",
-            "validate_contact_json",
-            known_contacts=json.dumps(known_contacts_list),
-            conversation_text=conversation_text,
-            json_schema=json.dumps(validation_schema, indent=2),
-        )
-
-        try:
-            response = llm_validation_json.invoke(prompt_value)
-            # Handle response content properly
-            if hasattr(response, "content"):
-                content = response.content
-            else:
-                content = str(response)
-
-            if isinstance(content, str):
-                validation_data = json.loads(content)
-            else:
-                raise ValueError("Response content is not a string")
-
-            extracted_contact = validation_data.get("extracted_contact", "")
-            matched_contact = validation_data.get("matched_contact")
-            confidence = validation_data.get("confidence", 0.0)
-            is_valid = validation_data.get("is_valid_contact", False)
-
-            # Only set contact_person if it's a valid contact from our list
-            if is_valid and matched_contact and matched_contact in CONTACTS:
-                state["visitor_profile"]["contact_person"] = matched_contact
-                print(
-                    f"✅ Contact validation: Matched '{matched_contact}' (confidence: {confidence:.2f})"
-                )
-            elif extracted_contact and extracted_contact != "-1":
-                print(
-                    f"⚠️ Contact person '{extracted_contact}' not in known list, keeping as None (confidence: {confidence:.2f})"
-                )
-            else:
-                print("❌ Contact validation: No contact person found in conversation")
-
-        except (json.JSONDecodeError, KeyError, Exception) as error:
-            print(f"⚠️ JSON contact validation failed: {error}")
-            # Keep contact_person as None if JSON validation fails
-            print("❌ Contact validation: Failed to process contact information")
+    # Check if the extracted contact person matches our known contacts
+    if contact_person in CONTACTS:
+        print(f"✅ Contact validation: '{contact_person}' is valid")
+        # Keep the validated contact person
+        state["visitor_profile"]["contact_person"] = contact_person
     else:
-        print(
-            f"ℹ️ Contact validation: Already set to '{state['visitor_profile']['contact_person']}'"
-        )
+        # Try case-insensitive matching for better user experience
+        contact_lower = contact_person.lower()
+        matched_contact = None
+
+        for known_contact in CONTACTS.keys():
+            if known_contact.lower() == contact_lower:
+                matched_contact = known_contact
+                break
+
+        if matched_contact:
+            print(
+                f"✅ Contact validation: Matched '{matched_contact}' (case corrected)"
+            )
+            state["visitor_profile"]["contact_person"] = matched_contact
+        else:
+            print(
+                f"⚠️ Contact person '{contact_person}' not in known list, keeping as None"
+            )
+            state["visitor_profile"]["contact_person"] = None
 
     return state
 

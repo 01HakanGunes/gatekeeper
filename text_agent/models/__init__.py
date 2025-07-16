@@ -1,6 +1,6 @@
 # Models package
 from .llm_config import (
-    llm_main_json,
+    llm_profiler_json,
     llm_validation_json,
     llm_session_json,
     llm_decision_json,
@@ -9,7 +9,7 @@ from .llm_config import (
 )
 
 __all__ = [
-    "llm_main_json",
+    "llm_profiler_json",
     "llm_validation_json",
     "llm_session_json",
     "llm_decision_json",

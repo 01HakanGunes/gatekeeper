@@ -14,11 +14,5 @@
   "extraction_schema": {
     "extracted_fields": "object with field names as keys and extracted values as strings or null",
     "confidence": "object with field names as keys and confidence scores as numbers between 0 and 1"
-  },
-  "contact_validation_schema": {
-    "extracted_contact": "string (the contact person mentioned in conversation)",
-    "matched_contact": "string or null (exact match from known contacts list)",
-    "confidence": "number between 0 and 1",
-    "is_valid_contact": "boolean (true if matched_contact is not null)"
   }
 }

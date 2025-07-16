@@ -56,12 +56,12 @@ def receive_input(state: State) -> State:
             )
 
             # Use the centralized validation LLM
-            from models.llm_config import llm_validation
+            from models.llm_config import llm_validation_json
 
-            response = llm_validation.invoke(prompt_value)
+            response = llm_validation_json.invoke(prompt_value)
 
             # Extract the response content (handling thinking models)
-            result = extract_answer_from_thinking_model(response).lower()
+            result = extract_answer_from_thinking_model(response)
 
             # Clean the response - sometimes LLM adds extra text
             if "valid" in result and "unrelated" not in result:
@@ -139,6 +139,8 @@ def detect_session(state: State) -> Literal["same", "new"]:
         else:
             content = str(response)
 
+        content = extract_answer_from_thinking_model(content)
+
         if isinstance(content, str):
             session_data = json.loads(content)
         else:
@@ -198,13 +200,13 @@ def check_context_length(state: State) -> Literal["over_limit", "under_limit"]:
 def summarize(state: State) -> State:
     """
     Manage conversation history using either summarization or shortening strategy.
-    
+
     Two modes:
     1. "summarize": Use AI to create a summary while keeping recent messages
     2. "shorten": Simply keep the last N messages without AI processing
     """
     from config.settings import CURRENT_HISTORY_MODE
-    
+
     messages = state["messages"]
 
     # Skip if too few messages
@@ -225,7 +227,7 @@ def _shorten_history(state: State) -> State:
     This is faster and doesn't require LLM processing.
     """
     messages = state["messages"]
-    
+
     # Find the system message to preserve
     system_message = next(
         (
@@ -240,17 +242,19 @@ def _shorten_history(state: State) -> State:
 
     # Keep only the last SHORTEN_KEEP_MESSAGES messages
     recent_messages = messages[-SHORTEN_KEEP_MESSAGES:]
-    
+
     # Create new message list
     new_messages = []
     if system_message:
         new_messages.append(system_message)
-    
+
     # Add a note about shortened history
     new_messages.append(
-        SystemMessage(content="[HISTORY SHORTENED: Earlier conversation truncated to manage context length]")
+        SystemMessage(
+            content="[HISTORY SHORTENED: Earlier conversation truncated to manage context length]"
+        )
     )
-    
+
     # Add recent messages
     new_messages.extend(recent_messages)
 

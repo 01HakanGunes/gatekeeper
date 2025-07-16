@@ -74,6 +74,7 @@ processing:
 
       Instructions:
       - Extract only the specific information requested for each field
+      - For contact_person: look for names of people the visitor wants to meet/visit (not their own name)
       - If a field cannot be found or determined, set its value to null
       - Provide confidence scores between 0 and 1 for each extraction
       - Be precise and avoid making assumptions
@@ -104,33 +105,6 @@ processing:
       - "field"
       - "field_description"
       - "field_question"
-
-  validate_contact_json:
-    template: |
-      You are a contact validation system. Your task is to identify if a contact person is mentioned in the conversation and validate it against the known contacts list.
-
-      KNOWN CONTACTS LIST:
-      {known_contacts}
-
-      CONVERSATION:
-      {conversation_text}
-
-      You must respond with a valid JSON object following this exact schema:
-      {json_schema}
-
-      Instructions:
-      - Look for any mention of a contact person, colleague, or someone the visitor wants to meet
-      - Check if the mentioned contact exactly matches someone from the known contacts list
-      - If there's a match, set matched_contact to the exact name from the list
-      - If no contact is mentioned or no match found, set matched_contact to null
-      - Provide confidence score based on clarity of the mention
-
-      Return ONLY valid JSON with no additional text:
-    type: "string"
-    input_variables:
-      - "known_contacts"
-      - "conversation_text"
-      - "json_schema"
 
 input:
   system_message:

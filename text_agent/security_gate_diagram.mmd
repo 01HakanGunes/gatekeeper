@@ -1,0 +1,32 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	receive_input(receive_input)
+	summarize(summarize)
+	reset_conversation(reset_conversation)
+	check_visitor_profile(check_visitor_profile)
+	validate_contact_person(validate_contact_person)
+	question_visitor(question_visitor)
+	make_decision(make_decision)
+	notify_contact(notify_contact)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> receive_input;
+	check_visitor_profile --> validate_contact_person;
+	make_decision -. &nbsp;end&nbsp; .-> __end__;
+	make_decision -. &nbsp;notify&nbsp; .-> notify_contact;
+	question_visitor --> receive_input;
+	receive_input -.-> check_visitor_profile;
+	receive_input -.-> reset_conversation;
+	receive_input -.-> summarize;
+	reset_conversation --> check_visitor_profile;
+	summarize --> check_visitor_profile;
+	validate_contact_person -. &nbsp;complete&nbsp; .-> make_decision;
+	validate_contact_person -. &nbsp;not_complete&nbsp; .-> question_visitor;
+	notify_contact --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

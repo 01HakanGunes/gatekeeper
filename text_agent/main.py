@@ -56,19 +56,28 @@ def main():
     # Generate and save graph visualization
     print("📊 Generating graph visualization...")
     try:
-        # Get the PNG bytes from the compiled graph
-        png_data = graph.get_graph().draw_mermaid_png()
+        compiled_graph = graph.get_graph()
 
-        # Save the PNG bytes to a file
+        # Save Mermaid source code (.mmd file)
+        try:
+            mermaid_source = compiled_graph.draw_mermaid()
+            mermaid_filename = "security_gate_diagram.mmd"
+            with open(mermaid_filename, "w", encoding="utf-8") as f:
+                f.write(mermaid_source)
+            print(f"✅ Mermaid source saved to {mermaid_filename}")
+        except Exception as e:
+            print(f"⚠️ Could not save Mermaid source: {e}")
+
+        # Save PNG visualization
+        png_data = compiled_graph.draw_mermaid_png()
         if png_data:
-            output_filename = (
-                "mermaid_diagram.png"  # You can change the filename as needed
-            )
-            with open(output_filename, "wb") as f:
+            png_filename = "security_gate_diagram.png"
+            with open(png_filename, "wb") as f:
                 f.write(png_data)
-            print(f"✅ Mermaid diagram saved to {output_filename}")
+            print(f"✅ Mermaid diagram (PNG) saved to {png_filename}")
         else:
             print("❌ Could not generate Mermaid PNG data.")
+
     except Exception as e:
         print(f"⚠️ Could not generate graph diagram: {e}")
         print("   (This is optional and won't affect the main functionality)")
