@@ -125,17 +125,20 @@ input:
       You must respond with a valid JSON object following this exact schema:
       {json_schema}
 
-      Look for indicators of a new session:
-      - New greetings or introductions ("Hi", "Hello", "I'm...", etc.)
-      - Complete change of topic or context
-      - New person identifying themselves
-      - References to being a different person
+      DEFAULT ASSUMPTION: Treat as SAME SESSION continuing unless there is EXPLICIT evidence of a new person.
 
-      Look for indicators of same session continuing:
-      - Follow-up responses to previous questions
-      - Continuation of established context
-      - Building on previously mentioned information
-      - No new introductions
+      Only consider it a NEW SESSION if you find CLEAR indicators:
+      - Explicit new greetings or introductions ("Hi", "Hello", "Good morning", "I'm [new name]")
+      - Person explicitly identifying themselves as someone different
+      - Direct references to being a different person ("I'm not the previous person", "This is [different name]")
+
+      Treat as SAME SESSION for ALL other cases including:
+      - Follow-up responses or clarifications
+      - Topic changes or new questions
+      - Additional information or corrections
+      - Unclear or ambiguous messages
+      - Silence followed by any response
+      - Any response that doesn't explicitly indicate a new person
 
       Return ONLY valid JSON with no additional text:
     type: "string"
