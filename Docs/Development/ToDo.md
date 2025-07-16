@@ -1,9 +1,8 @@
 # Security Gate System - To-Do List
 
-### **Add Message History Management Options**
-- Implement a "shorten" strategy alongside the existing "summarize" function in `src/nodes/input_nodes.py`
-- Add command-line argument `--history-mode` with options: `summarize` or `shorten`
-- The shorten mode should keep only the last N messages (configurable via `config/settings.py`)
+- Add mermaid diagram save in a file too (not as png but directly editable)
+
+- Add conditional edge before visiting the validate contact person, only visit if not validated
 
 ### **Optimize Contact Person Validation Logic**
 - Remove redundant LLM call in `validate_contact_person` node
@@ -19,11 +18,6 @@
 - The `send_email` tool is currently a mock implementation
 - Integrate with a real email service (gmail direct main sending)
 - Add email template management through the PromptManager
-
-### **Refine Node Organization and Categories**
-- Review and improve the current node categorization (`input_nodes`, `processing_nodes`, `decision_nodes`)
-- Consider splitting complex nodes into smaller, single-responsibility nodes
-- Evaluate if some functionality should be tools rather than nodes
 
 ### **Implement Comprehensive Logging System**
 - Replace all `print()` statements with proper logging using Python's `logging` module

@@ -1,7 +1,14 @@
 # Configuration settings for the security gate system
 
 # Maximum number of human messages allowed before summarization
-MAX_HUMAN_MESSAGES = 10
+MAX_HUMAN_MESSAGES = 20
+
+# Message history management settings
+DEFAULT_HISTORY_MODE = "summarize"  # Options: "summarize" or "shorten"
+SHORTEN_KEEP_MESSAGES = 5  # Number of recent messages to keep in shorten mode
+CURRENT_HISTORY_MODE = (
+    DEFAULT_HISTORY_MODE  # Will be set by main.py based on command-line args
+)
 
 # Model configurations
 DEFAULT_MODEL_MAIN = "gemma3n:e2b"

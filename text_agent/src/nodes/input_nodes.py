@@ -2,7 +2,7 @@ from typing import Literal
 import json
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from ..core.state import State
-from config.settings import MAX_HUMAN_MESSAGES
+from config.settings import MAX_HUMAN_MESSAGES, SHORTEN_KEEP_MESSAGES
 from ..utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_summary, llm_session_json
 from ..utils.prompt_manager import prompt_manager
@@ -197,14 +197,86 @@ def check_context_length(state: State) -> Literal["over_limit", "under_limit"]:
 
 def summarize(state: State) -> State:
     """
-    Summarize conversation history to reduce context length while preserving key information.
-    Keeps recent messages intact while condensing older conversation history.
+    Manage conversation history using either summarization or shortening strategy.
+    
+    Two modes:
+    1. "summarize": Use AI to create a summary while keeping recent messages
+    2. "shorten": Simply keep the last N messages without AI processing
     """
+    from config.settings import CURRENT_HISTORY_MODE
+    
     messages = state["messages"]
 
     # Skip if too few messages
     if len(messages) < 8:
         return state
+
+    print(f"🔄 History management mode: {CURRENT_HISTORY_MODE}")
+
+    if CURRENT_HISTORY_MODE == "shorten":
+        return _shorten_history(state)
+    else:  # default to summarize mode
+        return _summarize_history(state)
+
+
+def _shorten_history(state: State) -> State:
+    """
+    Shorten conversation history by keeping only the last N messages.
+    This is faster and doesn't require LLM processing.
+    """
+    messages = state["messages"]
+    
+    # Find the system message to preserve
+    system_message = next(
+        (
+            m
+            for m in messages
+            if hasattr(m, "type")
+            and m.type == "system"
+            and "You are a helpful assistant" in m.content
+        ),
+        None,
+    )
+
+    # Keep only the last SHORTEN_KEEP_MESSAGES messages
+    recent_messages = messages[-SHORTEN_KEEP_MESSAGES:]
+    
+    # Create new message list
+    new_messages = []
+    if system_message:
+        new_messages.append(system_message)
+    
+    # Add a note about shortened history
+    new_messages.append(
+        SystemMessage(content="[HISTORY SHORTENED: Earlier conversation truncated to manage context length]")
+    )
+    
+    # Add recent messages
+    new_messages.extend(recent_messages)
+
+    # Clear existing messages by popping them one by one
+    messages_to_remove = len(state["messages"])
+    for _ in range(messages_to_remove):
+        if len(state["messages"]) > 0:
+            state["messages"].pop(0)
+
+    # Add new messages one by one
+    for message in new_messages:
+        state["messages"].append(message)
+
+    print(
+        f"Shortened conversation from {len(messages)} to {len(new_messages)} messages"
+    )
+
+    return state
+
+
+def _summarize_history(state: State) -> State:
+    """
+    Summarize conversation history using AI to preserve important context.
+    This preserves more semantic information but requires LLM processing.
+    """
+    messages = state["messages"]
 
     # Keep initial system message and 4 most recent messages intact
     recent_messages = messages[-4:]
@@ -261,7 +333,7 @@ def summarize(state: State) -> State:
             state["messages"].append(message)
 
         print(
-            f"🔄 Summarized conversation from {len(messages)} to {len(new_messages)} messages"
+            f"� Summarized conversation from {len(messages)} to {len(new_messages)} messages"
         )
 
         return state
