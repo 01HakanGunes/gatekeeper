@@ -1,5 +1,6 @@
 from langchain_core.tools import tool
 from data.contacts import CONTACTS
+from ..utils import email_sender
 
 
 @tool
@@ -21,14 +22,26 @@ def send_email(contact_name: str, subject: str, message: str) -> str:
 
     email_address = CONTACTS[contact_name]
 
-    # Mock email sending (replace with actual email service)
-    print(f"\n📧 EMAIL SENT:")
-    print(f"To: {contact_name} ({email_address})")
-    print(f"Subject: {subject}")
-    print(f"Message: {message}")
-    print("=" * 50)
+    # Send email using the email_sender utility
+    success, result_message = email_sender.send_email(
+        recipient_email=email_address,
+        subject=subject,
+        message=message,
+        recipient_name=contact_name,
+    )
 
-    return f"✅ Email successfully sent to {contact_name} ({email_address}) with subject '{subject}'"
+    if success:
+        print(f"\n📧 EMAIL SENT:")
+        print(f"To: {contact_name} ({email_address})")
+        print(f"Subject: {subject}")
+        print(f"Message: {message}")
+        print("=" * 50)
+        return f"✅ Email successfully sent to {contact_name} ({email_address}) with subject '{subject}'"
+    else:
+        print(f"⚠️ EMAIL SENDING FAILED:")
+        print(f"Error: {result_message}")
+        print("=" * 50)
+        return f"⚠️ Failed to send email to {contact_name}: {result_message}"
 
 
 # Define tools list
