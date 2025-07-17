@@ -1,0 +1,21 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environments
+venv/
+.env/
+
+# Ignore model cache on host (handled by Docker volume)
+models/
+cache/
+*.ckpt
+
+# Ignore git and other VCS files
+.git/
+.gitignore
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

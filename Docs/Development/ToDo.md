@@ -1,6 +1,8 @@
 # Security Gate System - To-Do List
 
-- Add conditional edge before visiting the validate contact person, only visit if not validated
+- Deploy the project as docker container to the server
+- 2 containers, containarized ollama and the main Agentic System
+- openai whisper
 
 ### **Implement Comprehensive Logging System**
 - Replace all `print()` statements with proper logging using Python's `logging` module

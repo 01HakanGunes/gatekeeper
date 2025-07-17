@@ -1,0 +1,36 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ollama-server # Give it a meaningful name
+    ports:
+      - "11434:11434" # Optional: if you also want to access Ollama from your host machine
+    volumes:
+      - ollama_data:/root/.ollama # Persist models and data
+    networks:
+      - my-ollama-network # Place Ollama on this custom network
+
+  python_app:
+    build: . # Or specify an image if you have one (e.g., image: my-python-app:latest)
+    container_name: my-python-app
+    depends_on:
+      - ollama # Ensures Ollama starts before your Python app
+    environment:
+      OLLAMA_HOST: http://ollama-server:11434 # Key: Use the Ollama container name as the hostname
+    networks:
+      - my-ollama-network # Place Python app on the same custom network
+    # If your Python app exposes a port (e.g., for a web API), map it here:
+    # ports:
+    #   - "8000:8000"
+    volumes:
+      - ./app:/app # Mount your Python application code into the container
+    working_dir: /app
+
+volumes:
+  ollama_data: # Define the named volume for Ollama data persistence
+
+networks:
+  my-ollama-network: # Define the custom network
+    driver: bridge
