@@ -26,6 +26,8 @@ services:
       OLLAMA_HOST: http://ollama:11434 # Key: Use the Ollama container name as the hostname
     networks:
       - my-ollama-network # Place Python app on the same custom network
+    stdin_open: true    # Enable stdin (equivalent to -i flag)
+    tty: true          # Allocate a pseudo-TTY (equivalent to -t flag)
     # If your Python app exposes a port (e.g., for a web API), map it here:
     # ports:
     #   - "8000:8000"

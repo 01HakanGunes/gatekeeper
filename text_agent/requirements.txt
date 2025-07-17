@@ -16,6 +16,7 @@ typing_extensions==4.14.1
 
 # HTTP and communication
 httpx==0.28.1
+requests==2.32.3
 
 # Ollama client
 ollama==0.5.1

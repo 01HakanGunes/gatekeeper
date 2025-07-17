@@ -6,8 +6,38 @@ This is the main entry point for the security gate system.
 """
 
 import argparse
+import os
+import time
+import requests
 from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT, DEFAULT_HISTORY_MODE
+
+
+def wait_for_ollama():
+    """Wait for Ollama service to be ready before starting the application."""
+    ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+    max_retries = 30  # Wait up to 30 seconds
+    retry_delay = 1  # 1 second between retries
+
+    print(f"🔍 Checking Ollama connection at {ollama_host}...")
+
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(f"{ollama_host}/api/tags", timeout=5)
+            if response.status_code == 200:
+                print(f"✅ Ollama is ready at {ollama_host}")
+                return True
+        except (requests.ConnectionError, requests.Timeout):
+            if attempt == 0:
+                print(f"⏳ Waiting for Ollama to start...")
+            time.sleep(retry_delay)
+            continue
+
+    print(
+        f"❌ Failed to connect to Ollama at {ollama_host} after {max_retries} seconds"
+    )
+    print("Make sure Ollama is running and accessible")
+    return False
 
 
 def parse_arguments():
@@ -36,6 +66,11 @@ Examples:
 def main():
     # Parse command-line arguments
     args = parse_arguments()
+
+    # Check Ollama connection before starting
+    if not wait_for_ollama():
+        print("❌ Cannot start application: Ollama service is not available")
+        return 1
 
     # Set global history mode for use throughout the application
     import config.settings as settings

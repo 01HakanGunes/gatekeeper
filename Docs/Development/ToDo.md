@@ -4,6 +4,8 @@
 - 2 containers, containarized ollama and the main Agentic System
 - openai whisper
 
+- Make the agent nonstop work, when someones intreaction ends, it should return back
+
 ### **Implement Comprehensive Logging System**
 - Replace all `print()` statements with proper logging using Python's `logging` module
 - Add configurable log levels (DEBUG, INFO, WARNING, ERROR) 
