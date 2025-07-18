@@ -8,7 +8,6 @@ venv/
 .env/
 
 # Ignore model cache on host (handled by Docker volume)
-models/
 cache/
 *.ckpt
 

@@ -1,7 +1,4 @@
-# Security Gate System - Modular Architecture
-
-This project implements a security gate system using LangChain and LangGraph with a clean, modular architecture.
-
+# Security Gate System
 
 ## 🚀 Quick Start
 
@@ -16,4 +13,18 @@ python -m venv venv && source venv/bin/activate && pip install -r requirements.t
 ```bash
 # Run
 python main.py
-```"
+```
+
+### Docker Compose Setup
+
+Build and run the container:
+
+```bash
+sudo docker-compose up --build -d
+```
+
+Interact with the active session:
+
+```bash
+docker attach gatekeeper-main
+```
