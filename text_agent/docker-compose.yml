@@ -29,8 +29,23 @@ services:
     stdin_open: true    # Enable stdin (equivalent to -i flag)
     tty: true          # Allocate a pseudo-TTY (equivalent to -t flag)
 
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: whisper
+    ports:
+      - "9000:9000"
+    volumes:
+      - whisper_cache:/root/.cache/
+    environment:
+      - ASR_MODEL=base
+      - ASR_ENGINE=openai_whisper
+    networks:
+      - my-ollama-network
+    restart: always
+
 volumes:
-  ollama: # Define the named volume for Ollama data persistence
+  ollama:
+  whisper_cache:
 
 networks:
   my-ollama-network: # Define the custom network
