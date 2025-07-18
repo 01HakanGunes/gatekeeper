@@ -4,6 +4,8 @@
 - 2 containers, containarized ollama and the main Agentic System
 - openai whisper
 
+- python import module issues when containerized
+
 - Make the agent nonstop work, when someones intreaction ends, it should return back
 
 ### **Implement Comprehensive Logging System**

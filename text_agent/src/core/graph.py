@@ -1,22 +1,22 @@
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage
-from .state import State
-from ..utils.prompt_manager import prompt_manager
+from src.core.state import State
+from src.utils.prompt_manager import prompt_manager
 
-from ..nodes.input_nodes import (
+from src.nodes.input_nodes import (
     receive_input,
     detect_session,
     check_context_length,
     summarize,
     reset_conversation,
 )
-from ..nodes.processing_nodes import (
+from src.nodes.processing_nodes import (
     check_visitor_profile_node,
     validate_contact_person,
     question_visitor,
     check_visitor_profile_condition,
 )
-from ..nodes.decision_nodes import (
+from src.nodes.decision_nodes import (
     make_decision,
     notify_contact,
     check_decision_for_notification,

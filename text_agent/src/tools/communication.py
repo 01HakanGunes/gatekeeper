@@ -1,6 +1,6 @@
 from langchain_core.tools import tool
 from data.contacts import CONTACTS
-from ..utils import email_sender
+from src.utils import email_sender
 
 
 @tool

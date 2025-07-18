@@ -1,5 +1,5 @@
 # Models package
-from .llm_config import (
+from models.llm_config import (
     llm_profiler_json,
     llm_validation_json,
     llm_session_json,

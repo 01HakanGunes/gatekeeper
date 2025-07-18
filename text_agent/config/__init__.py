@@ -1,5 +1,5 @@
 # Config package
-from .settings import (
+from config.settings import (
     DEFAULT_MODEL_MAIN,
     DEFAULT_MODEL_THINKING,
     TEMPERATURE_MAIN,

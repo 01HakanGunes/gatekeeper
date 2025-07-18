@@ -1,11 +1,11 @@
 from typing import Literal
 import json
 from langchain_core.messages import HumanMessage, AIMessage
-from ..core.state import State
+from src.core.state import State
 from data.contacts import CONTACTS
-from ..utils.extraction import extract_answer_from_thinking_model
+from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_profiler_json
-from ..utils.prompt_manager import prompt_manager
+from src.utils.prompt_manager import prompt_manager
 
 
 def check_visitor_profile_node(state: State) -> State:

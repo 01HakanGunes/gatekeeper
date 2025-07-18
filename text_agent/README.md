@@ -8,9 +8,7 @@ This project implements a security gate system using LangChain and LangGraph wit
 ### Installation
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 ```
 
 ### Running the Application
@@ -18,4 +16,4 @@ pip install -r requirements.txt
 ```bash
 # Run
 python main.py
-```
+```"

@@ -1,11 +1,11 @@
 from typing import Literal
 import json
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from ..core.state import State
+from src.core.state import State
 from config.settings import MAX_HUMAN_MESSAGES, SHORTEN_KEEP_MESSAGES
-from ..utils.extraction import extract_answer_from_thinking_model
-from models.llm_config import llm_summary, llm_session_json
-from ..utils.prompt_manager import prompt_manager
+from src.utils.extraction import extract_answer_from_thinking_model
+from models.llm_config import llm_summary, llm_session_json, llm_validation_json
+from src.utils.prompt_manager import prompt_manager
 
 
 def receive_input(state: State) -> State:
@@ -352,7 +352,7 @@ def reset_conversation(state: State) -> State:
     """
     Reset conversation for a new visitor by clearing message history and visitor profile.
     """
-    from ..core.state import VisitorProfile
+    from src.core.state import VisitorProfile
 
     # Keep reference to the new visitor's message
     new_visitor_message = state["messages"][-1]

@@ -2,12 +2,12 @@ from typing import Literal
 import json
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.prebuilt import ToolNode
-from ..core.state import State
+from src.core.state import State
 from data.contacts import CONTACTS
-from ..utils.extraction import extract_answer_from_thinking_model
+from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_email, llm_decision_json
-from ..tools.communication import tools
-from ..utils.prompt_manager import prompt_manager
+from src.tools.communication import tools
+from src.utils.prompt_manager import prompt_manager
 
 
 def make_decision(state: State) -> State:

@@ -1,7 +1,7 @@
 # Utils package
-from .extraction import extract_answer_from_thinking_model
-from .prompt_manager import PromptManager, prompt_manager
-from .gmail_sender import email_sender
+from src.utils.extraction import extract_answer_from_thinking_model
+from src.utils.prompt_manager import PromptManager, prompt_manager
+from src.utils.gmail_sender import email_sender
 
 __all__ = [
     "extract_answer_from_thinking_model",

@@ -1,5 +1,5 @@
 # Source package
-from .core import *
-from .nodes import *
-from .tools import *
-from .utils import *
+from src.core import *
+from src.nodes import *
+from src.tools import *
+from src.utils import *
