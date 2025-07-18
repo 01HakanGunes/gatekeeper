@@ -18,7 +18,7 @@ services:
               capabilities: [gpu]
 
   python_app:
-    build: . 
+    image: gatekeeper-main:latest
     container_name: gatekeeper-main
     depends_on:
       - ollama # Ensures Ollama starts before your Python app

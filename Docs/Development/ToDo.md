@@ -1,8 +1,20 @@
 # Security Gate System - To-Do List
 
-- Deploy the project as docker container to the server
-- 2 containers, containarized ollama and the main Agentic System
-- openai whisper
+### CI/CD Part
+- set github actions,
+- github actions, github self-hosted runner
+- Github actions to build the image for each git push remote
+- docker hub/ GitHub Container Registry (GHCR) push image, github runner should execute the "docker compose" from the ssh server so it pulls the new image.
+
+- Note (Image Tagging
+Issue: If you push images to Docker Hub with the same tag (e.g., latest), docker compose might not pull the updated image because Docker could assume the local image is current. This could result in your server running an outdated version.
+Recommendation: Use unique tags for each build, such as the Git commit hash (e.g., myimage:abc123) or a build number. Then, ensure docker compose uses the new tag. You could:)
+
+- Build the image on the ssh server?
+
+
+- Create example voice files to test the whisper.
+- Create a node responsible for whisper connnection and text input flow.
 
 - python import module issues when containerized
 
@@ -14,13 +26,6 @@
 - Create separate loggers for different components (input, processing, decision, email)
 - Add log rotation and file output options for production use
 - This will improve debugging capabilities and provide better monitoring
-
-### **Implement Multi-Language Support**
-- Add internationalization (i18n) support for the security gate system
-- Create language packs for common languages (English, Spanish, French, etc.)
-- Allow language selection through command-line argument or configuration
-- Translate all user-facing messages, prompts, and questions
-- Use the PromptManager to handle language-specific templates and responses
 
 ### **Add Camera Verification Logic**
 - Implement computer vision capabilities to verify visitor claims through camera feed analysis

@@ -20,6 +20,10 @@ python main.py
 Build and run the container:
 
 ```bash
+docker build -t gatekeeper-main:latest .
+```
+
+```bash
 sudo docker-compose up --build -d
 ```
 
