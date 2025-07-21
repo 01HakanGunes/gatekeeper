@@ -9,13 +9,10 @@ services:
     networks:
       - my-ollama-network # Place Ollama on this custom network
     restart: always
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    device_requests:
+      - driver: nvidia
+        count: all
+        capabilities: [gpu]
 
   python_app:
     build: . # Build image from Dockerfile in current directory
