@@ -70,7 +70,7 @@ def receive_input(state: State) -> State:
                 state["messages"].append(HumanMessage(content=user_input))
                 break
             elif "unrelated" in result:
-                print("❌ Input validation: Input is unrelated/invalid")
+                print("❌ Input validation: Input is unrelated/invalid v2:debug")
                 invalid_message = prompt_manager.get_field_data("input_validation")[
                     "invalid_input_message"
                 ]
