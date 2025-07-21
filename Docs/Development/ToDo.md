@@ -1,24 +1,20 @@
 # Security Gate System - To-Do List
 
-### CI/CD Part
-- set github actions,
-- github actions, github self-hosted runner
-- Github actions to build the image for each git push remote
-- docker hub/ GitHub Container Registry (GHCR) push image, github runner should execute the "docker compose" from the ssh server so it pulls the new image.
+- Make the agent nonstop work, when someones intreaction ends, it should return back
+
+- Mobile app to use as camera / maybe normal camera setup for faster testing
 
 - Note (Image Tagging
 Issue: If you push images to Docker Hub with the same tag (e.g., latest), docker compose might not pull the updated image because Docker could assume the local image is current. This could result in your server running an outdated version.
 Recommendation: Use unique tags for each build, such as the Git commit hash (e.g., myimage:abc123) or a build number. Then, ensure docker compose uses the new tag. You could:)
 
-- Build the image on the ssh server?
+- 
 
 
 - Create example voice files to test the whisper.
 - Create a node responsible for whisper connnection and text input flow.
 
-- python import module issues when containerized
 
-- Make the agent nonstop work, when someones intreaction ends, it should return back
 
 ### **Implement Comprehensive Logging System**
 - Replace all `print()` statements with proper logging using Python's `logging` module

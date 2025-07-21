@@ -117,35 +117,40 @@ def main():
         print(f"⚠️ Could not generate graph diagram: {e}")
         print("   (This is optional and won't affect the main functionality)")
 
-    # Create initial state
-    initial_state = create_initial_state()
+    while True:
+        initial_state = create_initial_state()
+        try:
+            # Run the security screening process
+            result = graph.invoke(
+                initial_state, {"recursion_limit": DEFAULT_RECURSION_LIMIT}
+            )
 
-    try:
-        # Run the security screening process
-        result = graph.invoke(
-            initial_state, {"recursion_limit": DEFAULT_RECURSION_LIMIT}
-        )
+            # Display final results
+            print("\n" + "=" * 60)
+            print("🏁 FINAL RESULTS")
+            print("=" * 60)
+            print(f"Final decision: {result['decision']}")
+            if result["messages"]:
+                print(f"Last message: {result['messages'][-1].content}")
 
-        # Display final results
-        print("\n" + "=" * 60)
-        print("🏁 FINAL RESULTS")
-        print("=" * 60)
-        print(f"Final decision: {result['decision']}")
-        if result["messages"]:
-            print(f"Last message: {result['messages'][-1].content}")
+            # Display visitor profile summary
+            print("\n📋 VISITOR PROFILE SUMMARY:")
+            profile = result["visitor_profile"]
+            for field, value in profile.items():
+                status = "✅" if value is not None and value != "-1" else "❌"
+                print(f"  {status} {field.replace('_', ' ').title()}: {value}")
 
-        # Display visitor profile summary
-        print("\n📋 VISITOR PROFILE SUMMARY:")
-        profile = result["visitor_profile"]
-        for field, value in profile.items():
-            status = "✅" if value is not None and value != "-1" else "❌"
-            print(f"  {status} {field.replace('_', ' ').title()}: {value}")
+            print(
+                "\n🔄 Restarting security gate for next visitor... (Press Ctrl+C to exit)"
+            )
 
-    except KeyboardInterrupt:
-        print("\n\n👋 Security session terminated by user. Goodbye!")
-    except Exception as e:
-        print(f"\n❌ An error occurred: {e}")
-        print("Please contact system administrator.")
+        except KeyboardInterrupt:
+            print("\n\n👋 Security session terminated by user. Goodbye!")
+            break
+        except Exception as e:
+            print(f"\n❌ An error occurred: {e}")
+            print("Please contact system administrator.")
+            break
 
 
 if __name__ == "__main__":

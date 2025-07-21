@@ -348,24 +348,14 @@ def _summarize_history(state: State) -> State:
         return state
 
 
-def reset_conversation(state: State) -> State:
+def _clear_state(state: State):
     """
-    Reset conversation for a new visitor by clearing message history and visitor profile.
+    Helper function to clear the entire state for a new visitor/session.
     """
-    from src.core.state import VisitorProfile
-
-    # Keep reference to the new visitor's message
-    new_visitor_message = state["messages"][-1]
-
-    # Create new message list with initial system message and new visitor's message
-    system_msg_content = prompt_manager.format_prompt("input", "system_message")
-    new_messages = [
-        SystemMessage(content=system_msg_content),
-        new_visitor_message,
-    ]
-
+    # Clear messages
+    state["messages"].clear()
     # Reset visitor profile
-    new_visitor_profile: VisitorProfile = {
+    state["visitor_profile"] = {
         "name": None,
         "purpose": None,
         "contact_person": None,
@@ -373,20 +363,27 @@ def reset_conversation(state: State) -> State:
         "affiliation": None,
         "id_verified": None,
     }
+    # Reset decision fields
+    state["decision"] = ""
+    state["decision_confidence"] = None
+    state["decision_reasoning"] = None
 
-    # Clear existing messages by popping them one by one
-    messages_to_remove = len(state["messages"])
-    for _ in range(messages_to_remove):
-        if len(state["messages"]) > 0:
-            state["messages"].pop(0)
 
-    # Add new messages
-    for message in new_messages:
-        state["messages"].append(message)
+def reset_conversation(state: State) -> State:
+    """
+    Reset conversation for a new visitor by clearing the entire state.
+    """
+    # Keep reference to the new visitor's message
+    new_visitor_message = state["messages"][-1] if state["messages"] else None
 
-    # Update visitor profile
-    state["visitor_profile"] = new_visitor_profile
+    # Clear the whole state
+    _clear_state(state)
 
-    print("🔄 Reset conversation: Properly cleared message history for new visitor")
+    # Create new message list with initial system message and new visitor's message
+    system_msg_content = prompt_manager.format_prompt("input", "system_message")
+    state["messages"].append(SystemMessage(content=system_msg_content))
+    if new_visitor_message:
+        state["messages"].append(new_visitor_message)
 
+    print("🔄 Reset conversation: Properly cleared state for new visitor")
     return state
