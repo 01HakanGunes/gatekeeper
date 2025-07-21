@@ -6,6 +6,8 @@ from config.settings import MAX_HUMAN_MESSAGES, SHORTEN_KEEP_MESSAGES
 from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_summary, llm_session_json, llm_validation_json
 from src.utils.prompt_manager import prompt_manager
+from models.llm_config import llm_validation_json
+from src.utils import capture_photo
 
 
 def receive_input(state: State) -> State:
@@ -55,9 +57,6 @@ def receive_input(state: State) -> State:
                 "input", "validate_input", user_input=user_input
             )
 
-            # Use the centralized validation LLM
-            from models.llm_config import llm_validation_json
-
             response = llm_validation_json.invoke(prompt_value)
 
             # Extract the response content (handling thinking models)
@@ -68,6 +67,13 @@ def receive_input(state: State) -> State:
                 print("✅ Input validation: Input is valid")
                 # Valid input - add to messages and break the loop
                 state["messages"].append(HumanMessage(content=user_input))
+
+                # Get a frame from camera and save
+                if capture_photo("visitor.png"):
+                    print("Photo captured successfully!")
+                else:
+                    print("Failed to capture photo.")
+
                 break
             elif "unrelated" in result:
                 print("❌ Input validation: Input is unrelated/invalid v2:debug")

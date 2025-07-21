@@ -4,6 +4,7 @@ from src.tools.communication import tools
 from config.settings import (
     DEFAULT_MODEL_MAIN,
     DEFAULT_MODEL_THINKING,
+    DEFAULT_MODEL_VISION,
     TEMPERATURE_MAIN,
     TEMPERATURE_VALIDATION,
     TEMPERATURE_SESSION,

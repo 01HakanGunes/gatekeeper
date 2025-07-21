@@ -1,5 +1,7 @@
 # Security Gate System - To-Do List
 
+- Add fetch image from camera functionality and feed to a vision enabled llm to extract security thread or not.
+
 - face-recognition
 
 - Mobile app to use as camera / maybe normal camera setup for faster testing
