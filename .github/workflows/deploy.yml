@@ -1,0 +1,39 @@
+name: Deploy to Self-Hosted Server
+
+# Trigger the workflow on push to main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    # Use the self-hosted runner
+    runs-on: self-hosted
+    
+    steps:
+      # Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Build Docker images
+      - name: Build Docker images
+        working-directory: ./text_agent
+        run: |
+          echo "Building Docker images..."
+          docker-compose build
+      
+      # Deploy with Docker Compose
+      - name: Deploy with Docker Compose
+        working-directory: ./text_agent
+        run: |
+          echo "Deploying application..."
+          docker-compose up -d --remove-orphans
+          
+      # Print status of containers
+      - name: Container Status
+        working-directory: ./text_agent
+        run: |
+          echo "Checking container status..."
+          docker-compose ps

@@ -18,6 +18,7 @@ services:
               capabilities: [gpu]
 
   python_app:
+    build: . # Build image from Dockerfile in current directory
     image: gatekeeper-main:latest
     container_name: gatekeeper-main
     depends_on:

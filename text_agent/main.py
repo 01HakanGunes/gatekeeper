@@ -78,7 +78,7 @@ def main():
     settings.CURRENT_HISTORY_MODE = args.history_mode
 
     print("=" * 60)
-    print("🏢 SECURITY GATE SYSTEM")
+    print("🏢 SECURITY GATE SYSTEM Actions version")
     print("=" * 60)
     print("Welcome to the security checkpoint!")
     print("This system will ask you questions to verify your visit.")
