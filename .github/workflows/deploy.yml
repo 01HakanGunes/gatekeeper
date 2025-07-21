@@ -22,18 +22,18 @@ jobs:
         working-directory: ./text_agent
         run: |
           echo "Building Docker images..."
-          docker-compose build
+          docker compose build
       
       # Deploy with Docker Compose
       - name: Deploy with Docker Compose
         working-directory: ./text_agent
         run: |
           echo "Deploying application..."
-          docker-compose up -d --remove-orphans
+          docker compose up -d --remove-orphans
           
       # Print status of containers
       - name: Container Status
         working-directory: ./text_agent
         run: |
           echo "Checking container status..."
-          docker-compose ps
+          docker compose ps
