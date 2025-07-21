@@ -114,10 +114,13 @@ input:
 
   detect_session_json:
     template: |
-      You are a session detection system. Analyze the conversation to determine if this is the same visitor continuing or a new visitor starting.
+      You are a session detection system. Analyze the conversation and visitor profile to determine if this is the same visitor continuing or a new visitor starting.
 
       CONVERSATION CONTEXT:
       {conversation_context}
+
+      VISITOR PROFILE:
+      {visitor_profile_text}
 
       LATEST USER MESSAGE:
       {last_user_message}
@@ -125,25 +128,17 @@ input:
       You must respond with a valid JSON object following this exact schema:
       {json_schema}
 
-      DEFAULT ASSUMPTION: Treat as SAME SESSION continuing unless there is EXPLICIT evidence of a new person.
+      DEFAULT ASSUMPTION: Treat as SAME SESSION continuing unless there is EXPLICIT evidence of a new person (different name etc).
 
       Only consider it a NEW SESSION if you find CLEAR indicators:
       - Explicit new greetings or introductions ("Hi", "Hello", "Good morning", "I'm [new name]")
-      - Person explicitly identifying themselves as someone different
       - Direct references to being a different person ("I'm not the previous person", "This is [different name]")
-
-      Treat as SAME SESSION for ALL other cases including:
-      - Follow-up responses or clarifications
-      - Topic changes or new questions
-      - Additional information or corrections
-      - Unclear or ambiguous messages
-      - Silence followed by any response
-      - Any response that doesn't explicitly indicate a new person
 
       Return ONLY valid JSON with no additional text:
     type: "string"
     input_variables:
       - "conversation_context"
+      - "visitor_profile_text"
       - "last_user_message"
       - "json_schema"
 

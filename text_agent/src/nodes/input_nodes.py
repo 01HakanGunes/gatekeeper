@@ -121,12 +121,22 @@ def detect_session(state: State) -> Literal["same", "new"]:
     # Get JSON schema from prompt manager
     session_schema = prompt_manager.get_schema("session_schema")
 
-    # Create session detection prompt using prompt manager with JSON schema
+    # Format visitor profile for prompt
+    visitor_profile = state.get("visitor_profile", {})
+    visitor_profile_text = "\n".join(
+        [
+            f"- {field.replace('_', ' ').title()}: {value}"
+            for field, value in visitor_profile.items()
+        ]
+    )
+
+    # Create session detection prompt using prompt manager with JSON schema and visitor profile
     try:
         prompt_value = prompt_manager.invoke_prompt(
             "input",
             "detect_session_json",
             conversation_context=conversation_context,
+            visitor_profile_text=visitor_profile_text,
             last_user_message=last_user_message,
             json_schema=json.dumps(session_schema, indent=2),
         )
