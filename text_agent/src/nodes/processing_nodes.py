@@ -117,6 +117,45 @@ def check_visitor_profile_node(state: State) -> State:
         print(f"  {status} {field}: {value}")
     print()
 
+    # Vision analysis for threat_level
+    # Only run if threat_level is still missing or None
+    if state["visitor_profile"].get("threat_level") in [None, "-1"]:
+        from models.llm_config import llm_vision_json
+
+        image_path = "visitor.png"
+        print("Using existing photo for vision analysis.")
+        # Use prompt_manager to generate the vision prompt, including the schema
+        vision_threat_schema = prompt_manager.get_schema("vision_threat_schema")
+        vision_prompt = prompt_manager.invoke_prompt(
+            "vision",
+            "analyze_image_threat_json",
+            image_path=image_path,
+            json_schema=json.dumps(vision_threat_schema, indent=2),
+        )
+        try:
+            response = llm_vision_json.invoke(vision_prompt)
+            content = (
+                response.content if hasattr(response, "content") else str(response)
+            )
+            # If response is a list, join to string
+            if isinstance(content, list):
+                content = "\n".join(str(x) for x in content)
+            try:
+                vision_data = json.loads(content)
+            except Exception:
+                # Try to extract JSON from text if LLM returns extra text
+                import re
+
+                match = re.search(r"\{.*\}", content, re.DOTALL)
+                if match:
+                    vision_data = json.loads(match.group(0))
+                else:
+                    raise ValueError("No valid JSON found in LLM response")
+            threat_level = vision_data.get("threat_level", "unknown")
+            state["visitor_profile"]["threat_level"] = threat_level
+            print(f"🔍 Vision analysis: Threat level set to '{threat_level}'")
+        except Exception as e:
+            print(f"⚠️ Vision LLM response error: {e}")
     return state
 
 

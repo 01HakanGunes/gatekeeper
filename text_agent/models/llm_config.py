@@ -49,3 +49,11 @@ llm_decision_json = ChatOllama(
     format="json",
     base_url=OLLAMA_HOST,
 )
+
+# Vision-enabled LLM initialization
+llm_vision_json = ChatOllama(
+    model=DEFAULT_MODEL_VISION,
+    temperature=TEMPERATURE_MAIN,
+    format="json",
+    base_url=OLLAMA_HOST,
+)
