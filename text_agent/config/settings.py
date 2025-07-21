@@ -11,8 +11,8 @@ CURRENT_HISTORY_MODE = (
 )
 
 # Model configurations
-DEFAULT_MODEL_MAIN = "qwen3:0.6b"
-DEFAULT_MODEL_THINKING = "qwen3:0.6b"
+DEFAULT_MODEL_MAIN = "qwen3:8b"
+DEFAULT_MODEL_THINKING = "qwen3:8b"
 
 # Temperature settings
 TEMPERATURE_MAIN = 0

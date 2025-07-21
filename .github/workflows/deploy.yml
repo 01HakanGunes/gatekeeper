@@ -27,6 +27,8 @@ jobs:
       # Deploy with Docker Compose
       - name: Deploy with Docker Compose
         working-directory: ./text_agent
+        env:
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
         run: |
           echo "Deploying application..."
           docker compose up -d --remove-orphans

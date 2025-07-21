@@ -18,9 +18,9 @@ class EmailSender:
 
     def __init__(self):
         """Initialize email sender with credentials from .env file."""
-        self.username = os.getenv("GMAIL_USERNAME")
+        self.username = "unoapp16@gmail.com"
         self.password = os.getenv("GMAIL_PASSWORD")
-        self.sender_name = os.getenv("GMAIL_SENDER_NAME", "Security Gate System")
+        self.sender_name = "Security Gate System"
         self.smtp_server = "smtp.gmail.com"
         self.port = 587  # For starttls
 
