@@ -1,5 +1,7 @@
 # Security Gate System - To-Do List
 
+- face-recognition
+
 - Mobile app to use as camera / maybe normal camera setup for faster testing
 
 - Note (Image Tagging
