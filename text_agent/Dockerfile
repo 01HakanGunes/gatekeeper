@@ -1,11 +1,13 @@
+
 FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (split for better caching)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
+    libgl1 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
