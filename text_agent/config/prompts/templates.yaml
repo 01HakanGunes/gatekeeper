@@ -2,16 +2,13 @@ vision:
   analyze_image_threat_json:
     template: |
       You are a security vision system. Analyze the provided image for dangerous objects.
-      Respond with a JSON object:
-      {
-        "threat_level": "low|medium|high",
-        "dangerous_object_detected": true|false,
-        "details": "..."
-      }
+      You must respond with a valid JSON object following this exact schema:
+      {json_schema}
+
       Only return valid JSON.
     type: "string"
     input_variables:
-      - "image_path"
+      - "json_schema"
 decision:
 
   make_decision_json:

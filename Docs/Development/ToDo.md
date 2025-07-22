@@ -2,6 +2,8 @@
 
 - Add fetch image from camera functionality and feed to a vision enabled llm to extract security thread or not.
 
+- Remove the thinking extraction and directly use from langchain
+
 - face-recognition
 
 - Mobile app to use as camera / maybe normal camera setup for faster testing

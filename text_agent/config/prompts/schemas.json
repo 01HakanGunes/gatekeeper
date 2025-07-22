@@ -18,6 +18,6 @@
   "vision_threat_schema": {
     "threat_level": "string (one of: low, medium, high)",
     "dangerous_object_detected": "boolean (true if any dangerous object is detected)",
-    "details": "string (additional information about the analysis)"
+    "details": "string (very short description of what do you see)"
   }
 }
