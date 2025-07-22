@@ -139,11 +139,11 @@ def analyze_threat_level_node(state: State) -> State:
 
         if image_b64:
             # Use prompt_manager to generate the vision prompt, including the schema
-            vision_threat_schema = prompt_manager.get_schema("vision_threat_schema")
+            vision_schema = prompt_manager.get_schema("vision_schema")
             vision_prompt = prompt_manager.invoke_prompt(
                 "vision",
                 "analyze_image_threat_json",
-                json_schema=json.dumps(vision_threat_schema, indent=2),
+                json_schema=json.dumps(vision_schema, indent=2),
             )
             # Prepare multimodal message as per LLM API requirements
             image_part = {

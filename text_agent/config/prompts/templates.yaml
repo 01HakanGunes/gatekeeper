@@ -139,7 +139,7 @@ input:
       You must respond with a valid JSON object following this exact schema:
       {json_schema}
 
-      DEFAULT ASSUMPTION: Treat as SAME SESSION continuing unless there is EXPLICIT evidence of a new person (different name etc).
+      DEFAULT ASSUMPTION: Treat as SAME SESSION continuing unless there is EXPLICIT evidence of a new person (different name etc). New greeting and introductions are always new session.
 
       Only consider it a NEW SESSION if you find CLEAR indicators:
       - Explicit new greetings or introductions ("Hi", "Hello", "Good morning", "I'm [new name]")

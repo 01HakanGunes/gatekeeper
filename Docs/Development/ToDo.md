@@ -1,5 +1,6 @@
 # Security Gate System - To-Do List
 
+- Add a node that would check if the visitor exists in the image and asks to show up if no face detected.
 
 - After threat level high, directly jump to decision as call security and reset graph.
 
