@@ -1,4 +1,5 @@
 from typing import Literal
+import re
 import json
 from langchain_core.messages import HumanMessage, AIMessage
 from src.core.state import State
@@ -7,6 +8,8 @@ from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_profiler_json
 from src.utils.prompt_manager import prompt_manager
 from models.llm_config import llm_vision_json
+from src.utils.camera import image_file_to_base64
+from typing import Optional, Dict, Any
 
 
 def check_visitor_profile_node(state: State) -> State:
@@ -120,67 +123,80 @@ def check_visitor_profile_node(state: State) -> State:
     return state
 
 
+def extract_vision_data(state: State, image_path: str) -> State:
+    """
+    Extracts vision data from an image and saves it directly to the state['vision_schema'].
+    Args:
+        state (State): The current state object.
+        image_path (str): Path to the image file.
+    Returns:
+        State: The updated state with vision_schema set (or None if extraction fails).
+    """
+    print("Using existing photo for vision analysis.")
+    try:
+        image_b64 = image_file_to_base64(image_path)
+    except Exception as e:
+        print(f"⚠️ Could not convert image to base64: {e}")
+        state["vision_schema"] = None
+        return state
+
+    if not image_b64:
+        print("⚠️ Skipping vision analysis due to missing image base64.")
+        state["vision_schema"] = None
+        return state
+
+    vision_schema = prompt_manager.get_schema("vision_schema")
+    try:
+        vision_prompt = prompt_manager.invoke_prompt(
+            "vision",
+            "analyze_image_threat_json",
+            json_schema=json.dumps(vision_schema, indent=2),
+        )
+        image_part = {
+            "type": "image_url",
+            "image_url": f"data:image/jpeg;base64,{image_b64}",
+        }
+        text_part = {"type": "text", "text": vision_prompt}
+        message = {
+            "role": "user",
+            "content": [image_part, text_part],
+        }
+        response = llm_vision_json.invoke([message])
+        content = response.content if hasattr(response, "content") else str(response)
+        if isinstance(content, list):
+            content = "\n".join(str(x) for x in content)
+        try:
+            vision_data = json.loads(content)
+        except Exception:
+            match = re.search(r"\{.*\}", content, re.DOTALL)
+            if match:
+                vision_data = json.loads(match.group(0))
+            else:
+                print("⚠️ No valid JSON found in LLM response")
+                vision_data = None
+        state["vision_schema"] = vision_data
+    except Exception as e:
+        print(f"⚠️ Vision LLM response error: {e}")
+        state["vision_schema"] = None
+    return state
+
+
 def analyze_threat_level_node(state: State) -> State:
     """
     Node function that performs vision analysis to determine the threat level of the visitor.
     """
-    # Only run if threat_level is still missing or None
-    if state["visitor_profile"].get("threat_level") in [None, "-1", "low", "medium"]:
-        from src.utils.camera import image_file_to_base64
+    # If vision_schema is not present, run vision analysis and save to state
+    if state.get("vision_schema") is None:
+        state = extract_vision_data(state, "visitor.png")
 
-        image_path = "visitor.png"
-        print("Using existing photo for vision analysis.")
-        # Convert image to base64
-        try:
-            image_b64 = image_file_to_base64(image_path)
-        except Exception as e:
-            print(f"⚠️ Could not convert image to base64: {e}")
-            image_b64 = None
-
-        if image_b64:
-            # Use prompt_manager to generate the vision prompt, including the schema
-            vision_schema = prompt_manager.get_schema("vision_schema")
-            vision_prompt = prompt_manager.invoke_prompt(
-                "vision",
-                "analyze_image_threat_json",
-                json_schema=json.dumps(vision_schema, indent=2),
-            )
-            # Prepare multimodal message as per LLM API requirements
-            image_part = {
-                "type": "image_url",
-                "image_url": f"data:image/jpeg;base64,{image_b64}",
-            }
-            text_part = {"type": "text", "text": vision_prompt}
-            message = {
-                "role": "user",
-                "content": [image_part, text_part],
-            }
-            try:
-                response = llm_vision_json.invoke([message])
-                content = (
-                    response.content if hasattr(response, "content") else str(response)
-                )
-                # If response is a list, join to string
-                if isinstance(content, list):
-                    content = "\n".join(str(x) for x in content)
-                try:
-                    vision_data = json.loads(content)
-                except Exception:
-                    # Try to extract JSON from text if LLM returns extra text
-                    import re
-
-                    match = re.search(r"\{.*\}", content, re.DOTALL)
-                    if match:
-                        vision_data = json.loads(match.group(0))
-                    else:
-                        raise ValueError("No valid JSON found in LLM response")
-                threat_level = vision_data.get("threat_level", "-1")
-                state["visitor_profile"]["threat_level"] = threat_level
-                print(f"🔍 Vision analysis result: {vision_data}")
-            except Exception as e:
-                print(f"⚠️ Vision LLM response error: {e}")
-        else:
-            print("⚠️ Skipping vision analysis due to missing image base64.")
+    vision_data = state.get("vision_schema")
+    if (
+        state["visitor_profile"].get("threat_level") in [None, "-1", "low", "medium"]
+        and vision_data
+    ):
+        threat_level = vision_data.get("threat_level", "-1")
+        state["visitor_profile"]["threat_level"] = threat_level
+        print(f"🔍 Vision analysis result: {vision_data}")
 
     # Print current visitor profile status for debugging
     print(f"\n📋 Current Visitor Profile (after threat analysis):")

@@ -9,15 +9,15 @@ graph TD;
 	summarize(summarize)
 	reset_conversation(reset_conversation)
 	check_visitor_profile(check_visitor_profile)
-	analyze_threat_level_node(analyze_threat_level_node)
+	analyze_threat_level(analyze_threat_level)
 	validate_contact_person(validate_contact_person)
 	question_visitor(question_visitor)
 	make_decision(make_decision)
 	notify_contact(notify_contact)
 	__end__([<p>__end__</p>]):::last
 	__start__ --> receive_input;
-	analyze_threat_level_node --> validate_contact_person;
-	check_visitor_profile --> analyze_threat_level_node;
+	analyze_threat_level --> validate_contact_person;
+	check_visitor_profile --> analyze_threat_level;
 	make_decision -. &nbsp;end&nbsp; .-> __end__;
 	make_decision -. &nbsp;notify&nbsp; .-> notify_contact;
 	question_visitor --> receive_input;

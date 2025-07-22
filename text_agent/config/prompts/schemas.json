@@ -16,7 +16,7 @@
     "confidence": "object with field names as keys and confidence scores as numbers between 0 and 1"
   },
   "vision_schema": {
-    "face_exists": "boolean (true if there is a face)",
+    "face_detected": "boolean (true if there is a face)",
     "threat_level": "string (one of: low, medium, high)",
     "dangerous_object_detected": "boolean (true if any dangerous object is detected)",
     "details": "string (very short description of what do you see)"

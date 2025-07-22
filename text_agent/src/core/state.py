@@ -12,9 +12,17 @@ class VisitorProfile(TypedDict):
     id_verified: Optional[bool]
 
 
+class VisionSchema(TypedDict):
+    face_detected: bool  # true if there is a face
+    threat_level: str  # one of: low, medium, high
+    dangerous_object_detected: bool  # true if any dangerous object is detected
+    details: str  # very short description of what do you see
+
+
 class State(TypedDict):
     messages: Annotated[list, add_messages]
     visitor_profile: VisitorProfile
     decision: str
     decision_confidence: Optional[float]
     decision_reasoning: Optional[str]
+    vision_schema: Optional[VisionSchema]  # stores vision analysis results
