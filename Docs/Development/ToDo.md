@@ -1,6 +1,6 @@
 # Security Gate System - To-Do List
 
-- Add a node that would check if the visitor exists in the image and asks to show up if no face detected.
+- Add async call to agent, check threat from frames and give output for it. (each 2 sec add to queue) (seperate process)
 
 - After threat level high, directly jump to decision as call security and reset graph.
 
