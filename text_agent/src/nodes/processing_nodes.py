@@ -81,8 +81,6 @@ def check_visitor_profile_node(state: State) -> State:
         confidence_scores = extraction_data.get("confidence", {})
 
         for field in missing_fields:
-            if field == "threat_level":
-                continue  # Do not update threat_level here
             if field in extracted_fields:
                 value = extracted_fields[field]
                 confidence = confidence_scores.get(field, 0.0)
@@ -119,7 +117,13 @@ def check_visitor_profile_node(state: State) -> State:
         print(f"  {status} {field}: {value}")
     print()
 
-    # Vision analysis for threat_level
+    return state
+
+
+def analyze_threat_level_node(state: State) -> State:
+    """
+    Node function that performs vision analysis to determine the threat level of the visitor.
+    """
     # Only run if threat_level is still missing or None
     if state["visitor_profile"].get("threat_level") in [None, "-1", "low", "medium"]:
         from src.utils.camera import image_file_to_base64
@@ -177,6 +181,14 @@ def check_visitor_profile_node(state: State) -> State:
                 print(f"⚠️ Vision LLM response error: {e}")
         else:
             print("⚠️ Skipping vision analysis due to missing image base64.")
+
+    # Print current visitor profile status for debugging
+    print(f"\n📋 Current Visitor Profile (after threat analysis):")
+    for field, value in state["visitor_profile"].items():
+        status = "✅" if value is not None and value != "-1" else "❌"
+        print(f"  {status} {field}: {value}")
+    print()
+
     return state
 
 

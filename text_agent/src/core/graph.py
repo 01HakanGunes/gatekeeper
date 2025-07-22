@@ -11,6 +11,7 @@ from src.nodes.input_nodes import (
     reset_conversation,
 )
 from src.nodes.processing_nodes import (
+    analyze_threat_level_node,
     check_visitor_profile_node,
     validate_contact_person,
     question_visitor,
@@ -38,6 +39,7 @@ def create_security_graph():
     graph_builder.add_node("summarize", summarize)
     graph_builder.add_node("reset_conversation", reset_conversation)
     graph_builder.add_node("check_visitor_profile", check_visitor_profile_node)
+    graph_builder.add_node("analyze_threat_level", analyze_threat_level_node)
     graph_builder.add_node("validate_contact_person", validate_contact_person)
     graph_builder.add_node("question_visitor", question_visitor)
     graph_builder.add_node("make_decision", make_decision)
@@ -69,7 +71,8 @@ def create_security_graph():
     )
     graph_builder.add_edge("summarize", "check_visitor_profile")
     graph_builder.add_edge("reset_conversation", "check_visitor_profile")
-    graph_builder.add_edge("check_visitor_profile", "validate_contact_person")
+    graph_builder.add_edge("check_visitor_profile", "analyze_threat_level")
+    graph_builder.add_edge("analyze_threat_level", "validate_contact_person")
     graph_builder.add_conditional_edges(
         "validate_contact_person",
         check_visitor_profile_condition,
