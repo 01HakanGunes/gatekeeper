@@ -24,6 +24,8 @@ services:
     environment:
       OLLAMA_HOST: http://ollama:11434 # Key: Use the Ollama container name as the hostname
       GMAIL_PASSWORD: ${GMAIL_PASSWORD}
+    devices:
+      - /dev/video0:/dev/video0
     networks:
       - my-ollama-network # Place Python app on the same custom network
     stdin_open: true    # Enable stdin (equivalent to -i flag)

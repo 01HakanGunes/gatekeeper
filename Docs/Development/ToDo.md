@@ -1,10 +1,13 @@
 # Security Gate System - To-Do List
 
-- Add fetch image from camera functionality and feed to a vision enabled llm to extract security thread or not.
+
+- After threat level high, directly jump to decision as call security and reset graph.
 
 - Remove the thinking extraction and directly use from langchain
 
 - Mobile app to use as camera / maybe normal camera setup for faster testing
+
+- dashboard/logging
 
 - face-recognition
 
