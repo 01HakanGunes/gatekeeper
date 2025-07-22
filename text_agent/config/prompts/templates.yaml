@@ -1,7 +1,7 @@
 vision:
   analyze_image_threat_json:
     template: |
-      You are a security vision system. Analyze the provided image for dangerous objects.
+      You are a security vision system. Analyze the provided image.
       You must respond with a valid JSON object following this exact schema:
       {json_schema}
 

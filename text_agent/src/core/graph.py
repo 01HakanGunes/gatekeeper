@@ -16,7 +16,6 @@ from src.nodes.processing_nodes import (
     validate_contact_person,
     question_visitor,
     check_visitor_profile_condition,
-    extract_vision_data,
 )
 from src.nodes.decision_nodes import (
     make_decision,

@@ -14,6 +14,7 @@ class VisitorProfile(TypedDict):
 
 class VisionSchema(TypedDict):
     face_detected: bool  # true if there is a face
+    angry_face: bool  # true if the face is angry
     threat_level: str  # one of: low, medium, high
     dangerous_object_detected: bool  # true if any dangerous object is detected
     details: str  # very short description of what do you see
