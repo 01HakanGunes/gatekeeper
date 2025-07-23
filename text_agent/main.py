@@ -75,9 +75,6 @@ def threat_detector(image_filename):
     Placeholder for dummy functionality to process the captured image.
     This function runs within the processing process.
     """
-    print(
-        f"[{os.getpid()}] [Processing Process]   --> Dummy processing image ID: {image_filename}."
-    )
 
     vision_data = analyze_image_with_prompt(
         image_filename, "threat_detector_prompt", "threat_schema"
@@ -113,9 +110,6 @@ def image_processing_function(image_stack, stack_lock, enable_threat_detection=F
                 with stack_lock:
                     if image_stack:
                         image_filename = image_stack.pop()  # Get the last item (LIFO)
-                        print(
-                            f"[{os.getpid()}] [Processing Process] Popped {image_filename}"
-                        )
                     else:
                         time.sleep(0.1)  # Brief sleep to avoid busy-waiting
                         continue
@@ -125,9 +119,6 @@ def image_processing_function(image_stack, stack_lock, enable_threat_detection=F
                 # Delete the processed image
                 try:
                     os.remove(image_filename)
-                    print(
-                        f"[{os.getpid()}] [Processing Process] Deleted {image_filename}"
-                    )
                 except OSError as e:
                     print(
                         f"[{os.getpid()}] [Processing Process] Failed to delete {image_filename}: {e}"
