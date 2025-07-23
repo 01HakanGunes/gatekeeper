@@ -8,12 +8,12 @@ services:
       - ollama:/root/.ollama # Persist models and data
     networks:
       - my-ollama-network # Place Ollama on this custom network
-    restart: always
     deploy:
       resources:
         reservations:
           devices:
             - capabilities: [gpu]
+    restart: always
 
   python_app:
     build: . # Build image from Dockerfile in current directory
