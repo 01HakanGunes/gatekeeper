@@ -13,7 +13,7 @@ CURRENT_HISTORY_MODE = (
 # Model configurations
 DEFAULT_MODEL_MAIN = "qwen3:4b"
 DEFAULT_MODEL_THINKING = "qwen3:4b"
-DEFAULT_MODEL_VISION = "gemma3:4b"
+DEFAULT_MODEL_VISION = "moondream:latest"
 
 # Temperature settings
 TEMPERATURE_MAIN = 0

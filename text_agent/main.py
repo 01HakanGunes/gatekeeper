@@ -17,18 +17,23 @@ from config.settings import DEFAULT_RECURSION_LIMIT, DEFAULT_HISTORY_MODE
 
 
 def camera_process_function(
-    image_stack, stack_lock, interval_seconds=2, camera_index=0, max_images=20
+    image_stack,
+    stack_lock,
+    interval_seconds=2,
+    camera_index=0,
+    max_images=20,
+    enable_camera=True,
 ):
     """
     Function to run in a separate process for camera operations.
     Captures images and adds filenames to the shared stack.
     """
     print(
-        f"[{os.getpid()}] [Camera Process] Starting camera operations (interval: {interval_seconds}s, camera: {camera_index})..."
+        f"[{os.getpid()}] [Camera Process] Starting camera operations (interval: {interval_seconds}s, camera: {camera_index}, enabled: {enable_camera})..."
     )
     count = 0
     try:
-        while True:
+        while enable_camera:
             image_filename = f"data/images/captured_image_{count}.jpg"
             success = camera_utils.capture_photo(image_filename)
             if not success:
@@ -53,6 +58,8 @@ def camera_process_function(
                 image_stack.append(image_filename)
             count += 1
             time.sleep(interval_seconds)
+        if not enable_camera:
+            print(f"[{os.getpid()}] [Camera Process] Camera is disabled, exiting loop.")
     except KeyboardInterrupt:
         print(
             f"[{os.getpid()}] [Camera Process] KeyboardInterrupt caught. Shutting down camera operations."
@@ -91,12 +98,14 @@ def threat_detector(image_filename):
     time.sleep(0.1)  # Simulate some processing time
 
 
-def image_processing_function(image_stack, stack_lock):
+def image_processing_function(image_stack, stack_lock, enable_threat_detection=False):
     """
     Function to run in a separate process for processing images from the stack.
     Processes the most recent image (last item) and deletes it.
     """
-    print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
+    print(
+        f"[{os.getpid()}] [Processing Process] Starting image processing... Threat detection enabled: {enable_threat_detection}"
+    )
     try:
         while True:
             try:
@@ -111,7 +120,8 @@ def image_processing_function(image_stack, stack_lock):
                         time.sleep(0.1)  # Brief sleep to avoid busy-waiting
                         continue
 
-                threat_detector(image_filename)
+                if enable_threat_detection:
+                    threat_detector(image_filename)
                 # Delete the processed image
                 try:
                     os.remove(image_filename)
@@ -191,6 +201,13 @@ Examples:
         help="Index of the camera to use (default: 0, typically the default webcam)",
     )
 
+    parser.add_argument(
+        "--enable-threat-detection",
+        action="store_true",
+        default=False,
+        help="Enable threat detection on captured images (default: disabled)",
+    )
+
     return parser.parse_args()
 
 
@@ -256,19 +273,30 @@ def main():
 
     camera_p = multiprocessing.Process(
         target=camera_process_function,
-        args=(image_stack, stack_lock, 2, args.camera_index, 20),
+        args=(
+            image_stack,
+            stack_lock,
+            2,
+            args.camera_index,
+            20,
+            args.enable_threat_detection,
+        ),
     )
     camera_p.daemon = True
     camera_p.start()
-    print(f"[Main Process] Camera process started with PID: {camera_p.pid}")
+    print(
+        f"[Main Process] Camera process started with PID: {camera_p.pid} (Camera enabled: {args.enable_threat_detection})"
+    )
 
     processing_p = multiprocessing.Process(
         target=image_processing_function,
-        args=(image_stack, stack_lock),
+        args=(image_stack, stack_lock, args.enable_threat_detection),
     )
     processing_p.daemon = True
     processing_p.start()
-    print(f"[Main Process] Processing process started with PID: {processing_p.pid}")
+    print(
+        f"[Main Process] Processing process started with PID: {processing_p.pid} (Threat detection enabled: {args.enable_threat_detection})"
+    )
     # --- End Camera and Processing Processes Start ---
 
     while True:
