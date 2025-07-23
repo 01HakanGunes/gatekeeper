@@ -12,15 +12,16 @@ import requests
 import multiprocessing
 from src.utils import camera as camera_utils
 from src.utils import analyze_image_with_prompt
-
 from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT, DEFAULT_HISTORY_MODE
 
 
-def camera_process_function(image_queue, interval_seconds=2, camera_index=0):
+def camera_process_function(
+    image_stack, stack_lock, interval_seconds=2, camera_index=0, max_images=20
+):
     """
     Function to run in a separate process for camera operations.
-    Captures images and adds filenames to the shared queue.
+    Captures images and adds filenames to the shared stack.
     """
     print(
         f"[{os.getpid()}] [Camera Process] Starting camera operations (interval: {interval_seconds}s, camera: {camera_index})..."
@@ -36,8 +37,20 @@ def camera_process_function(image_queue, interval_seconds=2, camera_index=0):
                 )
                 time.sleep(0.5)
                 continue
-            # Add the image filename to the queue
-            image_queue.put(image_filename)
+            # Add the image filename to the stack, keeping only the last max_images
+            with stack_lock:
+                if len(image_stack) >= max_images:
+                    oldest_image = image_stack.pop(0)
+                    try:
+                        os.remove(oldest_image)
+                        print(
+                            f"[{os.getpid()}] [Camera Process] Deleted oldest image {oldest_image}"
+                        )
+                    except OSError as e:
+                        print(
+                            f"[{os.getpid()}] [Camera Process] Failed to delete {oldest_image}: {e}"
+                        )
+                image_stack.append(image_filename)
             count += 1
             time.sleep(interval_seconds)
     except KeyboardInterrupt:
@@ -63,7 +76,7 @@ def threat_detector(image_filename):
         image_filename, "threat_detector_prompt", "threat_schema"
     )
 
-    if vision_data == None:
+    if vision_data is None:
         print("Vision data extraction failed")
     else:
         is_dangerous = vision_data.get("dangerous_object", "unknown")
@@ -78,34 +91,37 @@ def threat_detector(image_filename):
     time.sleep(0.1)  # Simulate some processing time
 
 
-def image_processing_function(image_queue):
+def image_processing_function(image_stack, stack_lock):
     """
-    Function to run in a separate process for processing images from the queue.
-    Dequeues and processes images one by one, then deletes them.
+    Function to run in a separate process for processing images from the stack.
+    Processes the most recent image (last item) and deletes it.
     """
     print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
     try:
         while True:
             try:
-                # Non-blocking check for queue items
-                if not image_queue.empty():
-                    image_filename = image_queue.get()
+                # Check for stack items and process the most recent one
+                with stack_lock:
+                    if image_stack:
+                        image_filename = image_stack.pop()  # Get the last item (LIFO)
+                        print(
+                            f"[{os.getpid()}] [Processing Process] Popped {image_filename}"
+                        )
+                    else:
+                        time.sleep(0.1)  # Brief sleep to avoid busy-waiting
+                        continue
+
+                threat_detector(image_filename)
+                # Delete the processed image
+                try:
+                    os.remove(image_filename)
                     print(
-                        f"[{os.getpid()}] [Processing Process] Dequeued {image_filename}"
+                        f"[{os.getpid()}] [Processing Process] Deleted {image_filename}"
                     )
-                    threat_detector(image_filename)
-                    # Delete the processed image
-                    try:
-                        os.remove(image_filename)
-                        print(
-                            f"[{os.getpid()}] [Processing Process] Deleted {image_filename}"
-                        )
-                    except OSError as e:
-                        print(
-                            f"[{os.getpid()}] [Processing Process] Failed to delete {image_filename}: {e}"
-                        )
-                else:
-                    time.sleep(0.1)  # Brief sleep to avoid busy-waiting
+                except OSError as e:
+                    print(
+                        f"[{os.getpid()}] [Processing Process] Failed to delete {image_filename}: {e}"
+                    )
             except Exception as e:
                 print(
                     f"[{os.getpid()}] [Processing Process] Error processing image: {e}"
@@ -168,7 +184,6 @@ Examples:
         help="Message history management strategy (default: %(default)s)",
     )
 
-    # New argument for camera index
     parser.add_argument(
         "--camera-index",
         type=int,
@@ -199,7 +214,7 @@ def main():
     print("Welcome to the security checkpoint!")
     print("This system will ask you questions to verify your visit.")
     print(f"📋 History management mode: {args.history_mode}")
-    print(f"📸 Camera index to use: {args.camera_index}")  # Print camera index
+    print(f"📸 Camera index to use: {args.camera_index}")
     print("=" * 60)
 
     # Create the security graph
@@ -235,11 +250,13 @@ def main():
         print("   (This is optional and won't affect the main functionality)")
 
     # --- Start the Camera and Processing Processes Here ---
-    image_queue = multiprocessing.Queue()
+    manager = multiprocessing.Manager()
+    image_stack = manager.list()  # Use a managed list as a stack
+    stack_lock = manager.Lock()  # Lock for thread-safe stack operations
 
     camera_p = multiprocessing.Process(
         target=camera_process_function,
-        args=(image_queue, 2, args.camera_index),
+        args=(image_stack, stack_lock, 2, args.camera_index, 20),
     )
     camera_p.daemon = True
     camera_p.start()
@@ -247,7 +264,7 @@ def main():
 
     processing_p = multiprocessing.Process(
         target=image_processing_function,
-        args=(image_queue,),
+        args=(image_stack, stack_lock),
     )
     processing_p.daemon = True
     processing_p.start()
@@ -290,7 +307,6 @@ def main():
             break
 
     # --- Graceful Shutdown of Camera and Processing Processes ---
-    # This block will be executed when the main loop breaks (e.g., via Ctrl+C)
     for proc, name in [(camera_p, "Camera"), (processing_p, "Processing")]:
         if proc.is_alive():
             print(f"[Main Process] Terminating {name} process (PID: {proc.pid})...")
@@ -301,8 +317,18 @@ def main():
                     f"[Main Process] {name} process (PID: {proc.pid}) did not terminate gracefully, killing."
                 )
                 proc.kill()
+
+    # Clean up any remaining images in the stack
+    with stack_lock:
+        while image_stack:
+            image_filename = image_stack.pop()
+            try:
+                os.remove(image_filename)
+                print(f"[Main Process] Cleaned up {image_filename}")
+            except OSError as e:
+                print(f"[Main Process] Failed to clean up {image_filename}: {e}")
+
     print("[Main Process] All processes handled. Exiting main application.")
-    # --- End Graceful Shutdown ---
 
 
 if __name__ == "__main__":
