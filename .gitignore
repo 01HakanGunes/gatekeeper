@@ -78,4 +78,4 @@ logs/
 *.tmp
 *.temp
 
-images/
+*.jpg
