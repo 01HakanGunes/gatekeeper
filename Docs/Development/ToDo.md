@@ -1,9 +1,5 @@
 # Security Gate System - To-Do List
 
-- Add async call to agent, check threat from frames and give output for it. (each 2 sec add to queue) (seperate process)
-
-- Make the threat detector an optional parameter to enable
-
 - dashboard/logging
 
 - face-recognition
@@ -14,21 +10,7 @@
 
 - Mobile app to use as camera / maybe normal camera setup for faster testing
 
-
-### **Add Camera Verification Logic**
-- Implement computer vision capabilities to verify visitor claims through camera feed analysis
-- Create a new node `verify_visual_claims` that processes camera frames to validate visitor statements
-- Use image recognition models to detect:
-  - Delivery packages for delivery personnel
-  - Professional attire for business visitors
-  - Identification badges or uniforms
-  - Suspicious items or behaviors
-- Integrate with existing visitor profile to cross-reference visual evidence with stated purpose
-- Add confidence scoring for visual verification results
-- Create fallback mechanisms when camera feed is unavailable or unclear
-- Store verification results in the state for decision-making process
-
-### **Implement Comprehensive Logging System**
+### **Implement Logging System**
 - Replace all `print()` statements with proper logging using Python's `logging` module
 - Add configurable log levels (DEBUG, INFO, WARNING, ERROR) 
 - Create separate loggers for different components (input, processing, decision, email)
