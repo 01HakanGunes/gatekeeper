@@ -9,27 +9,26 @@ import argparse
 import os
 import time
 import requests
-import multiprocessing  # Import the multiprocessing module
+import multiprocessing
 from src.utils import camera as camera_utils
+from src.utils import analyze_image_with_prompt
 
 from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT, DEFAULT_HISTORY_MODE
 
 
-def camera_process_function(interval_seconds=2, camera_index=0):
+def camera_process_function(image_queue, interval_seconds=2, camera_index=0):
     """
-    Function to be run in a separate process for camera operations.
-    This process will take a picture and do a dummy functionality every `interval_seconds`.
-    Uses the camera_utils module for camera operations.
+    Function to run in a separate process for camera operations.
+    Captures images and adds filenames to the shared queue.
     """
     print(
         f"[{os.getpid()}] [Camera Process] Starting camera operations (interval: {interval_seconds}s, camera: {camera_index})..."
     )
-
     count = 0
     try:
         while True:
-            image_filename = f"captured_image_{count}.jpg"
+            image_filename = f"data/images/captured_image_{count}.jpg"
             success = camera_utils.capture_photo(image_filename)
             if not success:
                 print(
@@ -37,16 +36,10 @@ def camera_process_function(interval_seconds=2, camera_index=0):
                 )
                 time.sleep(0.5)
                 continue
-            print(f"[{os.getpid()}] [Camera Process] Saved {image_filename}")
-
-            # TODO add the image so a queue
-
-            # Dequeue and process, after processing give feedback, then delete the used frames.
-            dummy_image_processing(image_filename)
-
+            # Add the image filename to the queue
+            image_queue.put(image_filename)
             count += 1
             time.sleep(interval_seconds)
-
     except KeyboardInterrupt:
         print(
             f"[{os.getpid()}] [Camera Process] KeyboardInterrupt caught. Shutting down camera operations."
@@ -57,16 +50,75 @@ def camera_process_function(interval_seconds=2, camera_index=0):
         print(f"[{os.getpid()}] [Camera Process] Camera process exiting.")
 
 
-def dummy_image_processing(image_filename):
+def threat_detector(image_filename):
     """
     Placeholder for dummy functionality to process the captured image.
-    This function runs within the camera process.
-    `frame_data` is the NumPy array representing the image.
+    This function runs within the processing process.
     """
     print(
-        f"[{os.getpid()}] [Camera Process]   --> Dummy processing image ID: {image_filename}."
+        f"[{os.getpid()}] [Processing Process]   --> Dummy processing image ID: {image_filename}."
     )
+
+    vision_data = analyze_image_with_prompt(
+        image_filename, "threat_detector_prompt", "threat_schema"
+    )
+
+    if vision_data == None:
+        print("Vision data extraction failed")
+    else:
+        is_dangerous = vision_data.get("dangerous_object", "unknown")
+        is_angry = vision_data.get("angry_face", "unknown")
+
+        if is_dangerous:
+            print("❌ Threat detected, security is notified!")
+            # TODO can use tool here
+        elif is_angry:
+            print("⚠️ Chill bro, you are making me anxious.")
+
     time.sleep(0.1)  # Simulate some processing time
+
+
+def image_processing_function(image_queue):
+    """
+    Function to run in a separate process for processing images from the queue.
+    Dequeues and processes images one by one, then deletes them.
+    """
+    print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
+    try:
+        while True:
+            try:
+                # Non-blocking check for queue items
+                if not image_queue.empty():
+                    image_filename = image_queue.get()
+                    print(
+                        f"[{os.getpid()}] [Processing Process] Dequeued {image_filename}"
+                    )
+                    threat_detector(image_filename)
+                    # Delete the processed image
+                    try:
+                        os.remove(image_filename)
+                        print(
+                            f"[{os.getpid()}] [Processing Process] Deleted {image_filename}"
+                        )
+                    except OSError as e:
+                        print(
+                            f"[{os.getpid()}] [Processing Process] Failed to delete {image_filename}: {e}"
+                        )
+                else:
+                    time.sleep(0.1)  # Brief sleep to avoid busy-waiting
+            except Exception as e:
+                print(
+                    f"[{os.getpid()}] [Processing Process] Error processing image: {e}"
+                )
+                time.sleep(0.5)  # Prevent rapid error looping
+    except KeyboardInterrupt:
+        print(
+            f"[{os.getpid()}] [Processing Process] KeyboardInterrupt caught. Shutting down processing."
+        )
+    except Exception as e:
+        print(f"[{os.getpid()}] [Processing Process] An unexpected error occurred: {e}")
+    finally:
+        print(f"[{os.getpid()}] [Processing Process] Processing process exiting.")
 
 
 def wait_for_ollama():
@@ -182,17 +234,25 @@ def main():
         print(f"⚠️ Could not generate graph diagram: {e}")
         print("   (This is optional and won't affect the main functionality)")
 
-    # --- Start the Camera Process Here ---
-    # Define the process, targeting the function and passing arguments
+    # --- Start the Camera and Processing Processes Here ---
+    image_queue = multiprocessing.Queue()
+
     camera_p = multiprocessing.Process(
         target=camera_process_function,
-        args=(2, args.camera_index),  # Pass the interval (2 seconds) and camera_index
+        args=(image_queue, 2, args.camera_index),
     )
-    # Set as daemon so it exits with the parent process
     camera_p.daemon = True
     camera_p.start()
     print(f"[Main Process] Camera process started with PID: {camera_p.pid}")
-    # --- End Camera Process Start ---
+
+    processing_p = multiprocessing.Process(
+        target=image_processing_function,
+        args=(image_queue,),
+    )
+    processing_p.daemon = True
+    processing_p.start()
+    print(f"[Main Process] Processing process started with PID: {processing_p.pid}")
+    # --- End Camera and Processing Processes Start ---
 
     while True:
         initial_state = create_initial_state()
@@ -229,17 +289,18 @@ def main():
             print("Please contact system administrator.")
             break
 
-    # --- Graceful Shutdown of Camera Process ---
+    # --- Graceful Shutdown of Camera and Processing Processes ---
     # This block will be executed when the main loop breaks (e.g., via Ctrl+C)
-    if camera_p.is_alive():
-        print(f"[Main Process] Terminating camera process (PID: {camera_p.pid})...")
-        camera_p.terminate()  # Send a termination signal
-        camera_p.join(timeout=5)  # Wait for the process to terminate, with a timeout
-        if camera_p.is_alive():
-            print(
-                f"[Main Process] Camera process (PID: {camera_p.pid}) did not terminate gracefully, killing."
-            )
-            camera_p.kill()  # Force kill if it didn't terminate
+    for proc, name in [(camera_p, "Camera"), (processing_p, "Processing")]:
+        if proc.is_alive():
+            print(f"[Main Process] Terminating {name} process (PID: {proc.pid})...")
+            proc.terminate()
+            proc.join(timeout=5)
+            if proc.is_alive():
+                print(
+                    f"[Main Process] {name} process (PID: {proc.pid}) did not terminate gracefully, killing."
+                )
+                proc.kill()
     print("[Main Process] All processes handled. Exiting main application.")
     # --- End Graceful Shutdown ---
 

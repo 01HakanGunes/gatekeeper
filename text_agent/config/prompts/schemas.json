@@ -21,5 +21,9 @@
     "threat_level": "string (one of: low, medium, high)",
     "dangerous_object_detected": "boolean (true if any dangerous object is detected)",
     "details": "string (very short description of what do you see)"
+  },
+  "threat_schema": {
+    "dangerous_object": "boolean (true if any dangerous object is detected)",
+    "angry_face": "boolean (true if the face angry)"
   }
 }

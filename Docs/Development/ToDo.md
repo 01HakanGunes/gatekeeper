@@ -2,15 +2,18 @@
 
 - Add async call to agent, check threat from frames and give output for it. (each 2 sec add to queue) (seperate process)
 
+- Make the threat detector an optional parameter to enable
+
+- dashboard/logging
+
+- face-recognition
+
 - After threat level high, directly jump to decision as call security and reset graph.
 
 - Remove the thinking extraction and directly use from langchain
 
 - Mobile app to use as camera / maybe normal camera setup for faster testing
 
-- dashboard/logging
-
-- face-recognition
 
 ### **Add Camera Verification Logic**
 - Implement computer vision capabilities to verify visitor claims through camera feed analysis

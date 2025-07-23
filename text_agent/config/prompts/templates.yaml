@@ -9,8 +9,18 @@ vision:
     type: "string"
     input_variables:
       - "json_schema"
-decision:
+  threat_detector_prompt:
+    template: |
+      You are a security vision system. Analyze the provided image.
+      You must respond with a valid JSON object following this exact schema:
+      {json_schema}
 
+      Only return valid JSON.
+    type: "string"
+    input_variables:
+      - "json_schema"
+
+decision:
   make_decision_json:
     template: |
       You are a security gate decision system. Based on the visitor profile and conversation, choose the most appropriate security action.

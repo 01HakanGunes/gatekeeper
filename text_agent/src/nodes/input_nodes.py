@@ -1,20 +1,20 @@
-import re
 from typing import Literal
 import json
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from typing import cast
+from src.core.state import VisionSchema
+from langchain_core.messages import HumanMessage, SystemMessage
 from src.core.state import State
+from src.utils import analyze_image_with_prompt
 from config.settings import MAX_HUMAN_MESSAGES, SHORTEN_KEEP_MESSAGES
 from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import (
     llm_summary,
     llm_session_json,
     llm_validation_json,
-    llm_vision_json,
 )
 from src.utils.prompt_manager import prompt_manager
 from models.llm_config import llm_validation_json
 from src.utils import capture_photo
-from src.utils.camera import image_file_to_base64
 
 
 def receive_input(state: State) -> State:
@@ -83,54 +83,10 @@ def receive_input(state: State) -> State:
 
                 # Analyze the frame and extract the json schema accordingly
                 print("Using existing photo for vision analysis.")
-                try:
-                    image_b64 = image_file_to_base64("visitor.png")
-                except Exception as e:
-                    print(f"⚠️ Could not convert image to base64: {e}")
-                    state["vision_schema"] = None
-                    image_b64 = None
-
-                if not image_b64:
-                    print("⚠️ Skipping vision analysis due to missing image base64.")
-                    state["vision_schema"] = None
-                else:
-                    vision_schema = prompt_manager.get_schema("vision_schema")
-                    try:
-                        vision_prompt = prompt_manager.invoke_prompt(
-                            "vision",
-                            "analyze_image_threat_json",
-                            json_schema=json.dumps(vision_schema, indent=2),
-                        )
-                        image_part = {
-                            "type": "image_url",
-                            "image_url": f"data:image/jpeg;base64,{image_b64}",
-                        }
-                        text_part = {"type": "text", "text": vision_prompt}
-                        message = {
-                            "role": "user",
-                            "content": [image_part, text_part],
-                        }
-                        response = llm_vision_json.invoke([message])
-                        content = (
-                            response.content
-                            if hasattr(response, "content")
-                            else str(response)
-                        )
-                        if isinstance(content, list):
-                            content = "\n".join(str(x) for x in content)
-                        try:
-                            vision_data = json.loads(content)
-                        except Exception:
-                            match = re.search(r"\{.*\}", content, re.DOTALL)
-                            if match:
-                                vision_data = json.loads(match.group(0))
-                            else:
-                                print("⚠️ No valid JSON found in LLM response")
-                                vision_data = None
-                        state["vision_schema"] = vision_data
-                    except Exception as e:
-                        print(f"⚠️ Vision LLM response error: {e}")
-                        state["vision_schema"] = None
+                vision_data = analyze_image_with_prompt(
+                    "visitor.png", "analyze_image_threat_json", "vision_schema"
+                )
+                state["vision_schema"] = cast(VisionSchema, vision_data)
 
                 # Check the face_detected field, if no face print a request to show up on the camera, then return to valid input waiting loop.
                 vision_schema = state.get("vision_schema")
