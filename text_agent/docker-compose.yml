@@ -28,8 +28,8 @@ services:
       - /dev/video0:/dev/video0
     networks:
       - my-ollama-network # Place Python app on the same custom network
-    stdin_open: true    # Enable stdin (equivalent to -i flag)
-    tty: true          # Allocate a pseudo-TTY (equivalent to -t flag)
+    stdin_open: true # Enable stdin (equivalent to -i flag)
+    tty: true # Allocate a pseudo-TTY (equivalent to -t flag)
 
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
@@ -44,6 +44,17 @@ services:
     networks:
       - my-ollama-network
     restart: always
+
+  dashboard:
+    build:
+      context: ../dashboard
+    image: dashboard:latest
+    container_name: dashboard
+    ports:
+      - "80:80"
+    networks:
+      - my-ollama-network
+    restart: unless-stopped
 
 volumes:
   ollama:

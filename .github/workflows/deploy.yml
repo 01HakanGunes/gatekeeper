@@ -23,26 +23,15 @@ jobs:
         run: |
           echo "Building Docker images..."
           docker compose build
-      # Build dashboard Docker image
-      - name: Build dashboard Docker image
-        working-directory: ./dashboard
-        run: |
-          echo "Building dashboard Docker image..."
-          docker build -t dashboard:latest .
 
-      # Deploy with Docker Compose
+      # Deploy all services with Docker Compose
       - name: Deploy with Docker Compose
         working-directory: ./text_agent
         env:
           GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
         run: |
-          echo "Deploying application..."
+          echo "Deploying all services (including dashboard)..."
           docker compose up -d --remove-orphans
-      # Run dashboard container
-      - name: Run dashboard container
-        run: |
-          echo "Running dashboard container..."
-          docker run -d --name dashboard --restart unless-stopped -p 80:80 dashboard:latest
 
       # Print status of containers
       - name: Container Status
@@ -50,7 +39,3 @@ jobs:
         run: |
           echo "Checking container status..."
           docker compose ps
-      - name: Dashboard Container Status
-        run: |
-          echo "Checking dashboard container status..."
-          docker ps -a | grep dashboard
