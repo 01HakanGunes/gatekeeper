@@ -2,10 +2,10 @@ export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export const API_ENDPOINTS = {
-  LOGS: "/api/logs",
-  MESSAGES: "/api/messages",
-  STATUS: "/api/status",
-  SEND_MESSAGE: "/api/send-message",
+  LOGS: "/api/version",
+  MESSAGES: "/api/chat",
+  STATUS: "/api/tags",
+  SEND_MESSAGE: "/api/generate",
 } as const;
 
 export const UI_CONSTANTS = {

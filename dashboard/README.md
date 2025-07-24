@@ -2,8 +2,6 @@
 
 A modern, responsive web dashboard for monitoring and interacting with AI agents. Built with React, TypeScript, and Vite.
 
-![Dashboard Preview](https://via.placeholder.com/800x400/646cff/ffffff?text=AI+Agent+Dashboard)
-
 ## Features
 
 ### 🤖 Agent Monitoring
