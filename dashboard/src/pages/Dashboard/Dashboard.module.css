@@ -1,0 +1,454 @@
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--bg-primary, #ffffff);
+    color: var(--text-primary, #213547);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    background-color: var(--bg-secondary, #f9fafb);
+    flex-shrink: 0;
+}
+
+.headerTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary, #213547);
+}
+
+.statusContainer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.statusIndicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.statusOnline {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.statusOffline {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.statusDot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.statusDotOnline {
+    background-color: #10b981;
+}
+
+.statusDotOffline {
+    background-color: #ef4444;
+}
+
+.main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 300px;
+    border-right: 1px solid var(--border-color, #e5e7eb);
+    background-color: var(--bg-secondary, #f9fafb);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    background-color: var(--bg-primary, #ffffff);
+    flex-shrink: 0;
+}
+
+.sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary, #213547);
+}
+
+.sectionActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.logsContainer {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.logsList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.logEntry {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.logEntry:hover {
+    background-color: var(--bg-hover, #f3f4f6);
+}
+
+.logLevel {
+    flex-shrink: 0;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    min-width: 4rem;
+    text-align: center;
+}
+
+.logLevelInfo {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.logLevelWarning {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.logLevelError {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.logLevelDebug {
+    background-color: #f3e8ff;
+    color: #7c3aed;
+}
+
+.logContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.logMessage {
+    color: var(--text-primary, #213547);
+    word-break: break-word;
+}
+
+.logTimestamp {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #6b7280);
+}
+
+.logSource {
+    font-size: 0.75rem;
+    color: var(--text-tertiary, #9ca3af);
+    font-style: italic;
+}
+
+.messagesContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.messagesList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.messageEntry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.messageUser {
+    align-items: flex-end;
+}
+
+.messageAgent {
+    align-items: flex-start;
+}
+
+.messageBubble {
+    max-width: 70%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.messageBubbleUser {
+    background-color: #646cff;
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.messageBubbleAgent {
+    background-color: var(--bg-secondary, #f3f4f6);
+    color: var(--text-primary, #213547);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-bottom-left-radius: 0.25rem;
+}
+
+.messageInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary, #6b7280);
+}
+
+.messageInput {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+    background-color: var(--bg-primary, #ffffff);
+    flex-shrink: 0;
+}
+
+.messageInputForm {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.messageInputField {
+    flex: 1;
+}
+
+.emptyState {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary, #6b7280);
+}
+
+.emptyStateIcon {
+    font-size: 3rem;
+    opacity: 0.5;
+}
+
+.emptyStateText {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.emptyStateSubtext {
+    font-size: 0.875rem;
+    opacity: 0.75;
+}
+
+.loadingState {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.loadingSpinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #e5e7eb;
+    border-top-color: #646cff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.errorState {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+.errorIcon {
+    font-size: 3rem;
+    color: #ef4444;
+}
+
+.errorText {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #dc2626;
+}
+
+.errorSubtext {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #6b7280);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: 200px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color, #e5e7eb);
+    }
+
+    .header {
+        padding: 1rem;
+    }
+
+    .headerTitle {
+        font-size: 1.25rem;
+    }
+
+    .statusContainer {
+        gap: 0.5rem;
+    }
+
+    .messageBubble {
+        max-width: 85%;
+    }
+
+    .messageInputForm {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    .dashboard {
+        --bg-primary: #1f2937;
+        --bg-secondary: #111827;
+        --bg-hover: #374151;
+        --text-primary: rgba(255, 255, 255, 0.87);
+        --text-secondary: #d1d5db;
+        --text-tertiary: #9ca3af;
+        --border-color: #374151;
+    }
+
+    .statusOnline {
+        background-color: #064e3b;
+        color: #6ee7b7;
+        border-color: #047857;
+    }
+
+    .statusOffline {
+        background-color: #7f1d1d;
+        color: #fca5a5;
+        border-color: #dc2626;
+    }
+
+    .messageBubbleAgent {
+        background-color: #374151;
+        border-color: #4b5563;
+        color: #f9fafb;
+    }
+
+    .logLevelInfo {
+        background-color: #1e3a8a;
+        color: #93c5fd;
+    }
+
+    .logLevelWarning {
+        background-color: #92400e;
+        color: #fcd34d;
+    }
+
+    .logLevelError {
+        background-color: #991b1b;
+        color: #fca5a5;
+    }
+
+    .logLevelDebug {
+        background-color: #581c87;
+        color: #c4b5fd;
+    }
+}
+
+/* Light mode specific adjustments */
+@media (prefers-color-scheme: light) {
+    .dashboard {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f9fafb;
+        --bg-hover: #f3f4f6;
+        --text-primary: #213547;
+        --text-secondary: #6b7280;
+        --text-tertiary: #9ca3af;
+        --border-color: #e5e7eb;
+    }
+}
