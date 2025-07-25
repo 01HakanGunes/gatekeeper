@@ -13,7 +13,6 @@ from models.llm_config import (
     llm_validation_json,
 )
 from src.utils.prompt_manager import prompt_manager
-from models.llm_config import llm_validation_json
 from src.utils import capture_photo
 
 
@@ -44,84 +43,86 @@ def receive_input(state: State) -> State:
     if messages and hasattr(messages[-1], "type") and messages[-1].type == "ai":
         print(f"Agent: {messages[-1].content}")
 
-    # Loop until we get valid input
-    while True:
-        user_input = input("User: ")  # Wait for terminal input
+    # Basic check for empty input
+    user_input = state.get("user_input", "")
+    state["invalid_input"] = False
 
-        # Basic check for empty input
-        if not user_input.strip():
-            print("❌ Input validation: Empty input detected")
-            empty_message = prompt_manager.get_field_data("input_validation")[
-                "empty_input_message"
-            ]
-            print(f"Agent: {empty_message}")
-            continue  # Ask for input again
+    if not user_input.strip():
+        print("❌ Input validation: Empty input detected")
+        state["invalid_input"] = True
+        empty_message = prompt_manager.get_field_data("input_validation")[
+            "empty_input_message"
+        ]
+        print(f"Agent: {empty_message}")
 
-        # Create a validation prompt using prompt manager
-        try:
-            # Use prompt manager to get validation prompt
-            prompt_value = prompt_manager.invoke_prompt(
-                "input", "validate_input", user_input=user_input
-            )
+        return state
 
-            response = llm_validation_json.invoke(prompt_value)
+    # Create a validation prompt using prompt manager
+    try:
+        # Use prompt manager to get validation prompt
+        prompt_value = prompt_manager.invoke_prompt(
+            "input", "validate_input", user_input=user_input
+        )
 
-            # Extract the response content (handling thinking models)
-            result = extract_answer_from_thinking_model(response)
+        response = llm_validation_json.invoke(prompt_value)
 
-            # Clean the response - sometimes LLM adds extra text
-            if "valid" in result and "unrelated" not in result:
-                print("✅ Input validation: Input is valid")
-                # Valid input - add to messages and break the loop
-                state["messages"].append(HumanMessage(content=user_input))
+        # Extract the response content (handling thinking models)
+        result = extract_answer_from_thinking_model(response)
 
-                # Get a frame from camera and save
-                if capture_photo("visitor.png"):
-                    print("Photo captured successfully!")
-                else:
-                    print("Failed to capture photo.")
-
-                # Analyze the frame and extract the json schema accordingly
-                print("Using existing photo for vision analysis.")
-                vision_data = analyze_image_with_prompt(
-                    "visitor.png", "analyze_image_threat_json", "vision_schema"
-                )
-                state["vision_schema"] = cast(VisionSchema, vision_data)
-
-                # Check the face_detected field, if no face print a request to show up on the camera, then return to valid input waiting loop.
-                vision_schema = state.get("vision_schema")
-                face_detected = False
-                if isinstance(vision_schema, dict):
-                    face_detected = vision_schema.get("face_detected", False)
-                if not face_detected:
-                    print(
-                        "❌ No face detected. Please show up on the camera and try again."
-                    )
-                    continue  # Ask for input again (do not break)
-                else:
-                    print("✅ Face detected in the image.")
-                    break
-            elif "unrelated" in result:
-                print("❌ Input validation: Input is unrelated/invalid v2:debug")
-                invalid_message = prompt_manager.get_field_data("input_validation")[
-                    "invalid_input_message"
-                ]
-                print(f"Agent: {invalid_message}")
-                continue  # Ask for input again
-            else:
-                # Default to valid if unclear response
-                print("⚠️ Input validation: Unclear response, defaulting to valid")
-                state["messages"].append(HumanMessage(content=user_input))
-                break
-
-        except Exception as error:
-            print(f"⚠️ Input validation error: {error}")
-            # If validation fails, default to valid to avoid blocking legitimate users
+        # Clean the response - sometimes LLM adds extra text
+        if "valid" in result and "unrelated" not in result:
+            print("✅ Input validation: Input is valid")
+            # Valid input - add to messages and break the loop
             state["messages"].append(HumanMessage(content=user_input))
-            break
+
+            # Get a frame from camera and save
+            if capture_photo("visitor.png"):
+                print("Photo captured successfully!")
+            else:
+                print("Failed to capture photo.")
+
+            # Analyze the frame and extract the json schema accordingly
+            print("Using existing photo for vision analysis.")
+            vision_data = analyze_image_with_prompt(
+                "visitor.png", "analyze_image_threat_json", "vision_schema"
+            )
+            state["vision_schema"] = cast(VisionSchema, vision_data)
+
+            # Check the face_detected field, if no face print a request to show up on the camera
+            vision_schema = state.get("vision_schema")
+            face_detected = False
+            if isinstance(vision_schema, dict):
+                face_detected = vision_schema.get("face_detected", False)
+            if not face_detected:
+                print(
+                    "❌ No face detected. Please show up on the camera and try again."
+                )
+
+                state["invalid_input"] = True
+                return state
+            else:
+                print("✅ Face detected in the image.")
+        elif "unrelated" in result:
+            print("❌ Input validation: Input is unrelated/invalid v2:debug")
+            invalid_message = prompt_manager.get_field_data("input_validation")[
+                "invalid_input_message"
+            ]
+            print(f"Agent: {invalid_message}")
+
+            state["invalid_input"] = True
+            return state
+        else:
+            # Default to valid if unclear response
+            print("⚠️ Input validation: Unclear response, defaulting to valid")
+            state["messages"].append(HumanMessage(content=user_input))
+
+    except Exception as error:
+        print(f"⚠️ Input validation error: {error}")
+        # If validation fails, default to valid to avoid blocking legitimate users
+        state["messages"].append(HumanMessage(content=user_input))
 
     # Print current visitor profile status after each user input for debugging
-    print(f"\n📋 Visitor Profile Status (after user input):")
+    print("\n📋 Visitor Profile Status (after user input):")
     for field, value in state["visitor_profile"].items():
         status = "✅" if value is not None and value != "-1" else "❌"
         print(f"  {status} {field}: {value}")

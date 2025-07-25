@@ -81,7 +81,7 @@ def create_security_graph():
             "not_complete": "question_visitor",
         },
     )
-    graph_builder.add_edge("question_visitor", "receive_input")
+    graph_builder.add_edge("question_visitor", END)
     graph_builder.add_conditional_edges(
         "make_decision",
         check_decision_for_notification,
@@ -109,6 +109,7 @@ def create_initial_state() -> State:
         SystemMessage(content=system_msg_content),
     ]
 
+    # TODO automate
     return {
         "messages": initial_messages,
         "visitor_profile": {

@@ -27,3 +27,5 @@ class State(TypedDict):
     decision_confidence: Optional[float]
     decision_reasoning: Optional[str]
     vision_schema: Optional[VisionSchema]  # stores vision analysis results
+    user_input: str
+    invalid_input: bool
