@@ -55,6 +55,10 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      # Critical: Allow Caddy to store TLS certificates and config
+      - caddy_config:/config
+      - caddy_data:/data
     networks:
       - my-ollama-network
     restart: unless-stopped
@@ -62,6 +66,8 @@ services:
 volumes:
   ollama:
   whisper_cache:
+  caddy_config: # ← Add this
+  caddy_data: # ← Add this
 
 networks:
   my-ollama-network: # Define the custom network
