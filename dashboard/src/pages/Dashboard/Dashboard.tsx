@@ -101,13 +101,6 @@ const Dashboard: React.FC = () => {
     </div>
   );
 
-  const renderLoadingState = () => (
-    <div className={styles.loadingState}>
-      <div className={styles.loadingSpinner} />
-      <div>Loading...</div>
-    </div>
-  );
-
   const renderErrorState = (error: string, onRetry?: () => void) => (
     <div className={styles.errorState}>
       <div className={styles.errorIcon}>⚠️</div>
