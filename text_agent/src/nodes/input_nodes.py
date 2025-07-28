@@ -75,14 +75,7 @@ def receive_input(state: State) -> State:
             # Valid input - add to messages and break the loop
             state["messages"].append(HumanMessage(content=user_input))
 
-            # Get a frame from camera and save
-            if capture_photo("visitor.png"):
-                print("Photo captured successfully!")
-            else:
-                print("Failed to capture photo.")
-
             # Analyze the frame and extract the json schema accordingly
-            print("Using existing photo for vision analysis.")
             vision_data = analyze_image_with_prompt(
                 "visitor.png", "analyze_image_threat_json", "vision_schema"
             )
