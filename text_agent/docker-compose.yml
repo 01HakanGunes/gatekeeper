@@ -54,6 +54,7 @@ services:
     container_name: dashboard
     ports:
       - "80:80"
+      - "443:443"
     networks:
       - my-ollama-network
     restart: unless-stopped

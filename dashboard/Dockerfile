@@ -14,14 +14,16 @@ COPY . .
 # Build the Vite application for production
 RUN npm run build
 
-# Stage 2: Serve the built application with Nginx (a lightweight web server)
-FROM nginx:alpine
+# Stage 2: Serve the built application with Caddy
+FROM caddy:alpine
 
-# Copy the built assets from the 'build' stage to Nginx's public directory
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy the built assets from the 'build' stage to Caddy's public directory
+COPY --from=build /app/dist /srv
 
-# Expose port 80, which Nginx will listen on
-EXPOSE 80
+# Copy Caddyfile for configuration
+COPY Caddyfile /etc/caddy/Caddyfile
 
-# Command to start Nginx in the foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Expose ports 80 (HTTP) and 443 (HTTPS)
+EXPOSE 80 443
+
+# Caddy will automatically start with the Caddyfile

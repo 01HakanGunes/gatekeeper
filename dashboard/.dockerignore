@@ -5,3 +5,4 @@ dist
 .gitignore
 Dockerfile
 docker-compose.yml # If you plan to use docker-compose
+!Caddyfile
