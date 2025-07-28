@@ -30,6 +30,8 @@ services:
       - my-ollama-network # Place Python app on the same custom network
     stdin_open: true # Enable stdin (equivalent to -i flag)
     tty: true # Allocate a pseudo-TTY (equivalent to -t flag)
+    ports:
+      - "8001:8001"
 
   whisper:
     image: onerahmet/openai-whisper-asr-webservice:latest
