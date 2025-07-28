@@ -4,13 +4,46 @@ import {
   ERROR_MESSAGES,
 } from "../utils/constants";
 
-export interface LogEntry {
-  id: string;
-  timestamp: string;
-  level: "info" | "warning" | "error" | "debug";
+export interface SessionResponse {
+  session_id: string;
+  status: string;
   message: string;
-  source?: string;
-  metadata?: Record<string, unknown>;
+}
+
+export interface ChatRequest {
+  message: string;
+}
+
+export interface ChatResponse {
+  agent_response: string;
+  session_complete: boolean;
+}
+
+export interface VisitorProfile {
+  name?: string;
+  purpose?: string;
+  contact_person?: string;
+  threat_level?: string;
+  affiliation?: string;
+  id_verified?: boolean;
+}
+
+export interface ProfileResponse {
+  visitor_profile: VisitorProfile;
+  decision: string;
+  decision_confidence: number;
+  session_active: boolean;
+}
+
+export interface EndSessionResponse {
+  status: string;
+  message: string;
+}
+
+export interface HealthResponse {
+  status: string;
+  graph_initialized: boolean;
+  active_sessions: number;
 }
 
 export interface Message {
@@ -18,26 +51,7 @@ export interface Message {
   content: string;
   timestamp: string;
   sender: "user" | "agent";
-  status?: "sent" | "delivered" | "error";
-}
-
-export interface AgentStatus {
-  online: boolean;
-  lastSeen: string;
-  activeConnections: number;
-  uptime: number;
-  version: string;
-}
-
-export interface SendMessageRequest {
-  content: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
+  session_complete?: boolean;
 }
 
 class ApiClient {
@@ -64,8 +78,8 @@ class ApiClient {
       const response = await fetch(url, { ...defaultOptions, ...options });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
+        if (response.status === 404) {
+          throw new Error("Session not found");
         }
         if (response.status >= 500) {
           throw new Error(ERROR_MESSAGES.SERVER_ERROR);
@@ -83,42 +97,39 @@ class ApiClient {
     }
   }
 
-  async getLogs(limit: number = 100): Promise<LogEntry[]> {
-    const response = await this.request<ApiResponse<LogEntry[]>>(
-      `${API_ENDPOINTS.LOGS}?limit=${limit}`,
-    );
-    return response.data;
+  async startSession(): Promise<SessionResponse> {
+    return await this.request<SessionResponse>(API_ENDPOINTS.START_SESSION, {
+      method: "POST",
+    });
   }
 
-  async getMessages(limit: number = 50): Promise<Message[]> {
-    const response = await this.request<ApiResponse<Message[]>>(
-      `${API_ENDPOINTS.MESSAGES}?limit=${limit}`,
-    );
-    return response.data;
-  }
-
-  async getStatus(): Promise<AgentStatus> {
-    const response = await this.request<ApiResponse<AgentStatus>>(
-      API_ENDPOINTS.STATUS,
-    );
-    return response.data;
-  }
-
-  async sendMessage(messageRequest: SendMessageRequest): Promise<Message> {
-    const response = await this.request<ApiResponse<Message>>(
-      API_ENDPOINTS.SEND_MESSAGE,
+  async sendMessage(sessionId: string, message: string): Promise<ChatResponse> {
+    return await this.request<ChatResponse>(
+      `${API_ENDPOINTS.CHAT}/${sessionId}`,
       {
         method: "POST",
-        body: JSON.stringify(messageRequest),
+        body: JSON.stringify({ message }),
       },
     );
-    return response.data;
   }
 
-  async clearLogs(): Promise<void> {
-    await this.request<ApiResponse<void>>(`${API_ENDPOINTS.LOGS}`, {
-      method: "DELETE",
-    });
+  async getProfile(sessionId: string): Promise<ProfileResponse> {
+    return await this.request<ProfileResponse>(
+      `${API_ENDPOINTS.PROFILE}/${sessionId}`,
+    );
+  }
+
+  async endSession(sessionId: string): Promise<EndSessionResponse> {
+    return await this.request<EndSessionResponse>(
+      `${API_ENDPOINTS.END_SESSION}/${sessionId}`,
+      {
+        method: "POST",
+      },
+    );
+  }
+
+  async getHealth(): Promise<HealthResponse> {
+    return await this.request<HealthResponse>(API_ENDPOINTS.HEALTH);
   }
 }
 

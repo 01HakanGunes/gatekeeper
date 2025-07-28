@@ -1,26 +1,37 @@
-# AI Agent Dashboard
+# Security Gate Dashboard
 
-A modern, responsive web dashboard for monitoring and interacting with AI agents. Built with React, TypeScript, and Vite.
+A modern, responsive web dashboard for the Security Gate visitor screening system. Built with React, TypeScript, and Vite.
 
 ## Features
 
-### 🤖 Agent Monitoring
-- Real-time agent status monitoring
-- System logs with different log levels (info, warning, error, debug)
-- Connection status and uptime tracking
-- Agent version and active connections display
+### 🔒 Visitor Screening
+- Session-based visitor screening workflow
+- Real-time security agent chat interface
+- Visitor profile building and display
+- Decision tracking with confidence scores
 
 ### 💬 Interactive Chat
-- Direct communication with your AI agent
+- Direct communication with security screening agent
 - Message history with timestamps
-- Real-time message status (sent, delivered, error)
+- Session completion tracking
 - Character count and input validation
+
+### 👤 Profile Management
+- Visitor information display
+- Threat level assessment
+- ID verification status
+- Contact person tracking
+
+### 📊 Session Monitoring
+- Active session tracking
+- System health monitoring
+- Session completion status
+- Real-time updates
 
 ### ⚙️ Configurable Settings
 - API endpoint configuration
 - Auto-refresh intervals
 - Display preferences
-- Debug log toggles
 - Notification settings
 
 ### 🎨 Modern UI
@@ -33,7 +44,7 @@ A modern, responsive web dashboard for monitoring and interacting with AI agents
 
 ### Prerequisites
 - Node.js 18+ and npm
-- Your AI agent backend running (default: `http://localhost:8000`)
+- Security Gate backend running (default: `http://localhost:8001`)
 
 ### Installation
 
@@ -69,70 +80,63 @@ Create a `.env` file in the dashboard directory:
 
 ```env
 # API Configuration
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=http://localhost:8001
 
 # UI Settings
 VITE_REFRESH_INTERVAL=5000
-VITE_MAX_LOG_ENTRIES=1000
 VITE_MESSAGE_MAX_LENGTH=500
 
 # Optional
 VITE_DEBUG=false
-VITE_APP_TITLE="AI Agent Dashboard"
+VITE_APP_TITLE="Security Gate Dashboard"
 ```
 
 ### API Endpoints
 
-Your AI agent backend should implement these endpoints:
+Your Security Gate backend should implement these endpoints:
 
-- `GET /api/status` - Agent status information
-- `GET /api/logs?limit=100` - System logs
-- `GET /api/messages?limit=50` - Message history
-- `POST /api/send-message` - Send message to agent
-- `DELETE /api/logs` - Clear logs
+- `POST /start-session` - Start a new visitor screening session
+- `POST /chat/{session_id}` - Send message to security agent
+- `GET /profile/{session_id}` - Get visitor profile and session status
+- `POST /end-session/{session_id}` - End a screening session
+- `GET /health` - System health and active sessions
 
 ### Expected API Response Format
 
 ```typescript
-// GET /api/status
+// POST /start-session
 {
-  "data": {
-    "online": true,
-    "lastSeen": "2024-01-15T10:30:00Z",
-    "activeConnections": 3,
-    "uptime": 7200,
-    "version": "1.0.0"
+  "session_id": "uuid-string",
+  "status": "success",
+  "message": "Session started successfully"
+}
+
+// POST /chat/{session_id}
+{
+  "agent_response": "Welcome! Can you tell me your name and who you're here to see?",
+  "session_complete": false
+}
+
+// GET /profile/{session_id}
+{
+  "visitor_profile": {
+    "name": "John Doe",
+    "purpose": "meeting",
+    "contact_person": "Alice Smith",
+    "threat_level": "low",
+    "affiliation": "Company ABC",
+    "id_verified": true
   },
-  "success": true
+  "decision": "approved",
+  "decision_confidence": 0.9,
+  "session_active": true
 }
 
-// GET /api/logs
+// GET /health
 {
-  "data": [
-    {
-      "id": "log-1",
-      "timestamp": "2024-01-15T10:30:00Z",
-      "level": "info",
-      "message": "Agent started successfully",
-      "source": "agent-core",
-      "metadata": {}
-    }
-  ],
-  "success": true
-}
-
-// GET /api/messages
-{
-  "data": [
-    {
-      "id": "msg-1",
-      "content": "Hello, how can I help you?",
-      "timestamp": "2024-01-15T10:30:00Z",
-      "sender": "agent",
-      "status": "delivered"
-    }
-  ],
-  "success": true
+  "status": "healthy",
+  "graph_initialized": true,
+  "active_sessions": 2
 }
 ```
 
@@ -174,18 +178,20 @@ dashboard/
 ### Key Components
 
 **Dashboard** (`/src/pages/Dashboard/Dashboard.tsx`)
-- Main interface with logs sidebar and chat area
+- Main interface with session management and chat
+- Session status and visitor profile display
 - Auto-refreshes data every 5 seconds
-- Handles message sending and log viewing
+- Handles session lifecycle and messaging
 
 **Settings** (`/src/pages/Settings/Settings.tsx`)
 - Configuration interface
 - API endpoint management
 - Display preferences
-- Cache management
+- System health monitoring
 
 **useApi Hook** (`/src/hooks/useApi.ts`)
 - Centralized API state management
+- Session lifecycle management
 - Automatic error handling
 - Loading states for all operations
 
@@ -222,6 +228,6 @@ CMD ["nginx", "-g", "daemon off;"]
 Build and run:
 
 ```bash
-docker build -t ai-agent-dashboard .
-docker run -p 8080:80 ai-agent-dashboard
+docker build -t security-gate-dashboard .
+docker run -p 8080:80 security-gate-dashboard
 ```

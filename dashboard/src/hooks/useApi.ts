@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { apiClient } from "../services/apiClient";
 import type {
-  LogEntry,
+  SessionResponse,
+  ProfileResponse,
+  HealthResponse,
   Message,
-  AgentStatus,
-  SendMessageRequest,
 } from "../services/apiClient";
 
 interface UseApiState<T> {
@@ -14,102 +14,149 @@ interface UseApiState<T> {
 }
 
 interface UseApiReturn {
-  // Logs
-  logs: UseApiState<LogEntry[]>;
-  fetchLogs: (limit?: number) => Promise<void>;
-  clearLogs: () => Promise<void>;
+  // Session management
+  session: UseApiState<SessionResponse>;
+  startSession: () => Promise<string | null>;
+  endSession: () => Promise<void>;
 
-  // Messages
+  // Chat
   messages: UseApiState<Message[]>;
-  fetchMessages: (limit?: number) => Promise<void>;
-  sendMessage: (messageRequest: SendMessageRequest) => Promise<Message | null>;
+  sendMessage: (message: string) => Promise<void>;
 
-  // Status
-  status: UseApiState<AgentStatus>;
-  fetchStatus: () => Promise<void>;
+  // Profile
+  profile: UseApiState<ProfileResponse>;
+  fetchProfile: () => Promise<void>;
+
+  // Health
+  health: UseApiState<HealthResponse>;
+  fetchHealth: () => Promise<void>;
+
+  // Current session ID
+  currentSessionId: string | null;
 
   // Global loading state
   isLoading: boolean;
 }
 
 export const useApi = (): UseApiReturn => {
-  const [logs, setLogs] = useState<UseApiState<LogEntry[]>>({
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  const [session, setSession] = useState<UseApiState<SessionResponse>>({
     data: null,
     loading: false,
     error: null,
   });
 
   const [messages, setMessages] = useState<UseApiState<Message[]>>({
+    data: [],
+    loading: false,
+    error: null,
+  });
+
+  const [profile, setProfile] = useState<UseApiState<ProfileResponse>>({
     data: null,
     loading: false,
     error: null,
   });
 
-  const [status, setStatus] = useState<UseApiState<AgentStatus>>({
+  const [health, setHealth] = useState<UseApiState<HealthResponse>>({
     data: null,
     loading: false,
     error: null,
   });
 
-  const isLoading = logs.loading || messages.loading || status.loading;
+  const isLoading =
+    session.loading || messages.loading || profile.loading || health.loading;
 
-  const fetchLogs = useCallback(async (limit?: number) => {
-    setLogs((prev) => ({ ...prev, loading: true, error: null }));
+  const startSession = useCallback(async (): Promise<string | null> => {
+    setSession((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const data = await apiClient.getLogs(limit);
-      setLogs({ data, loading: false, error: null });
+      const data = await apiClient.startSession();
+      setSession({ data, loading: false, error: null });
+      setCurrentSessionId(data.session_id);
+      setMessages({ data: [], loading: false, error: null });
+      setProfile({ data: null, loading: false, error: null });
+      return data.session_id;
     } catch (error) {
-      setLogs((prev) => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : "Failed to fetch logs",
-      }));
-    }
-  }, []);
-
-  const clearLogs = useCallback(async () => {
-    setLogs((prev) => ({ ...prev, loading: true, error: null }));
-    try {
-      await apiClient.clearLogs();
-      setLogs({ data: [], loading: false, error: null });
-    } catch (error) {
-      setLogs((prev) => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : "Failed to clear logs",
-      }));
-    }
-  }, []);
-
-  const fetchMessages = useCallback(async (limit?: number) => {
-    setMessages((prev) => ({ ...prev, loading: true, error: null }));
-    try {
-      const data = await apiClient.getMessages(limit);
-      setMessages({ data, loading: false, error: null });
-    } catch (error) {
-      setMessages((prev) => ({
+      setSession((prev) => ({
         ...prev,
         loading: false,
         error:
-          error instanceof Error ? error.message : "Failed to fetch messages",
+          error instanceof Error ? error.message : "Failed to start session",
       }));
+      return null;
     }
   }, []);
 
-  const sendMessage = useCallback(
-    async (messageRequest: SendMessageRequest): Promise<Message | null> => {
-      setMessages((prev) => ({ ...prev, loading: true, error: null }));
-      try {
-        const newMessage = await apiClient.sendMessage(messageRequest);
+  const endSession = useCallback(async () => {
+    if (!currentSessionId) return;
 
-        // Add the new message to the existing messages
+    setSession((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      await apiClient.endSession(currentSessionId);
+      setSession({ data: null, loading: false, error: null });
+      setCurrentSessionId(null);
+      setMessages({ data: [], loading: false, error: null });
+      setProfile({ data: null, loading: false, error: null });
+    } catch (error) {
+      setSession((prev) => ({
+        ...prev,
+        loading: false,
+        error: error instanceof Error ? error.message : "Failed to end session",
+      }));
+    }
+  }, [currentSessionId]);
+
+  const sendMessage = useCallback(
+    async (messageContent: string): Promise<void> => {
+      if (!currentSessionId) {
         setMessages((prev) => ({
-          data: prev.data ? [newMessage, ...prev.data] : [newMessage],
+          ...prev,
+          error: "No active session. Please start a new session.",
+        }));
+        return;
+      }
+
+      setMessages((prev) => ({ ...prev, loading: true, error: null }));
+
+      // Add user message to the list
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        content: messageContent,
+        timestamp: new Date().toISOString(),
+        sender: "user",
+      };
+
+      setMessages((prev) => ({
+        ...prev,
+        data: prev.data ? [userMessage, ...prev.data] : [userMessage],
+      }));
+
+      try {
+        const response = await apiClient.sendMessage(
+          currentSessionId,
+          messageContent,
+        );
+
+        // Add agent response to the list
+        const agentMessage: Message = {
+          id: `agent-${Date.now()}`,
+          content: response.agent_response,
+          timestamp: new Date().toISOString(),
+          sender: "agent",
+          session_complete: response.session_complete,
+        };
+
+        setMessages((prev) => ({
+          data: prev.data ? [agentMessage, ...prev.data] : [agentMessage],
           loading: false,
           error: null,
         }));
 
-        return newMessage;
+        // If session is complete, fetch the final profile
+        if (response.session_complete) {
+          fetchProfile();
+        }
       } catch (error) {
         setMessages((prev) => ({
           ...prev,
@@ -117,41 +164,59 @@ export const useApi = (): UseApiReturn => {
           error:
             error instanceof Error ? error.message : "Failed to send message",
         }));
-        return null;
       }
     },
-    [],
+    [currentSessionId],
   );
 
-  const fetchStatus = useCallback(async () => {
-    setStatus((prev) => ({ ...prev, loading: true, error: null }));
+  const fetchProfile = useCallback(async () => {
+    if (!currentSessionId) return;
+
+    setProfile((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const data = await apiClient.getStatus();
-      setStatus({ data, loading: false, error: null });
+      const data = await apiClient.getProfile(currentSessionId);
+      setProfile({ data, loading: false, error: null });
     } catch (error) {
-      setStatus((prev) => ({
+      setProfile((prev) => ({
         ...prev,
         loading: false,
         error:
-          error instanceof Error ? error.message : "Failed to fetch status",
+          error instanceof Error ? error.message : "Failed to fetch profile",
+      }));
+    }
+  }, [currentSessionId]);
+
+  const fetchHealth = useCallback(async () => {
+    setHealth((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      const data = await apiClient.getHealth();
+      setHealth({ data, loading: false, error: null });
+    } catch (error) {
+      setHealth((prev) => ({
+        ...prev,
+        loading: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch health",
       }));
     }
   }, []);
 
-  // Auto-fetch status on mount
+  // Auto-fetch health on mount
   useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
+    fetchHealth();
+  }, [fetchHealth]);
 
   return {
-    logs,
-    fetchLogs,
-    clearLogs,
+    session,
+    startSession,
+    endSession,
     messages,
-    fetchMessages,
     sendMessage,
-    status,
-    fetchStatus,
+    profile,
+    fetchProfile,
+    health,
+    fetchHealth,
+    currentSessionId,
     isLoading,
   };
 };

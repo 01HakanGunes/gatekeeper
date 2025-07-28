@@ -11,21 +11,17 @@ interface SettingsData {
   refreshInterval: number;
   autoRefresh: boolean;
   showTimestamps: boolean;
-  maxLogEntries: number;
-  enableDebugLogs: boolean;
   enableNotifications: boolean;
 }
 
 const Settings: React.FC = () => {
-  const { status, fetchStatus } = useApi();
+  const { health, fetchHealth } = useApi();
 
   const [settings, setSettings] = useState<SettingsData>({
     apiEndpoint: API_BASE_URL,
     refreshInterval: UI_CONSTANTS.REFRESH_INTERVAL / 1000, // Convert to seconds
     autoRefresh: true,
     showTimestamps: true,
-    maxLogEntries: UI_CONSTANTS.MAX_LOG_ENTRIES,
-    enableDebugLogs: false,
     enableNotifications: true,
   });
 
@@ -49,10 +45,10 @@ const Settings: React.FC = () => {
     }
   }, []);
 
-  // Fetch agent status on mount
+  // Fetch health status on mount
   useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
+    fetchHealth();
+  }, [fetchHealth]);
 
   const handleSettingChange = useCallback(
     (key: keyof SettingsData, value: unknown) => {
@@ -97,8 +93,6 @@ const Settings: React.FC = () => {
       refreshInterval: UI_CONSTANTS.REFRESH_INTERVAL / 1000,
       autoRefresh: true,
       showTimestamps: true,
-      maxLogEntries: UI_CONSTANTS.MAX_LOG_ENTRIES,
-      enableDebugLogs: false,
       enableNotifications: true,
     };
     setSettings(defaultSettings);
@@ -122,17 +116,6 @@ const Settings: React.FC = () => {
       });
     }
   }, []);
-
-  const formatUptime = (uptime: number) => {
-    const hours = Math.floor(uptime / 3600);
-    const minutes = Math.floor((uptime % 3600) / 60);
-    return `${hours}h ${minutes}m`;
-  };
-
-  const formatLastSeen = (lastSeen: string) => {
-    const date = new Date(lastSeen);
-    return date.toLocaleString();
-  };
 
   const renderToggle = (
     key: keyof SettingsData,
@@ -177,52 +160,51 @@ const Settings: React.FC = () => {
       {/* Main Content */}
       <main className={styles.main}>
         <div className={styles.container}>
-          {/* Agent Status */}
+          {/* System Health */}
           <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Agent Status</h2>
+            <h2 className={styles.sectionTitle}>System Health</h2>
             <p className={styles.sectionDescription}>
-              Current status and information about your AI agent.
+              Current status and information about the security gate system.
             </p>
 
-            {status.data && (
+            {health.data && (
               <>
                 <div
                   className={`${styles.connectionStatus} ${
-                    status.data.online
+                    health.data.status === "healthy"
                       ? styles.connectionOnline
                       : styles.connectionOffline
                   }`}
                 >
                   <div
                     className={`${styles.connectionDot} ${
-                      status.data.online
+                      health.data.status === "healthy"
                         ? styles.connectionDotOnline
                         : styles.connectionDotOffline
                     }`}
                   />
-                  {status.data.online ? "Agent Online" : "Agent Offline"}
-                  {status.data.online && (
-                    <span>• Uptime: {formatUptime(status.data.uptime)}</span>
-                  )}
+                  {health.data.status === "healthy"
+                    ? "System Healthy"
+                    : "System Error"}
                 </div>
 
                 <div className={styles.statusGrid}>
                   <div className={styles.statusCard}>
-                    <div className={styles.statusLabel}>Version</div>
+                    <div className={styles.statusLabel}>Status</div>
                     <div className={styles.statusValue}>
-                      {status.data.version}
+                      {health.data.status}
                     </div>
                   </div>
                   <div className={styles.statusCard}>
-                    <div className={styles.statusLabel}>Connections</div>
+                    <div className={styles.statusLabel}>Active Sessions</div>
                     <div className={styles.statusValue}>
-                      {status.data.activeConnections}
+                      {health.data.active_sessions}
                     </div>
                   </div>
                   <div className={styles.statusCard}>
-                    <div className={styles.statusLabel}>Last Seen</div>
+                    <div className={styles.statusLabel}>Graph Initialized</div>
                     <div className={styles.statusValue}>
-                      {formatLastSeen(status.data.lastSeen)}
+                      {health.data.graph_initialized ? "Yes" : "No"}
                     </div>
                   </div>
                 </div>
@@ -232,8 +214,8 @@ const Settings: React.FC = () => {
             <Button
               variant="secondary"
               size="small"
-              onClick={() => fetchStatus()}
-              loading={status.loading}
+              onClick={() => fetchHealth()}
+              loading={health.loading}
             >
               Refresh Status
             </Button>
@@ -243,18 +225,18 @@ const Settings: React.FC = () => {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>API Configuration</h2>
             <p className={styles.sectionDescription}>
-              Configure the connection to your AI agent backend.
+              Configure the connection to your security gate backend.
             </p>
 
             <div className={styles.formGroup}>
               <Input
                 label="API Endpoint"
-                placeholder="http://localhost:8000"
+                placeholder="http://localhost:8001"
                 value={settings.apiEndpoint}
                 onChange={(e) =>
                   handleSettingChange("apiEndpoint", e.target.value)
                 }
-                helperText="The base URL for your AI agent API"
+                helperText="The base URL for your security gate API"
               />
             </div>
 
@@ -272,20 +254,6 @@ const Settings: React.FC = () => {
                   )
                 }
                 helperText="How often to refresh data from the API"
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <Input
-                label="Max Log Entries"
-                type="number"
-                min="10"
-                max="10000"
-                value={settings.maxLogEntries.toString()}
-                onChange={(e) =>
-                  handleSettingChange("maxLogEntries", parseInt(e.target.value))
-                }
-                helperText="Maximum number of log entries to keep in memory"
               />
             </div>
           </section>
@@ -309,13 +277,6 @@ const Settings: React.FC = () => {
               "Show Timestamps",
               "Display timestamps for log entries and messages",
               settings.showTimestamps,
-            )}
-
-            {renderToggle(
-              "enableDebugLogs",
-              "Debug Logs",
-              "Show debug-level log entries in the logs panel",
-              settings.enableDebugLogs,
             )}
 
             {renderToggle(

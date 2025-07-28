@@ -12,7 +12,7 @@
 
 ### **Implement Logging System**
 - Replace all `print()` statements with proper logging using Python's `logging` module
-- Add configurable log levels (DEBUG, INFO, WARNING, ERROR) 
+- Add configurable log levels (DEBUG, INFO, WARNING, ERROR)
 - Create separate loggers for different components (input, processing, decision, email)
 - Add log rotation and file output options for production use
 - This will improve debugging capabilities and provide better monitoring
@@ -25,3 +25,5 @@ Recommendation: Use unique tags for each build, such as the Git commit hash (e.g
 - Create example voice files to test the whisper.
 - Create a node responsible for whisper connnection and text input flow.
 - Async, sessions?
+- Fix the echo problem where not the all feedback appended to the message state.
+- deneme

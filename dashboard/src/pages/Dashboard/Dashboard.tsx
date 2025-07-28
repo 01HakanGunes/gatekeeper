@@ -4,39 +4,38 @@ import { useApi } from "../../hooks/useApi";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
 import { UI_CONSTANTS } from "../../utils/constants";
-import type { LogEntry, Message } from "../../services/apiClient";
+import type { Message, VisitorProfile } from "../../services/apiClient";
 import styles from "./Dashboard.module.css";
 
 const Dashboard: React.FC = () => {
   const {
-    logs,
-    fetchLogs,
-    clearLogs,
+    session,
+    startSession,
+    endSession,
     messages,
-    fetchMessages,
     sendMessage,
-    status,
-    fetchStatus,
+    profile,
+    fetchProfile,
+    health,
+    fetchHealth,
+    currentSessionId,
   } = useApi();
 
   const [messageInput, setMessageInput] = useState("");
 
-  // Auto-refresh data
+  // Auto-refresh health
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchLogs();
-      fetchMessages();
-      fetchStatus();
+      fetchHealth();
+      if (currentSessionId) {
+        fetchProfile();
+      }
     }, UI_CONSTANTS.REFRESH_INTERVAL);
-
-    // Initial fetch
-    fetchLogs();
-    fetchMessages();
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [fetchLogs, fetchMessages, fetchStatus]);
+  }, [fetchHealth, fetchProfile, currentSessionId]);
 
   const handleSendMessage = useCallback(
     async (e: React.FormEvent) => {
@@ -53,56 +52,22 @@ const Dashboard: React.FC = () => {
       const messageContent = messageInput.trim();
       setMessageInput("");
 
-      const result = await sendMessage({
-        content: messageContent,
-        metadata: {
-          timestamp: new Date().toISOString(),
-          source: "dashboard",
-        },
-      });
-
-      if (result) {
-        // Message sent successfully, fetchMessages will be called by interval
-        // or we could manually refresh messages here
-        fetchMessages();
-      }
+      await sendMessage(messageContent);
     },
-    [messageInput, sendMessage, fetchMessages],
+    [messageInput, sendMessage],
   );
 
-  const handleClearLogs = useCallback(async () => {
-    await clearLogs();
-    fetchLogs();
-  }, [clearLogs, fetchLogs]);
+  const handleStartSession = useCallback(async () => {
+    await startSession();
+  }, [startSession]);
+
+  const handleEndSession = useCallback(async () => {
+    await endSession();
+  }, [endSession]);
 
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
   };
-
-  const formatUptime = (uptime: number) => {
-    const hours = Math.floor(uptime / 3600);
-    const minutes = Math.floor((uptime % 3600) / 60);
-    return `${hours}h ${minutes}m`;
-  };
-
-  const renderLogEntry = (log: LogEntry) => (
-    <div key={log.id} className={styles.logEntry}>
-      <div
-        className={`${styles.logLevel} ${styles[`logLevel${log.level.charAt(0).toUpperCase() + log.level.slice(1)}`]}`}
-      >
-        {log.level}
-      </div>
-      <div className={styles.logContent}>
-        <div className={styles.logMessage}>{log.message}</div>
-        <div className={styles.logTimestamp}>
-          {formatTimestamp(log.timestamp)}
-          {log.source && (
-            <span className={styles.logSource}> • {log.source}</span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 
   const renderMessageEntry = (message: Message) => (
     <div
@@ -121,13 +86,15 @@ const Dashboard: React.FC = () => {
         {message.content}
       </div>
       <div className={styles.messageInfo}>
-        <span>{message.sender === "user" ? "You" : "AI Agent"}</span>
+        <span>{message.sender === "user" ? "Visitor" : "Security Agent"}</span>
         <span>•</span>
         <span>{formatTimestamp(message.timestamp)}</span>
-        {message.status && (
+        {message.session_complete && (
           <>
             <span>•</span>
-            <span>{message.status}</span>
+            <span style={{ color: "#10b981", fontWeight: "500" }}>
+              Session Complete
+            </span>
           </>
         )}
       </div>
@@ -168,36 +135,117 @@ const Dashboard: React.FC = () => {
     </div>
   );
 
+  const renderVisitorProfile = (visitorProfile: VisitorProfile) => (
+    <div className={styles.profileContainer}>
+      <h3 className={styles.profileTitle}>Visitor Profile</h3>
+      <div className={styles.profileGrid}>
+        {visitorProfile.name && (
+          <div className={styles.profileItem}>
+            <span className={styles.profileLabel}>Name:</span>
+            <span className={styles.profileValue}>{visitorProfile.name}</span>
+          </div>
+        )}
+        {visitorProfile.purpose && (
+          <div className={styles.profileItem}>
+            <span className={styles.profileLabel}>Purpose:</span>
+            <span className={styles.profileValue}>
+              {visitorProfile.purpose}
+            </span>
+          </div>
+        )}
+        {visitorProfile.contact_person && (
+          <div className={styles.profileItem}>
+            <span className={styles.profileLabel}>Contact Person:</span>
+            <span className={styles.profileValue}>
+              {visitorProfile.contact_person}
+            </span>
+          </div>
+        )}
+        {visitorProfile.affiliation && (
+          <div className={styles.profileItem}>
+            <span className={styles.profileLabel}>Affiliation:</span>
+            <span className={styles.profileValue}>
+              {visitorProfile.affiliation}
+            </span>
+          </div>
+        )}
+        {visitorProfile.threat_level && (
+          <div className={styles.profileItem}>
+            <span className={styles.profileLabel}>Threat Level:</span>
+            <span
+              className={`${styles.profileValue} ${
+                styles[
+                  `threat${visitorProfile.threat_level.charAt(0).toUpperCase() + visitorProfile.threat_level.slice(1)}`
+                ]
+              }`}
+            >
+              {visitorProfile.threat_level.toUpperCase()}
+            </span>
+          </div>
+        )}
+        {visitorProfile.id_verified !== undefined && (
+          <div className={styles.profileItem}>
+            <span className={styles.profileLabel}>ID Verified:</span>
+            <span
+              className={`${styles.profileValue} ${
+                visitorProfile.id_verified ? styles.verified : styles.unverified
+              }`}
+            >
+              {visitorProfile.id_verified ? "Yes" : "No"}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const getDecisionStyle = (decision: string) => {
+    switch (decision.toLowerCase()) {
+      case "approved":
+        return styles.decisionApproved;
+      case "denied":
+        return styles.decisionDenied;
+      case "pending":
+        return styles.decisionPending;
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className={styles.dashboard}>
       {/* Header */}
       <header className={styles.header}>
-        <h1 className={styles.headerTitle}>AI Agent Dashboard</h1>
+        <h1 className={styles.headerTitle}>Security Gate Dashboard</h1>
         <div className={styles.statusContainer}>
-          {status.data && (
+          {health.data && (
             <div
               className={`${styles.statusIndicator} ${
-                status.data.online ? styles.statusOnline : styles.statusOffline
+                health.data.status === "healthy"
+                  ? styles.statusOnline
+                  : styles.statusOffline
               }`}
             >
               <div
                 className={`${styles.statusDot} ${
-                  status.data.online
+                  health.data.status === "healthy"
                     ? styles.statusDotOnline
                     : styles.statusDotOffline
                 }`}
               />
-              {status.data.online ? "Online" : "Offline"}
-              {status.data.online && (
-                <span>• {formatUptime(status.data.uptime)}</span>
+              {health.data.status === "healthy"
+                ? "System Healthy"
+                : "System Error"}
+              {health.data.status === "healthy" && (
+                <span>• {health.data.active_sessions} active sessions</span>
               )}
             </div>
           )}
           <Button
             variant="ghost"
             size="small"
-            onClick={() => fetchStatus()}
-            loading={status.loading}
+            onClick={() => fetchHealth()}
+            loading={health.loading}
           >
             🔄
           </Button>
@@ -211,91 +259,145 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <main className={styles.main}>
-        {/* Sidebar - Logs */}
+        {/* Sidebar - Profile */}
         <aside className={styles.sidebar}>
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>System Logs</h2>
+              <h2 className={styles.sectionTitle}>Session Info</h2>
               <div className={styles.sectionActions}>
-                <Button
-                  variant="ghost"
-                  size="small"
-                  onClick={() => fetchLogs()}
-                  loading={logs.loading}
-                >
-                  🔄
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="small"
-                  onClick={handleClearLogs}
-                  disabled={!logs.data?.length}
-                >
-                  🗑️
-                </Button>
+                {currentSessionId ? (
+                  <Button
+                    variant="danger"
+                    size="small"
+                    onClick={handleEndSession}
+                    loading={session.loading}
+                  >
+                    End Session
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="small"
+                    onClick={handleStartSession}
+                    loading={session.loading}
+                  >
+                    Start Session
+                  </Button>
+                )}
               </div>
             </div>
-            <div className={styles.logsContainer}>
-              {logs.loading && !logs.data && renderLoadingState()}
-              {logs.error &&
-                !logs.data &&
-                renderErrorState(logs.error, () => fetchLogs())}
-              {logs.data &&
-                logs.data.length === 0 &&
+            <div className={styles.profileContent}>
+              {!currentSessionId &&
                 renderEmptyState(
-                  "📝",
-                  "No logs yet",
-                  "System logs will appear here",
+                  "🔒",
+                  "No Active Session",
+                  "Start a new session to begin visitor screening",
                   <Button
-                    variant="secondary"
+                    variant="primary"
                     size="small"
-                    onClick={() => fetchLogs()}
+                    onClick={handleStartSession}
+                    loading={session.loading}
                   >
-                    Refresh Logs
+                    Start New Session
                   </Button>,
                 )}
-              {logs.data && logs.data.length > 0 && (
-                <div className={styles.logsList}>
-                  {logs.data.map(renderLogEntry)}
+
+              {currentSessionId && !profile.data && (
+                <div className={styles.sessionActive}>
+                  <div className={styles.sessionId}>
+                    Session ID: {currentSessionId}
+                  </div>
+                  <div className={styles.sessionStatus}>
+                    Status: <span className={styles.statusActive}>Active</span>
+                  </div>
                 </div>
               )}
+
+              {profile.data && (
+                <div className={styles.profileData}>
+                  <div className={styles.sessionId}>
+                    Session ID: {currentSessionId}
+                  </div>
+                  <div className={styles.sessionStatus}>
+                    Status:{" "}
+                    <span
+                      className={
+                        profile.data.session_active
+                          ? styles.statusActive
+                          : styles.statusComplete
+                      }
+                    >
+                      {profile.data.session_active ? "Active" : "Complete"}
+                    </span>
+                  </div>
+
+                  {profile.data.decision && (
+                    <div className={styles.decisionContainer}>
+                      <div
+                        className={`${styles.decision} ${getDecisionStyle(
+                          profile.data.decision,
+                        )}`}
+                      >
+                        Decision: {profile.data.decision.toUpperCase()}
+                      </div>
+                      <div className={styles.confidence}>
+                        Confidence:{" "}
+                        {(profile.data.decision_confidence * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                  )}
+
+                  {renderVisitorProfile(profile.data.visitor_profile)}
+                </div>
+              )}
+
+              {profile.error &&
+                renderErrorState(profile.error, () => fetchProfile())}
             </div>
           </div>
         </aside>
 
-        {/* Main Content - Messages */}
+        {/* Main Content - Chat */}
         <div className={styles.content}>
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>AI Agent Chat</h2>
+              <h2 className={styles.sectionTitle}>Security Agent Chat</h2>
               <div className={styles.sectionActions}>
                 <Button
                   variant="ghost"
                   size="small"
-                  onClick={() => fetchMessages()}
-                  loading={messages.loading}
+                  onClick={() => fetchProfile()}
+                  loading={profile.loading}
+                  disabled={!currentSessionId}
                 >
                   🔄
                 </Button>
               </div>
             </div>
             <div className={styles.messagesContainer}>
-              {messages.loading && !messages.data && renderLoadingState()}
-              {messages.error &&
-                !messages.data &&
-                renderErrorState(messages.error, () => fetchMessages())}
-              {messages.data &&
-                messages.data.length === 0 &&
+              {!currentSessionId &&
                 renderEmptyState(
                   "💬",
-                  "No messages yet",
-                  "Start a conversation with your AI agent",
+                  "No Active Session",
+                  "Start a session to begin chatting with the security agent",
                 )}
+
+              {currentSessionId &&
+                messages.data &&
+                messages.data.length === 0 &&
+                renderEmptyState(
+                  "👋",
+                  "Session Started",
+                  "Start the conversation by sending a message",
+                )}
+
               {messages.data && messages.data.length > 0 && (
                 <div className={styles.messagesList}>
                   {messages.data.map(renderMessageEntry)}
                 </div>
               )}
+
+              {messages.error && renderErrorState(messages.error)}
             </div>
 
             {/* Message Input */}
@@ -306,17 +408,17 @@ const Dashboard: React.FC = () => {
               >
                 <div className={styles.messageInputField}>
                   <Input.Textarea
-                    placeholder="Type your message to the AI agent..."
+                    placeholder="Type your message to the security agent..."
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     maxLength={UI_CONSTANTS.MESSAGE_MAX_LENGTH}
                     showCharacterCount
                     rows={3}
-                    disabled={!status.data?.online}
+                    disabled={!currentSessionId}
                     variant={messages.error ? "error" : "default"}
                     helperText={
-                      !status.data?.online
-                        ? "Agent is offline"
+                      !currentSessionId
+                        ? "Start a session to begin chatting"
                         : messages.error
                           ? "Failed to send message. Please try again."
                           : undefined
@@ -328,7 +430,7 @@ const Dashboard: React.FC = () => {
                   variant="primary"
                   disabled={
                     !messageInput.trim() ||
-                    !status.data?.online ||
+                    !currentSessionId ||
                     messageInput.length > UI_CONSTANTS.MESSAGE_MAX_LENGTH
                   }
                   loading={messages.loading}
