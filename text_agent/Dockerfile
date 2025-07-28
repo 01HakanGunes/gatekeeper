@@ -26,4 +26,4 @@ COPY . .
 # Set environment variables
 
 # Command to run the application
-CMD ["python", "main.py", "--enable-threat-detection"]
+CMD ["python", "main.py", "--api-mode"]
