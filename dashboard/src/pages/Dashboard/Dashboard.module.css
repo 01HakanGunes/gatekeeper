@@ -318,6 +318,96 @@
     flex-shrink: 0;
 }
 
+.cameraSection {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+    background-color: var(--bg-secondary, #f9fafb);
+    flex-shrink: 0;
+}
+
+.separateUploadToggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background-color: var(--bg-primary, #ffffff);
+    border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.separateUploadLabel {
+    flex: 1;
+}
+
+.separateUploadTitle {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-primary, #213547);
+    margin-bottom: 0.25rem;
+}
+
+.separateUploadDescription {
+    font-size: 0.625rem;
+    color: var(--text-secondary, #6b7280);
+}
+
+.separateUploadSwitch {
+    position: relative;
+    width: 2.5rem;
+    height: 1.25rem;
+    background-color: #d1d5db;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.separateUploadSwitch.active {
+    background-color: #646cff;
+}
+
+.separateUploadKnob {
+    position: absolute;
+    top: 0.125rem;
+    left: 0.125rem;
+    width: 1rem;
+    height: 1rem;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.separateUploadSwitch.active .separateUploadKnob {
+    transform: translateX(1.25rem);
+}
+
+.imageStatus {
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.imageStatusText {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #6b7280);
+    margin-bottom: 0.25rem;
+}
+
+.imageStatusIcon {
+    margin-right: 0.25rem;
+}
+
+.uploadError {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #dc2626;
+    padding: 0.5rem;
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 0.375rem;
+}
+
 .messageInputForm {
     display: flex;
     gap: 0.75rem;
@@ -485,6 +575,26 @@
     .decisionContainer {
         background-color: #374151;
         border-color: #4b5563;
+    }
+
+    .cameraSection {
+        background-color: #111827;
+        border-color: #374151;
+    }
+
+    .separateUploadToggle {
+        background-color: #1f2937;
+        border-color: #374151;
+    }
+
+    .separateUploadSwitch {
+        background-color: #4b5563;
+    }
+
+    .uploadError {
+        background-color: #7f1d1d;
+        color: #fca5a5;
+        border-color: #dc2626;
     }
 }
 

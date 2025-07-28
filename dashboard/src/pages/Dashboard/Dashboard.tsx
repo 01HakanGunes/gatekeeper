@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useApi } from "../../hooks/useApi";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
+import Camera from "../../components/Camera/Camera";
 import { UI_CONSTANTS } from "../../utils/constants";
 import type { Message, VisitorProfile } from "../../services/apiClient";
 import styles from "./Dashboard.module.css";
@@ -19,9 +20,17 @@ const Dashboard: React.FC = () => {
     health,
     fetchHealth,
     currentSessionId,
+    imageUpload,
+    uploadImage,
   } = useApi();
 
   const [messageInput, setMessageInput] = useState("");
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [uploadToSeparateEndpoint, setUploadToSeparateEndpoint] =
+    useState(false);
+  const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(
+    null,
+  );
 
   // Auto-refresh health
   useEffect(() => {
@@ -52,9 +61,28 @@ const Dashboard: React.FC = () => {
       const messageContent = messageInput.trim();
       setMessageInput("");
 
-      await sendMessage(messageContent);
+      // Send message with image if camera is enabled and we have a captured image
+      await sendMessage(
+        messageContent,
+        cameraEnabled ? lastCapturedImage || undefined : undefined,
+      );
+
+      // If we have separate endpoint enabled and an image, upload it separately
+      if (uploadToSeparateEndpoint && lastCapturedImage) {
+        await uploadImage(lastCapturedImage);
+      }
+
+      // Clear the captured image after sending
+      setLastCapturedImage(null);
     },
-    [messageInput, sendMessage],
+    [
+      messageInput,
+      sendMessage,
+      cameraEnabled,
+      lastCapturedImage,
+      uploadToSeparateEndpoint,
+      uploadImage,
+    ],
   );
 
   const handleStartSession = useCallback(async () => {
@@ -63,7 +91,25 @@ const Dashboard: React.FC = () => {
 
   const handleEndSession = useCallback(async () => {
     await endSession();
+    // Reset camera state when session ends
+    setCameraEnabled(false);
+    setLastCapturedImage(null);
   }, [endSession]);
+
+  const handleCameraToggle = useCallback((enabled: boolean) => {
+    setCameraEnabled(enabled);
+    if (!enabled) {
+      setLastCapturedImage(null);
+    }
+  }, []);
+
+  const handleCameraCapture = useCallback((imageData: string) => {
+    setLastCapturedImage(imageData);
+  }, []);
+
+  const handleSeparateEndpointToggle = useCallback((enabled: boolean) => {
+    setUploadToSeparateEndpoint(enabled);
+  }, []);
 
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
@@ -393,6 +439,125 @@ const Dashboard: React.FC = () => {
               {messages.error && renderErrorState(messages.error)}
             </div>
 
+            {/* Camera Section */}
+            {currentSessionId && (
+              <div
+                style={{
+                  padding: "1rem 1.5rem",
+                  borderTop: "1px solid var(--border-color, #e5e7eb)",
+                }}
+              >
+                <Camera
+                  enabled={cameraEnabled}
+                  onToggle={handleCameraToggle}
+                  onCapture={handleCameraCapture}
+                />
+
+                {cameraEnabled && (
+                  <div
+                    style={{
+                      marginTop: "1rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "1rem",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          fontWeight: "500",
+                          color: "var(--text-primary, #213547)",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        Separate Upload
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.625rem",
+                          color: "var(--text-secondary, #6b7280)",
+                        }}
+                      >
+                        Also send images to separate endpoint
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "2.5rem",
+                        height: "1.25rem",
+                        backgroundColor: uploadToSeparateEndpoint
+                          ? "#646cff"
+                          : "#d1d5db",
+                        borderRadius: "0.625rem",
+                        cursor: "pointer",
+                        transition: "background-color 0.2s ease",
+                      }}
+                      onClick={() =>
+                        handleSeparateEndpointToggle(!uploadToSeparateEndpoint)
+                      }
+                      role="switch"
+                      aria-checked={uploadToSeparateEndpoint}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSeparateEndpointToggle(
+                            !uploadToSeparateEndpoint,
+                          );
+                        }
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "0.125rem",
+                          left: "0.125rem",
+                          width: "1rem",
+                          height: "1rem",
+                          backgroundColor: "white",
+                          borderRadius: "50%",
+                          transition: "transform 0.2s ease",
+                          transform: uploadToSeparateEndpoint
+                            ? "translateX(1.25rem)"
+                            : "translateX(0)",
+                          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {lastCapturedImage && (
+                  <div style={{ marginTop: "0.5rem", textAlign: "center" }}>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--text-secondary, #6b7280)",
+                        marginBottom: "0.25rem",
+                      }}
+                    >
+                      📸 Image captured and ready to send
+                    </div>
+                  </div>
+                )}
+
+                {imageUpload.error && (
+                  <div
+                    style={{
+                      marginTop: "0.5rem",
+                      fontSize: "0.75rem",
+                      color: "#dc2626",
+                    }}
+                  >
+                    Upload error: {imageUpload.error}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Message Input */}
             <div className={styles.messageInput}>
               <form
@@ -414,7 +579,9 @@ const Dashboard: React.FC = () => {
                         ? "Start a session to begin chatting"
                         : messages.error
                           ? "Failed to send message. Please try again."
-                          : undefined
+                          : cameraEnabled && !lastCapturedImage
+                            ? "Click the camera button to capture an image before sending"
+                            : undefined
                     }
                   />
                 </div>
@@ -426,9 +593,9 @@ const Dashboard: React.FC = () => {
                     !currentSessionId ||
                     messageInput.length > UI_CONSTANTS.MESSAGE_MAX_LENGTH
                   }
-                  loading={messages.loading}
+                  loading={messages.loading || imageUpload.loading}
                 >
-                  Send
+                  {cameraEnabled && lastCapturedImage ? "Send with 📸" : "Send"}
                 </Button>
               </form>
             </div>

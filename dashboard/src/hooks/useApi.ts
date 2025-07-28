@@ -5,6 +5,7 @@ import type {
   ProfileResponse,
   HealthResponse,
   Message,
+  ImageUploadResponse,
 } from "../services/apiClient";
 
 interface UseApiState<T> {
@@ -21,7 +22,7 @@ interface UseApiReturn {
 
   // Chat
   messages: UseApiState<Message[]>;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, image?: string) => Promise<void>;
 
   // Profile
   profile: UseApiState<ProfileResponse>;
@@ -30,6 +31,10 @@ interface UseApiReturn {
   // Health
   health: UseApiState<HealthResponse>;
   fetchHealth: () => Promise<void>;
+
+  // Image upload
+  imageUpload: UseApiState<ImageUploadResponse>;
+  uploadImage: (image: string) => Promise<void>;
 
   // Current session ID
   currentSessionId: string | null;
@@ -65,8 +70,20 @@ export const useApi = (): UseApiReturn => {
     error: null,
   });
 
+  const [imageUpload, setImageUpload] = useState<
+    UseApiState<ImageUploadResponse>
+  >({
+    data: null,
+    loading: false,
+    error: null,
+  });
+
   const isLoading =
-    session.loading || messages.loading || profile.loading || health.loading;
+    session.loading ||
+    messages.loading ||
+    profile.loading ||
+    health.loading ||
+    imageUpload.loading;
 
   const startSession = useCallback(async (): Promise<string | null> => {
     setSession((prev) => ({ ...prev, loading: true, error: null }));
@@ -108,7 +125,7 @@ export const useApi = (): UseApiReturn => {
   }, [currentSessionId]);
 
   const sendMessage = useCallback(
-    async (messageContent: string): Promise<void> => {
+    async (messageContent: string, image?: string): Promise<void> => {
       if (!currentSessionId) {
         setMessages((prev) => ({
           ...prev,
@@ -136,6 +153,7 @@ export const useApi = (): UseApiReturn => {
         const response = await apiClient.sendMessage(
           currentSessionId,
           messageContent,
+          image,
         );
 
         // Add agent response to the list
@@ -201,6 +219,32 @@ export const useApi = (): UseApiReturn => {
     }
   }, []);
 
+  const uploadImage = useCallback(
+    async (image: string): Promise<void> => {
+      if (!currentSessionId) {
+        setImageUpload((prev) => ({
+          ...prev,
+          error: "No active session. Please start a new session.",
+        }));
+        return;
+      }
+
+      setImageUpload((prev) => ({ ...prev, loading: true, error: null }));
+      try {
+        const data = await apiClient.uploadImage(currentSessionId, image);
+        setImageUpload({ data, loading: false, error: null });
+      } catch (error) {
+        setImageUpload((prev) => ({
+          ...prev,
+          loading: false,
+          error:
+            error instanceof Error ? error.message : "Failed to upload image",
+        }));
+      }
+    },
+    [currentSessionId],
+  );
+
   // Auto-fetch health on mount
   useEffect(() => {
     fetchHealth();
@@ -216,6 +260,8 @@ export const useApi = (): UseApiReturn => {
     fetchProfile,
     health,
     fetchHealth,
+    imageUpload,
+    uploadImage,
     currentSessionId,
     isLoading,
   };

@@ -12,11 +12,24 @@ export interface SessionResponse {
 
 export interface ChatRequest {
   message: string;
+  image?: string; // base64 encoded image
 }
 
 export interface ChatResponse {
   agent_response: string;
   session_complete: boolean;
+}
+
+export interface ImageUploadRequest {
+  session_id: string;
+  image: string; // base64 encoded image
+  timestamp: string;
+}
+
+export interface ImageUploadResponse {
+  status: string;
+  message: string;
+  image_id?: string;
 }
 
 export interface VisitorProfile {
@@ -103,12 +116,21 @@ class ApiClient {
     });
   }
 
-  async sendMessage(sessionId: string, message: string): Promise<ChatResponse> {
+  async sendMessage(
+    sessionId: string,
+    message: string,
+    image?: string,
+  ): Promise<ChatResponse> {
+    const payload: ChatRequest = { message };
+    if (image) {
+      payload.image = image;
+    }
+
     return await this.request<ChatResponse>(
       `${API_ENDPOINTS.CHAT}/${sessionId}`,
       {
         method: "POST",
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(payload),
       },
     );
   }
@@ -130,6 +152,22 @@ class ApiClient {
 
   async getHealth(): Promise<HealthResponse> {
     return await this.request<HealthResponse>(API_ENDPOINTS.HEALTH);
+  }
+
+  async uploadImage(
+    sessionId: string,
+    image: string,
+  ): Promise<ImageUploadResponse> {
+    const payload: ImageUploadRequest = {
+      session_id: sessionId,
+      image,
+      timestamp: new Date().toISOString(),
+    };
+
+    return await this.request<ImageUploadResponse>(API_ENDPOINTS.IMAGE_UPLOAD, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   }
 }
 

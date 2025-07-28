@@ -7,11 +7,15 @@ export const API_ENDPOINTS = {
   PROFILE: "/profile",
   END_SESSION: "/end-session",
   HEALTH: "/health",
+  IMAGE_UPLOAD: "/upload-image",
 } as const;
 
 export const UI_CONSTANTS = {
   REFRESH_INTERVAL: 5000, // 5 seconds
   MESSAGE_MAX_LENGTH: 500,
+  CAMERA_WIDTH: 640,
+  CAMERA_HEIGHT: 480,
+  IMAGE_QUALITY: 0.8,
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -20,6 +24,8 @@ export const ERROR_MESSAGES = {
   SERVER_ERROR: "Server error occurred. Please try again later.",
   INVALID_MESSAGE: "Please enter a valid message.",
   SESSION_ERROR: "Session error. Please start a new session.",
+  CAMERA_ERROR: "Camera access denied or not available.",
+  IMAGE_CAPTURE_ERROR: "Failed to capture image from camera.",
 } as const;
 
 export const SESSION_STATUS = {

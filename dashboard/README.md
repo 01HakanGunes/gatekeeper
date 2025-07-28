@@ -9,12 +9,14 @@ A modern, responsive web dashboard for the Security Gate visitor screening syste
 - Real-time security agent chat interface
 - Visitor profile building and display
 - Decision tracking with confidence scores
+- Camera integration for visual verification
 
 ### 💬 Interactive Chat
 - Direct communication with security screening agent
 - Message history with timestamps
 - Session completion tracking
 - Character count and input validation
+- Image capture and transmission with messages
 
 ### 👤 Profile Management
 - Visitor information display
@@ -39,6 +41,12 @@ A modern, responsive web dashboard for the Security Gate visitor screening syste
 - Dark/light mode support
 - Mobile-friendly interface
 - Loading states and error handling
+
+### 📸 Camera Features
+- Live camera preview and capture
+- Automatic image capture with messages
+- Separate endpoint for image uploads
+- Privacy-focused camera controls
 
 ## Quick Start
 
@@ -100,6 +108,7 @@ Your Security Gate backend should implement these endpoints:
 - `GET /profile/{session_id}` - Get visitor profile and session status
 - `POST /end-session/{session_id}` - End a screening session
 - `GET /health` - System health and active sessions
+- `POST /upload-image` - Upload captured images separately
 
 ### Expected API Response Format
 
@@ -112,6 +121,12 @@ Your Security Gate backend should implement these endpoints:
 }
 
 // POST /chat/{session_id}
+{
+  "message": "Hello, I'm here to see John Smith",
+  "image": "base64-encoded-image-data" // optional
+}
+
+// Response
 {
   "agent_response": "Welcome! Can you tell me your name and who you're here to see?",
   "session_complete": false
@@ -137,6 +152,20 @@ Your Security Gate backend should implement these endpoints:
   "status": "healthy",
   "graph_initialized": true,
   "active_sessions": 2
+}
+
+// POST /upload-image
+{
+  "session_id": "uuid-string",
+  "image": "base64-encoded-image-data",
+  "timestamp": "2024-01-01T12:00:00Z"
+}
+
+// Response
+{
+  "status": "success",
+  "message": "Image uploaded successfully",
+  "image_id": "image-uuid"
 }
 ```
 
@@ -194,6 +223,27 @@ dashboard/
 - Session lifecycle management
 - Automatic error handling
 - Loading states for all operations
+
+### Camera Integration
+
+The dashboard includes camera functionality for visual verification:
+
+**Camera Component** (`/src/components/Camera/Camera.tsx`)
+- Live video preview with getUserMedia API
+- Single-frame image capture functionality
+- Toggle switch for enabling/disabling camera
+- Error handling for camera access issues
+
+**Image Handling**
+- Images captured as base64 JPEG format
+- Configurable image quality and dimensions
+- Privacy-focused: camera only active when explicitly enabled
+- Images sent with chat messages or to separate endpoint
+
+**Configuration**
+- Camera dimensions: 640x480 (configurable in constants)
+- Image quality: 0.8 JPEG compression
+- Separate upload endpoint toggle
 
 ### Styling
 

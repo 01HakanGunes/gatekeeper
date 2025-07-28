@@ -7,8 +7,11 @@ FastAPI web interface for the security gate system.
 
 import uuid
 import threading
+import base64
+import os
+from datetime import datetime
 from contextlib import asynccontextmanager
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -61,6 +64,7 @@ app.add_middleware(
 
 class UserInput(BaseModel):
     message: str
+    image: Optional[str] = None
 
 class SessionResponse(BaseModel):
     agent_response: str
@@ -74,6 +78,16 @@ class SessionStartResponse(BaseModel):
     session_id: str
     status: str
     message: str
+
+class ImageUploadRequest(BaseModel):
+    session_id: str
+    image: str
+    timestamp: str
+
+class ImageUploadResponse(BaseModel):
+    status: str
+    message: str
+    image_id: Optional[str] = None
 
 @app.get("/")
 async def root():
@@ -133,6 +147,21 @@ async def chat(session_id: str, user_input: UserInput):
         current_state = session_states[session_id]
 
     try:
+        # Save image if provided
+        if user_input.image:
+            try:
+                # Decode base64 image
+                image_data = base64.b64decode(user_input.image)
+
+                # Save to visitor.png in project root
+                image_path = "visitor.png"
+                with open(image_path, "wb") as f:
+                    f.write(image_data)
+
+                print(f"📸 Image saved to {image_path}")
+            except Exception as e:
+                print(f"❌ Error saving image: {str(e)}")
+
         # Update state with user input
         current_state["user_input"] = user_input.message
 
@@ -197,6 +226,31 @@ async def end_session(session_id: str):
         status="success",
         message="Session ended successfully"
     )
+
+@app.post("/upload-image", response_model=ImageUploadResponse)
+async def upload_image(request: ImageUploadRequest):
+    """Upload image separately"""
+    try:
+        # Decode base64 image
+        image_data = base64.b64decode(request.image)
+
+        # Generate unique filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        image_filename = f"visitor_{request.session_id[:8]}_{timestamp}.png"
+
+        # Save to project root
+        with open(image_filename, "wb") as f:
+            f.write(image_data)
+
+        print(f"📸 Separate image saved to {image_filename}")
+
+        return ImageUploadResponse(
+            status="success",
+            message="Image uploaded successfully",
+            image_id=image_filename
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
 
 @app.get("/health")
 async def health_check():
