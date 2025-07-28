@@ -1,9 +1,6 @@
 # Caddyfile for local HTTPS
 {
-    # Enable automatic HTTPS with self-signed certificates for local use
-    auto_https on
-    # Skip domain validation for local IPs
-    skip_install_trust
+    # No global auto_https needed for specific IP config
 }
 
 https://192.168.0.86 {
