@@ -1,9 +1,4 @@
-# Caddyfile for local HTTPS
-{
-    # No global auto_https needed for specific IP config
-}
-
-https://192.168.0.86 {
+192.168.0.86 {
     # Serve static files from /srv
     root * /srv
     file_server
@@ -11,10 +6,10 @@ https://192.168.0.86 {
     # Handle SPA routing - fallback to index.html for client-side routing
     try_files {path} /index.html
 
-    # TLS for local IP (self-signed)
+    # Use internal CA for self-signed certificate
     tls internal
 
-    # Security headers (relaxed for local dev)
+    # Security headers
     header {
         X-Content-Type-Options "nosniff"
         X-Frame-Options "SAMEORIGIN"
@@ -23,9 +18,4 @@ https://192.168.0.86 {
 
     # Compression
     encode gzip
-}
-
-# Redirect HTTP to HTTPS
-http://192.168.0.86 {
-    redir https://192.168.0.86{uri}
 }
