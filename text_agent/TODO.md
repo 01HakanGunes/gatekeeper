@@ -1,3 +1,3 @@
-- Add a conditional edge to check the valid input state value.
 - Make creating init state more automated
 - Check if the state values should have optional
+- Make api only use state values, after running the agent by setting the state values.

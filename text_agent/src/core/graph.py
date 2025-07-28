@@ -9,6 +9,7 @@ from src.nodes.input_nodes import (
     check_context_length,
     summarize,
     reset_conversation,
+    check_valid_input
 )
 from src.nodes.processing_nodes import (
     analyze_threat_level_node,
@@ -50,6 +51,8 @@ def create_security_graph():
 
     # Combined session detection and routing logic
     def session_and_context_router(state):
+        if state["invalid_input"] == True:
+            return "invalid"
         session_result = detect_session(state)
         if session_result == "new":
             return "reset_conversation"
@@ -64,6 +67,7 @@ def create_security_graph():
         "receive_input",
         session_and_context_router,
         {
+            "invalid": END,
             "reset_conversation": "reset_conversation",
             "summarize": "summarize",
             "check_visitor_profile": "check_visitor_profile",
@@ -124,4 +128,6 @@ def create_initial_state() -> State:
         "decision_confidence": None,
         "decision_reasoning": None,
         "vision_schema": None,
+        "user_input": "",
+        "invalid_input": False
     }

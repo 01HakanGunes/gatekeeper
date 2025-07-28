@@ -130,7 +130,6 @@ def receive_input(state: State) -> State:
 
     return state
 
-
 def detect_session(state: State) -> Literal["same", "new"]:
     """
     Detects if the current input is from a new visitor or the same visitor using structured JSON output.
