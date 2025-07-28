@@ -7,7 +7,7 @@ It creates and runs a SecurityGateAgent instance.
 """
 
 import sys
-from agent import SecurityGateAgent, parse_arguments
+from cli import SecurityGateAgent, parse_arguments
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
             try:
                 import uvicorn
                 from api import app
-                uvicorn.run(app, host="0.0.0.0", port=8000)
+                uvicorn.run(app, host="0.0.0.0", port=8001)
                 return 0
             except ImportError:
                 print("❌ FastAPI/Uvicorn not installed. Install with: pip install fastapi uvicorn")

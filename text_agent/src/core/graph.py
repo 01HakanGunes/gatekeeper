@@ -8,8 +8,7 @@ from src.nodes.input_nodes import (
     detect_session,
     check_context_length,
     summarize,
-    reset_conversation,
-    check_valid_input
+    reset_conversation
 )
 from src.nodes.processing_nodes import (
     analyze_threat_level_node,

@@ -278,6 +278,8 @@ class SecurityGateAgent:
             f"(Threat detection enabled: {self.enable_threat_detection})"
         )
 
+
+
     def run_security_session(self):
         """Run a single security screening session"""
         initial_state = create_initial_state()
