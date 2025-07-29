@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useApi } from "../../hooks/useApi";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
-import Camera from "../../components/Camera/Camera";
+import Camera, { type CameraRef } from "../../components/Camera/Camera";
 import { UI_CONSTANTS } from "../../utils/constants";
 import type { Message, VisitorProfile } from "../../services/apiClient";
 import styles from "./Dashboard.module.css";
@@ -24,6 +24,7 @@ const Dashboard: React.FC = () => {
     uploadImage,
   } = useApi();
 
+  const cameraRef = useRef<CameraRef>(null);
   const [messageInput, setMessageInput] = useState("");
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [uploadToSeparateEndpoint, setUploadToSeparateEndpoint] =
@@ -50,36 +51,38 @@ const Dashboard: React.FC = () => {
     async (e: React.FormEvent) => {
       e.preventDefault();
 
-      if (!messageInput.trim()) {
-        return;
-      }
-
-      if (messageInput.length > UI_CONSTANTS.MESSAGE_MAX_LENGTH) {
-        return;
-      }
+      if (!messageInput.trim() || !currentSessionId) return;
 
       const messageContent = messageInput.trim();
       setMessageInput("");
 
-      // Send message with image if camera is enabled and we have a captured image
-      await sendMessage(
-        messageContent,
-        cameraEnabled ? lastCapturedImage || undefined : undefined,
-      );
+      // Auto-capture new frame if camera is enabled
+      let capturedImage: string | undefined;
+      if (cameraEnabled && cameraRef.current) {
+        capturedImage = (await cameraRef.current.captureFrame()) || undefined;
+
+        // Update preview image for UI feedback
+        if (capturedImage) {
+          setLastCapturedImage(capturedImage);
+        }
+      }
+
+      // Send message with freshly captured image
+      await sendMessage(messageContent, capturedImage);
 
       // If we have separate endpoint enabled and an image, upload it separately
-      if (uploadToSeparateEndpoint && lastCapturedImage) {
-        await uploadImage(lastCapturedImage);
+      if (uploadToSeparateEndpoint && capturedImage) {
+        await uploadImage(capturedImage);
       }
 
       // Clear the captured image after sending
-      setLastCapturedImage(null);
+      setTimeout(() => setLastCapturedImage(null), 1000);
     },
     [
       messageInput,
+      currentSessionId,
       sendMessage,
       cameraEnabled,
-      lastCapturedImage,
       uploadToSeparateEndpoint,
       uploadImage,
     ],
@@ -448,6 +451,7 @@ const Dashboard: React.FC = () => {
                 }}
               >
                 <Camera
+                  ref={cameraRef}
                   enabled={cameraEnabled}
                   onToggle={handleCameraToggle}
                   onCapture={handleCameraCapture}
@@ -539,7 +543,7 @@ const Dashboard: React.FC = () => {
                         marginBottom: "0.25rem",
                       }}
                     >
-                      📸 Image captured and ready to send
+                      📸 Last captured frame (new frame will be taken on send)
                     </div>
                   </div>
                 )}
@@ -579,9 +583,7 @@ const Dashboard: React.FC = () => {
                         ? "Start a session to begin chatting"
                         : messages.error
                           ? "Failed to send message. Please try again."
-                          : cameraEnabled && !lastCapturedImage
-                            ? "Click the camera button to capture an image before sending"
-                            : undefined
+                          : undefined
                     }
                   />
                 </div>
@@ -595,7 +597,7 @@ const Dashboard: React.FC = () => {
                   }
                   loading={messages.loading || imageUpload.loading}
                 >
-                  {cameraEnabled && lastCapturedImage ? "Send with 📸" : "Send"}
+                  {cameraEnabled ? "Send with 📸" : "Send"}
                 </Button>
               </form>
             </div>
