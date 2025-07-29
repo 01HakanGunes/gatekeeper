@@ -1,5 +1,6 @@
 from typing import Literal
 import json
+import os
 from typing import cast
 from src.core.state import VisionSchema
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -79,6 +80,15 @@ def receive_input(state: State) -> State:
             vision_data = analyze_image_with_prompt(
                 "visitor.png", "analyze_image_threat_json", "vision_schema"
             )
+
+            # Delete the visitor.png file after analysis
+            try:
+                if os.path.exists("visitor.png"):
+                    os.remove("visitor.png")
+                    print("🗑️ Cleaned up visitor.png file")
+            except Exception as e:
+                print(f"⚠️ Failed to delete visitor.png: {e}")
+
             state["vision_schema"] = cast(VisionSchema, vision_data)
 
             # Check the face_detected field, if no face print a request to show up on the camera
