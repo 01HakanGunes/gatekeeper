@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - text-agent-api
+      - caddy-to-nginx-switch
 
 jobs:
   deploy:
