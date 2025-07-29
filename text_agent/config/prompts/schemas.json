@@ -19,7 +19,7 @@
     "face_detected": "boolean (true if there is a face)",
     "angry_face": "boolean (true if the face angry)",
     "threat_level": "string (one of: low, medium, high)",
-    "dangerous_object_detected": "boolean (true if any dangerous object is detected)",
+    "dangerous_object_detected": "boolean (true if any weapon/knife is detected)",
     "details": "string (very short description of what do you see)"
   },
   "threat_schema": {

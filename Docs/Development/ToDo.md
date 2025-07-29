@@ -1,7 +1,12 @@
 # Security Gate System - To-Do List
 
+- Update graph with clearer node structure
 
-- Add camera access from browser.
+- Make creating init state more automated
+
+- Remove the 2 seperate schemas and use a single json schema for threat detection and vision schema
+
+- Update the prompts for better results(change model settings etc)
 
 - After threat level high, directly jump to decision as call security and reset graph.
 
@@ -11,4 +16,6 @@
 
 - I need to clean the state value when the final decision happens.
 
-- try again2
+- Add the threat detection as an api endpoint and connect with dashboard
+
+- Same session as long as the detected face is same.

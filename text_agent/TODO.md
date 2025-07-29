@@ -1,3 +1,0 @@
-- Make creating init state more automated
-- Check if the state values should have optional
-- Make api only use state values, after running the agent by setting the state values.

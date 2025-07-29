@@ -42,16 +42,11 @@ decision:
       You must respond with a valid JSON object following this exact schema:
       {json_schema}
 
-      Analyze the visitor profile and conversation to make an informed security decision. Consider:
-      - Completeness and consistency of visitor information
-      - Legitimacy of stated purpose and affiliation
-      - Valid contact person from known list
-      - Any suspicious behavior or inconsistencies
-      - Overall threat assessment
+      Analyze the visitor profile and conversation to make an informed security decision.
 
       Return ONLY valid JSON with no additional text:
     type: "string"
-    input_variables: 
+    input_variables:
       - "profile_name"
       - "profile_purpose"
       - "profile_contact_person"
@@ -77,7 +72,6 @@ decision:
     error_decision: "❌ I cannot process your request at this time. Please contact reception for assistance."
 
 processing:
-
   extract_multiple_fields_json:
     template: |
       You are a data extraction tool. Your task is to extract multiple visitor information fields from the conversation using structured JSON output.
@@ -95,11 +89,9 @@ processing:
 
       Instructions:
       - Extract only the specific information requested for each field
-      - For contact_person: look for names of people the visitor wants to meet/visit (not their own name)
-      - If a field cannot be found or determined, set its value to null
+      - Do not mix the visitors name (I am John Doe) with their contact person's name (I am here to visit John Doe)
+      - If a field cannot be found or determined, set its value to -1
       - Provide confidence scores between 0 and 1 for each extraction
-      - Be precise and avoid making assumptions
-      - Look for exact matches and clear statements
 
       Return ONLY valid JSON with no additional text:
     type: "string"
@@ -108,24 +100,6 @@ processing:
       - "fields_descriptions"
       - "conversation_text"
       - "json_schema"
-
-  ask_missing_field:
-    template: |
-      You are a security gate assistant. The visitor is missing some required information. 
-      Ask a specific question to gather the missing {field} information in a friendly but professional manner.
-
-      FIELD TO ASK ABOUT: {field}
-      FIELD DESCRIPTION: {field_description}
-      SUGGESTED QUESTION: {field_question}
-
-      Keep the question concise and clear. Be professional but welcoming.
-
-      Question:
-    type: "string"
-    input_variables:
-      - "field"
-      - "field_description"
-      - "field_question"
 
 input:
   system_message:
@@ -191,13 +165,11 @@ input:
       - Regular conversations
       - Questions about the facility or visit process
       - Explanations about their visit purpose
-      - Description of their belongings, visuals for threat assessment, behaviour (i am angry/chill/funny)
 
       INVALID inputs include:
       - Complete gibberish or random characters
       - Curse words
       - Spam or repetitive nonsense
-      - Completely irrelevant topics (sports, weather, unrelated subjects)
 
       Respond with ONLY one word:
       - "valid" if the input is appropriate for a security checkpoint
