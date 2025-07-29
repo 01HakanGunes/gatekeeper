@@ -15,13 +15,13 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve the built application with Caddy
-FROM caddy:alpine
+FROM caddy:latest
 
 # Copy the built assets from the 'build' stage to Caddy's public directory
 COPY --from=build /app/dist /srv
 
 # Copy Caddyfile for configuration
-COPY Caddyfile /etc/caddy/Caddyfile
+COPY conf/Caddyfile /etc/caddy/Caddyfile
 
 # Expose ports 80 (HTTP) and 443 (HTTPS)
 EXPOSE 80 443

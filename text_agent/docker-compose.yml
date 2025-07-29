@@ -55,6 +55,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
     volumes:
       # Critical: Allow Caddy to store TLS certificates and config
       - caddy_config:/config
