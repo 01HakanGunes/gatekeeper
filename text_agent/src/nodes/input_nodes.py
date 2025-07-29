@@ -85,8 +85,9 @@ def receive_input(state: State) -> State:
             vision_schema = state.get("vision_schema")
             face_detected = False
             if isinstance(vision_schema, dict):
-                # face_detected = True
                 face_detected = vision_schema.get("face_detected", False)
+                details_face_debug = vision_schema.get("details", "details are not there for vision data!")
+                print(details_face_debug)
             if not face_detected:
                 print(
                     "❌ No face detected. Please show up on the camera and try again."

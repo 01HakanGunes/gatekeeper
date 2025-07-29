@@ -56,6 +56,7 @@ def analyze_image_with_prompt(
     # Invoke the LLM
     try:
         response = llm_vision_json.invoke([message])
+        print("success vision data received from llm model.")
     except Exception as e:
         print(f"⚠️ Vision LLM response error: {e}")
         return None
@@ -68,6 +69,7 @@ def analyze_image_with_prompt(
     # Parse the content to JSON
     try:
         vision_data = json.loads(content)
+        print("success vision data received from llm model and converted to json.")
     except json.JSONDecodeError:
         match = re.search(r"\{.*\}", content, re.DOTALL)
         if match:
