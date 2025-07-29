@@ -112,15 +112,19 @@
 /* Textarea */
 .textarea {
     min-height: 4rem;
+    max-height: 8rem;
     resize: vertical;
+    overflow-y: auto;
 }
 
 .textarea.small {
     min-height: 3rem;
+    max-height: 6rem;
 }
 
 .textarea.large {
     min-height: 6rem;
+    max-height: 12rem;
 }
 
 /* Full width */

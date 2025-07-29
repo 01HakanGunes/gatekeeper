@@ -575,7 +575,7 @@ const Dashboard: React.FC = () => {
                     onChange={(e) => setMessageInput(e.target.value)}
                     maxLength={UI_CONSTANTS.MESSAGE_MAX_LENGTH}
                     showCharacterCount
-                    rows={3}
+                    rows={2}
                     disabled={!currentSessionId}
                     variant={messages.error ? "error" : "default"}
                     helperText={
