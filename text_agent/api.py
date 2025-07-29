@@ -161,7 +161,8 @@ async def chat(session_id: str, user_input: UserInput):
                 print(f"📸 Image saved to {image_path}")
             except Exception as e:
                 print(f"❌ Error saving image: {str(e)}")
-
+        else:
+            print("No image provided")
         # Update state with user input
         current_state["user_input"] = user_input.message
 
