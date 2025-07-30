@@ -1,4 +1,8 @@
-# Security Gate System - To-Do List
+# Text Agent - To-Do List
+
+- Add the threat detection as an api endpoint and connect with dashboard
+
+- If the state is not initialized, and a face is detected, initialize the state with the face (send greeting and ask something).
 
 - Update graph with clearer node structure
 
@@ -15,7 +19,5 @@
 - Fix the echo problem where not the all feedback appended to the message state.
 
 - I need to clean the state value when the final decision happens.
-
-- Add the threat detection as an api endpoint and connect with dashboard
 
 - Same session as long as the detected face is same.

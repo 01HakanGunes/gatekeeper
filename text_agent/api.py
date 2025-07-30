@@ -8,7 +8,6 @@ FastAPI web interface for the security gate system.
 import uuid
 import threading
 import base64
-import os
 from datetime import datetime
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
@@ -16,7 +15,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from cli import wait_for_ollama
-from src.core.state import State
 from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT
 
