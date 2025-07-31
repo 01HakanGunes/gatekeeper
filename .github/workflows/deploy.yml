@@ -7,6 +7,7 @@ on:
       - main
       - text-agent-api
       - caddy-to-nginx-switch
+      - gemini-branch
 
 jobs:
   deploy:
