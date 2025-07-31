@@ -36,8 +36,7 @@ POST /chat/{session_id}
 **Request Body:**
 ```json
 {
-  "message": "Hello, I'm here for a meeting",
-  "image": "<base64_encoded_image_string>"
+  "message": "Hello, I'm here for a meeting"
 }
 ```
 
@@ -46,6 +45,31 @@ POST /chat/{session_id}
 {
   "agent_response": "Welcome! Can you tell me your name and who you're here to see?",
   "session_complete": false
+}
+```
+
+### Upload Image
+Upload an image for threat detection. The image is added to a queue for processing.
+
+```http
+POST /upload-image
+```
+
+**Request Body:**
+```json
+{
+  "session_id": "uuid-string",
+  "image": "<base64_encoded_image_string>",
+  "timestamp": "2025-07-31T12:00:00Z"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Image added to the queue",
+  "image_id": "uuid-string"
 }
 ```
 
@@ -107,9 +131,10 @@ GET /health
 ## Workflow
 
 1. **Start session** → Get `session_id`
-2. **Send messages** via `/chat/{session_id}` until `session_complete: true`
-3. **Check progress** via `/profile/{session_id}`
-4. **End session** when done
+2. **(Optional) Upload images** for threat analysis via `/upload-image`.
+3. **Send messages** via `/chat/{session_id}` until `session_complete: true`
+4. **Check progress** via `/profile/{session_id}`
+5. **End session** when done
 
 ## Error Responses
 
@@ -127,13 +152,24 @@ const sessionResponse = await fetch('http://localhost:8001/start-session', {
 });
 const { session_id } = await sessionResponse.json();
 
+// Upload an image
+const imageResponse = await fetch('http://localhost:8001/upload-image', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    session_id: session_id,
+    image: "<base64_encoded_image_string>",
+    timestamp: new Date().toISOString()
+  })
+});
+const imageData = await imageResponse.json();
+
 // Send message
 const chatResponse = await fetch(`http://localhost:8001/chat/${session_id}`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ 
-    message: "Hello, I'm here for a meeting",
-    image: "<base64_encoded_image_string>"
+    message: "Hello, I'm here for a meeting"
   })
 });
 const chatData = await chatResponse.json();
@@ -153,16 +189,22 @@ await fetch(`http://localhost:8001/end-session/${session_id}`, {
 # Start session
 curl -X POST http://localhost:8001/start-session
 
-# Send message
-curl -X POST http://localhost:8001/chat/session-id \
+# Upload an image
+curl -X POST http://localhost:8001/upload-image \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hello, I am here for a meeting", "image": "<base64_encoded_image_string>"}'
+  -d '{"session_id": "your-session-id", "image": "<base64_encoded_image_string>", "timestamp": "2025-07-31T12:00:00Z"}'
+
+# Send message
+curl -X POST http://localhost:8001/chat/your-session-id \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello, I am here for a meeting"}'
 
 # Get profile
-curl -X GET http://localhost:8001/profile/session-id
+curl -X GET http://localhost:8001/profile/your-session-id
 
 # End session
-curl -X POST http://localhost:8001/end-session/session-id
+curl -X POST http://localhost:8001/end-session/your-session-id
+```
 ```
 
 ## Notes

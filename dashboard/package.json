@@ -27,5 +27,10 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",
     "vite": "^7.0.4"
-  }
+  },
+  "description": "A modern, responsive web dashboard for the Security Gate visitor screening system. Built with React, TypeScript, and Vite.",
+  "main": "eslint.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

@@ -29,6 +29,7 @@ const Dashboard: React.FC = () => {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [uploadToSeparateEndpoint, setUploadToSeparateEndpoint] =
     useState(false);
+  
   const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(
     null,
   );
@@ -46,6 +47,26 @@ const Dashboard: React.FC = () => {
       if (interval) clearInterval(interval);
     };
   }, [fetchHealth, fetchProfile, currentSessionId]);
+
+  // Auto-upload image every 2 seconds
+  useEffect(() => {
+    if (!cameraEnabled || !currentSessionId) {
+      return;
+    }
+
+    const imageUploadInterval = setInterval(async () => {
+      if (cameraRef.current) {
+        const capturedImage = await cameraRef.current.captureFrame();
+        if (capturedImage) {
+          await uploadImage(capturedImage);
+        }
+      }
+    }, 2000);
+
+    return () => {
+      clearInterval(imageUploadInterval);
+    };
+  }, [cameraEnabled, currentSessionId, uploadImage]);
 
   const handleSendMessage = useCallback(
     async (e: React.FormEvent) => {
@@ -113,6 +134,8 @@ const Dashboard: React.FC = () => {
   const handleSeparateEndpointToggle = useCallback((enabled: boolean) => {
     setUploadToSeparateEndpoint(enabled);
   }, []);
+
+  
 
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
@@ -533,6 +556,8 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                
 
                 {lastCapturedImage && (
                   <div style={{ marginTop: "0.5rem", textAlign: "center" }}>
