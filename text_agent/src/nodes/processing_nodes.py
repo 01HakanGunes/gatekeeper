@@ -1,15 +1,11 @@
 from typing import Literal
-import re
 import json
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import AIMessage
 from src.core.state import State
 from data.contacts import CONTACTS
 from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_profiler_json
 from src.utils.prompt_manager import prompt_manager
-from models.llm_config import llm_vision_json
-from src.utils.camera import image_file_to_base64
-from typing import Optional, Dict, Any
 
 
 def check_visitor_profile_node(state: State) -> State:
@@ -44,7 +40,6 @@ def check_visitor_profile_node(state: State) -> State:
         return state
 
     # Get JSON schema template from prompt manager and customize for missing fields
-    base_schema = prompt_manager.get_schema("extraction_schema")
     extraction_schema = {
         "extracted_fields": {
             field: "string or null (if not found)" for field in missing_fields

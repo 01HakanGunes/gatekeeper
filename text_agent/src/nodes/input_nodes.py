@@ -5,7 +5,7 @@ from typing import cast
 from src.core.state import VisionSchema
 from langchain_core.messages import HumanMessage, SystemMessage
 from src.core.state import State
-from src.utils import analyze_image_with_prompt
+from src.utils.llm_utilities import analyze_image_with_prompt
 from config.settings import MAX_HUMAN_MESSAGES, SHORTEN_KEEP_MESSAGES
 from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import (
@@ -14,7 +14,6 @@ from models.llm_config import (
     llm_validation_json,
 )
 from src.utils.prompt_manager import prompt_manager
-from src.utils import capture_photo
 
 
 def receive_input(state: State) -> State:
@@ -108,7 +107,7 @@ def receive_input(state: State) -> State:
             else:
                 print("✅ Face detected in the image.")
         elif "unrelated" in result:
-            print("❌ Input validation: Input is unrelated/invalid v2:debug")
+            print("❌ Input validation: Input is unrelated/invalid")
             invalid_message = prompt_manager.get_field_data("input_validation")[
                 "invalid_input_message"
             ]
@@ -384,7 +383,7 @@ def _summarize_history(state: State) -> State:
             state["messages"].append(message)
 
         print(
-            f"� Summarized conversation from {len(messages)} to {len(new_messages)} messages"
+            f"✅ Summarized conversation from {len(messages)} to {len(new_messages)} messages"
         )
 
         return state

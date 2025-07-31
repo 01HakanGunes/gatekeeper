@@ -48,9 +48,10 @@ def create_security_graph():
     # ---- Add Edges (Logic Flow) ----
     graph_builder.set_entry_point("receive_input")
 
-    # Combined session detection and routing logic
-    def session_and_context_router(state):
+    # Route after input based on session and context length
+    def route_after_input(state):
         if state["invalid_input"] == True:
+            # End the session if the input is invalid
             return "invalid"
         session_result = detect_session(state)
         if session_result == "new":
@@ -64,7 +65,7 @@ def create_security_graph():
 
     graph_builder.add_conditional_edges(
         "receive_input",
-        session_and_context_router,
+        route_after_input,
         {
             "invalid": END,
             "reset_conversation": "reset_conversation",
@@ -112,7 +113,6 @@ def create_initial_state() -> State:
         SystemMessage(content=system_msg_content),
     ]
 
-    # TODO automate
     return {
         "messages": initial_messages,
         "visitor_profile": {

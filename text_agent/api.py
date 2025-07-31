@@ -8,31 +8,38 @@ FastAPI web interface for the security gate system.
 import uuid
 import threading
 import base64
-from datetime import datetime
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from cli import wait_for_ollama
 from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT
+import time
+import ollama
 
 # Shared graph instance and session states
 shared_graph = None
 session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
 
+def wait_for_ollama(timeout: int = 30) -> bool:
+    """Wait for the Ollama service to become available."""
+    print("⏳ Waiting for Ollama service...")
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            ollama.list()
+            print("✅ Ollama service is available")
+            return True
+        except Exception:
+            time.sleep(1)
+    return False
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize shared graph on startup"""
     global shared_graph
-
-    # Check Ollama connection
-    if not wait_for_ollama():
-        print("❌ Cannot start API: Ollama service is not available")
-        yield
-        return
 
     # Set global history mode
     import config.settings as settings
@@ -76,16 +83,6 @@ class SessionStartResponse(BaseModel):
     session_id: str
     status: str
     message: str
-
-class ImageUploadRequest(BaseModel):
-    session_id: str
-    image: str
-    timestamp: str
-
-class ImageUploadResponse(BaseModel):
-    status: str
-    message: str
-    image_id: Optional[str] = None
 
 @app.get("/")
 async def root():
@@ -145,6 +142,9 @@ async def chat(session_id: str, user_input: UserInput):
         current_state = session_states[session_id]
 
     try:
+        # Update state with user input
+        current_state["user_input"] = user_input.message
+
         # Save image if provided
         if user_input.image:
             try:
@@ -161,8 +161,6 @@ async def chat(session_id: str, user_input: UserInput):
                 print(f"❌ Error saving image: {str(e)}")
         else:
             print("No image provided")
-        # Update state with user input
-        current_state["user_input"] = user_input.message
 
         # Process using shared graph
         updated_state = shared_graph.invoke(
@@ -225,31 +223,6 @@ async def end_session(session_id: str):
         status="success",
         message="Session ended successfully"
     )
-
-@app.post("/upload-image", response_model=ImageUploadResponse)
-async def upload_image(request: ImageUploadRequest):
-    """Upload image separately"""
-    try:
-        # Decode base64 image
-        image_data = base64.b64decode(request.image)
-
-        # Generate unique filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        image_filename = f"visitor_{request.session_id[:8]}_{timestamp}.png"
-
-        # Save to project root
-        with open(image_filename, "wb") as f:
-            f.write(image_data)
-
-        print(f"📸 Separate image saved to {image_filename}")
-
-        return ImageUploadResponse(
-            status="success",
-            message="Image uploaded successfully",
-            image_id=image_filename
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
 
 @app.get("/health")
 async def health_check():

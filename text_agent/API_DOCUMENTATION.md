@@ -36,7 +36,8 @@ POST /chat/{session_id}
 **Request Body:**
 ```json
 {
-  "message": "Hello, I'm here for a meeting"
+  "message": "Hello, I'm here for a meeting",
+  "image": "<base64_encoded_image_string>"
 }
 ```
 
@@ -130,7 +131,10 @@ const { session_id } = await sessionResponse.json();
 const chatResponse = await fetch(`http://localhost:8001/chat/${session_id}`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ message: "Hello, I'm here for a meeting" })
+  body: JSON.stringify({ 
+    message: "Hello, I'm here for a meeting",
+    image: "<base64_encoded_image_string>"
+  })
 });
 const chatData = await chatResponse.json();
 
@@ -152,7 +156,7 @@ curl -X POST http://localhost:8001/start-session
 # Send message
 curl -X POST http://localhost:8001/chat/session-id \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hello, I am here for a meeting"}'
+  -d '{"message": "Hello, I am here for a meeting", "image": "<base64_encoded_image_string>"}'
 
 # Get profile
 curl -X GET http://localhost:8001/profile/session-id

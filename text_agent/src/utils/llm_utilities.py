@@ -3,31 +3,23 @@ import re
 from typing import Optional
 
 from src.utils import prompt_manager
-from src.utils.camera import image_file_to_base64
 from models.llm_config import llm_vision_json
 
 
 def analyze_image_with_prompt(
-    image_path: str, prompt_key: str, schema_key: str
+    image_b64: str, prompt_key: str, schema_key: str
 ) -> Optional[dict]:
     """
     Analyzes an image using a specified prompt and schema, and returns the LLM's response as a JSON object.
 
     Args:
-        image_path (str): Path to the image file.
+        image_b64 (str): Base64 encoded image string.
         prompt_key (str): Key for the prompt to use (e.g., "analyze_image_threat_json").
         schema_key (str): Key for the schema to use (e.g., "vision_schema").
 
     Returns:
         Optional[dict]: The parsed JSON response from the LLM, or None if there was an error.
     """
-    # Convert image to base64
-    try:
-        image_b64 = image_file_to_base64(image_path)
-    except Exception as e:
-        print(f"⚠️ Could not convert image to base64: {e}")
-        return None
-
     if not image_b64:
         print("⚠️ Skipping vision analysis due to missing image base64.")
         return None
