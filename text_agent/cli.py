@@ -17,6 +17,7 @@ from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT, DEFAULT_HISTORY_MODE
 
 
+# TODO establish a connection with browser and subscribe to its camera functionality. The rest of the process is same.
 def camera_process_function(
     image_stack,
     stack_lock,
@@ -92,6 +93,7 @@ def threat_detector(image_filename):
     time.sleep(0.1)  # Simulate some processing time
 
 
+# TODO main process to use 2s frequency camera capture
 def image_processing_function(image_stack, stack_lock, enable_threat_detection=False):
     """
     Function to run in a separate process for processing images from the stack.
@@ -243,6 +245,7 @@ class SecurityGateAgent:
             print(f"⚠️ Could not generate graph diagram: {e}")
             print("   (This is optional and won't affect the main functionality)")
 
+    # TODO should i delete this and run the process from main.py?
     def _setup_camera_processes(self):
         """Setup camera and processing processes"""
         self.manager = multiprocessing.Manager()
@@ -279,7 +282,7 @@ class SecurityGateAgent:
         )
 
 
-
+    # TODO not used?
     def run_security_session(self):
         """Run a single security screening session"""
         initial_state = create_initial_state()
@@ -313,6 +316,7 @@ class SecurityGateAgent:
 
         return result
 
+    # TODO not used?
     def run(self):
         """Run the main security gate loop"""
         if not self.setup():
@@ -331,6 +335,7 @@ class SecurityGateAgent:
 
         return 0
 
+    # TODO not used?
     def cleanup(self):
         """Clean up processes and resources"""
         # Graceful shutdown of camera and processing processes
@@ -358,7 +363,7 @@ class SecurityGateAgent:
 
         print("[Main Process] All processes handled. Exiting main application.")
 
-
+# TODO if used still carry to the main.py
 def parse_arguments():
     """Parse command-line arguments for the security gate system."""
     parser = argparse.ArgumentParser(

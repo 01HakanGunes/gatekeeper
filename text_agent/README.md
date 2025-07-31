@@ -32,10 +32,3 @@ Interact with the active session:
 ```bash
 docker attach gatekeeper-main
 ```
-
-### Whisper Container
-
-Found an image that is whisper+api. Run the container inside a folder where you want the model files be stored:
-
-Part of the docker compose now.
-
