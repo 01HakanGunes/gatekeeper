@@ -33,20 +33,6 @@ services:
     ports:
       - "8001:8001"
 
-  whisper:
-    image: onerahmet/openai-whisper-asr-webservice:latest
-    container_name: whisper
-    ports:
-      - "9000:9000"
-    volumes:
-      - whisper_cache:/root/.cache/
-    environment:
-      - ASR_MODEL=base
-      - ASR_ENGINE=openai_whisper
-    networks:
-      - my-ollama-network
-    restart: always
-
   dashboard:
     build:
       context: ../dashboard
@@ -62,9 +48,6 @@ services:
 
 volumes:
   ollama:
-  whisper_cache:
-  caddy_config: # ← Add this
-  caddy_data: # ← Add this
 
 networks:
   my-ollama-network: # Define the custom network

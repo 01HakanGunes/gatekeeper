@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Security Gate System - API Module
 
@@ -17,11 +16,13 @@ from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT
 import time
 import ollama
+from collections import deque
 
 # Shared graph instance and session states
 shared_graph = None
 session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
+image_queue = deque(maxlen=10)
 
 def wait_for_ollama(timeout: int = 30) -> bool:
     """Wait for the Ollama service to become available."""
@@ -83,6 +84,17 @@ class SessionStartResponse(BaseModel):
     session_id: str
     status: str
     message: str
+
+# To be used for image upload requests
+class ImageUploadRequest(BaseModel):
+    session_id: str
+    image: str
+    timestamp: str
+
+class ImageUploadResponse(BaseModel):
+    status: str
+    message: str
+    image_id: Optional[str] = None
 
 @app.get("/")
 async def root():
@@ -235,3 +247,25 @@ async def health_check():
         "graph_initialized": shared_graph is not None,
         "active_sessions": active_sessions
     }
+
+# Received image is in base64. We need to save the images to a queue/stack/array(not sure) with limit of 10 images. Newest image would be processed oldest one would be discarded.
+@app.post("/upload-image", response_model=ImageUploadResponse)
+async def upload_image(request: ImageUploadRequest):
+    """Upload image separately"""
+    try:
+        # Decode base64 image
+        image_data = base64.b64decode(request.image)
+        image_id = str(uuid.uuid4())
+        image_queue.append({"id": image_id, "data": image_data, "timestamp": request.timestamp})
+
+        print(f"📸 Image {image_id} added to the queue. Queue size: {len(image_queue)}")
+
+        return ImageUploadResponse(
+            status="success",
+            message="Image added to the queue",
+            image_id=image_id
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
+
+
