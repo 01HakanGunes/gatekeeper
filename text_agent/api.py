@@ -4,6 +4,7 @@ Security Gate System - API Module
 FastAPI web interface for the security gate system.
 """
 
+import json
 import uuid
 import threading
 import base64
@@ -279,6 +280,17 @@ async def upload_image(request: ImageUploadRequest):
 async def get_threat_logs():
     """Get the threat detector logs."""
     log_file_path = "./data/logs/threat_detector.json"
+
     if not os.path.exists(log_file_path):
         raise HTTPException(status_code=404, detail="Log file not found.")
-    return FileResponse(log_file_path)
+
+    try:
+        with open(log_file_path, "r") as f:
+            log_data = json.load(f)
+
+        # FastAPI will automatically serialize this Python object into a JSON response.
+        return log_data
+
+    except json.JSONDecodeError:
+        # Handle cases where the file exists but is not valid JSON
+        raise HTTPException(status_code=500, detail="Invalid JSON format in log file.")
