@@ -30,14 +30,15 @@ def image_processing_function(image_queue):
     try:
         print(f"[{os.getpid()}] [Processing Process] Entering processing loop...")
         while True:
-            if image_queue:
+            if not image_queue.empty():
                 print(f"[{os.getpid()}] [Processing Process] Image queue has items. Processing one.")
-                latest_image = image_queue.popleft()
+                latest_image = image_queue.get()
                 image_b64 = base64.b64encode(latest_image["data"]).decode("utf-8")
                 threat_detector(image_b64)
             else:
-                print(f"[{os.getpid()}] [Processing Process] Image queue is empty. Waiting...")
-                time.sleep(2) # Wait for 2 seconds if the queue is empty
+                # The get() method will block until an item is available, so this sleep is not strictly necessary
+                # but it can prevent a tight loop if the queue is frequently empty.
+                time.sleep(1)
     except KeyboardInterrupt:
         print(
             f"[{os.getpid()}] [Processing Process] KeyboardInterrupt caught. Shutting down processing."

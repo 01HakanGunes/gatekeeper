@@ -16,13 +16,13 @@ from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT
 import time
 import ollama
-from collections import deque
+import multiprocessing
 
 # Shared graph instance and session states
 shared_graph = None
 session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
-image_queue = deque(maxlen=10)
+image_queue = multiprocessing.Queue(maxsize=10)
 
 def wait_for_ollama(timeout: int = 30) -> bool:
     """Wait for the Ollama service to become available."""
@@ -256,9 +256,14 @@ async def upload_image(request: ImageUploadRequest):
         # Decode base64 image
         image_data = base64.b64decode(request.image)
         image_id = str(uuid.uuid4())
-        image_queue.append({"id": image_id, "data": image_data, "timestamp": request.timestamp})
+        
+        if image_queue.full():
+            print("Queue is full, removing the oldest item.")
+            image_queue.get_nowait() # Remove the oldest item to make space
 
-        print(f"📸 Image {image_id} added to the queue. Queue size: {len(image_queue)}")
+        image_queue.put({"id": image_id, "data": image_data, "timestamp": request.timestamp})
+
+        print(f"📸 Image {image_id} added to the queue. Queue size: {image_queue.qsize()}")
 
         return ImageUploadResponse(
             status="success",
