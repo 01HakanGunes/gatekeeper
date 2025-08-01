@@ -23,3 +23,5 @@
 - I need to clean the state value when the final decision happens.
 
 - Same session as long as the detected face is same.
+
+- New deploy
