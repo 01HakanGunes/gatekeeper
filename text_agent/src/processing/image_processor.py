@@ -64,7 +64,7 @@ def write_face_detection_to_file(face_detection_queue):
 def threat_detector(image_b64, face_detection_queue):
     print(f"[{os.getpid()}] [Processing Process] Calling threat_detector...")
     vision_data = analyze_image_with_prompt(
-        image_b64, "threat_detector_prompt", "threat_schema"
+        image_b64, "security_vision_prompt", "vision_schema"
     )
 
     log_entry = {
