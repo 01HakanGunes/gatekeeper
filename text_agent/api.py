@@ -24,10 +24,10 @@ import multiprocessing
 shared_graph = None
 session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
-image_queue = multiprocessing.Queue(maxsize=4)
+image_queue = multiprocessing.Queue(maxsize=10)
 
-# This queue stores 10 face detection true false values. If a new one added, oldest one is removed.
-face_detection_queue = multiprocessing.Queue(maxsize=10)
+# This queue stores x face detection true false values. If a new one added, oldest one is removed.
+face_detection_queue = multiprocessing.Queue(maxsize=4)
 
 def wait_for_ollama(timeout: int = 30) -> bool:
     """Wait for the Ollama service to become available."""
