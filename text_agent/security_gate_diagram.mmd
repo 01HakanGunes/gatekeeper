@@ -25,11 +25,11 @@ graph TD;
 	receive_input -.-> check_visitor_profile;
 	receive_input -.-> reset_conversation;
 	receive_input -.-> summarize;
-	reset_conversation --> check_visitor_profile;
 	summarize --> check_visitor_profile;
 	validate_contact_person -. &nbsp;complete&nbsp; .-> make_decision;
 	validate_contact_person -. &nbsp;not_complete&nbsp; .-> question_visitor;
 	question_visitor --> __end__;
+	reset_conversation --> __end__;
 	classDef default fill:#f2f0ff,line-height:1.2
 	classDef first fill-opacity:0
 	classDef last fill:#bfb6fc
