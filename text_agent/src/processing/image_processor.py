@@ -127,10 +127,22 @@ def image_processing_function(image_queue, face_detection_queue):
         print(f"[{os.getpid()}] [Processing Process] Entering processing loop...")
         while True:
             if not image_queue.empty():
-                print(f"[{os.getpid()}] [Processing Process] Image queue has items. Processing one.")
-                latest_image = image_queue.get()
-                image_b64 = base64.b64encode(latest_image["data"]).decode("utf-8")
-                threat_detector(image_b64, face_detection_queue)
+                print(f"[{os.getpid()}] [Processing Process] Image queue has items. Processing latest one.")
+                # Extract all items to get the latest one
+                temp_images = []
+                while not image_queue.empty():
+                    temp_images.append(image_queue.get())
+
+                if temp_images:
+                    # Get the latest (last) image for processing
+                    latest_image = temp_images[-1]
+
+                    # Put back all images except the one we're processing
+                    for img in temp_images[:-1]:
+                        image_queue.put(img)
+
+                    image_b64 = base64.b64encode(latest_image["data"]).decode("utf-8")
+                    threat_detector(image_b64, face_detection_queue)
 
             else:
                 time.sleep(1)
