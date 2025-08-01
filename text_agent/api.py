@@ -11,7 +11,6 @@ import base64
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
 import os
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -26,6 +25,9 @@ shared_graph = None
 session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
+
+# This queue stores 10 face detection true false values. If a new one added, oldest one is removed.
+face_detection_queue = multiprocessing.Queue(maxsize=10)
 
 def wait_for_ollama(timeout: int = 30) -> bool:
     """Wait for the Ollama service to become available."""
@@ -288,7 +290,6 @@ async def health_check():
         "active_sessions": active_sessions
     }
 
-# Received image is in base64. We need to save the images to a queue/stack/array(not sure) with limit of 10 images. Newest image would be processed oldest one would be discarded.
 @app.post("/upload-image", response_model=ImageUploadResponse)
 async def upload_image(request: ImageUploadRequest):
     """Upload image separately"""
