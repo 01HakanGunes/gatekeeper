@@ -13,6 +13,7 @@ from models.llm_config import (
     llm_session_json,
     llm_validation_json,
 )
+from langchain_core.messages import AIMessage
 from src.utils.prompt_manager import prompt_manager
 
 
@@ -72,7 +73,6 @@ def receive_input(state: State) -> State:
         # Clean the response - sometimes LLM adds extra text
         if "valid" in result and "unrelated" not in result:
             print("✅ Input validation: Input is valid")
-            # Valid input - add to messages and break the loop
             state["messages"].append(HumanMessage(content=user_input))
 
             # Analyze the frame and extract the json schema accordingly
@@ -101,7 +101,8 @@ def receive_input(state: State) -> State:
                 print(
                     "❌ No face detected. Please show up on the camera and try again."
                 )
-
+                message = AIMessage(content="❌ No face detected. Please show up on the camera and try again.")
+                state["messages"].append(message)
                 state["invalid_input"] = True
                 return state
             else:
@@ -111,7 +112,11 @@ def receive_input(state: State) -> State:
             invalid_message = prompt_manager.get_field_data("input_validation")[
                 "invalid_input_message"
             ]
+
             print(f"Agent: {invalid_message}")
+
+            message = AIMessage(content=f"Agent: {invalid_message}")
+            state["messages"].append(message)
 
             state["invalid_input"] = True
             return state

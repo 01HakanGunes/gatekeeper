@@ -32,7 +32,6 @@ const Dashboard: React.FC = () => {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [uploadToSeparateEndpoint, setUploadToSeparateEndpoint] =
     useState(false);
-  
   const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(
     null,
   );
@@ -148,8 +147,6 @@ const Dashboard: React.FC = () => {
   const handleSeparateEndpointToggle = useCallback((enabled: boolean) => {
     setUploadToSeparateEndpoint(enabled);
   }, []);
-
-  
 
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
@@ -481,12 +478,7 @@ const Dashboard: React.FC = () => {
 
             {/* Camera Section */}
             {currentSessionId && (
-              <div
-                style={{
-                  padding: "1rem 1.5rem",
-                  borderTop: "1px solid var(--border-color, #e5e7eb)",
-                }}
-              >
+              <div className={styles.cameraSection}>
                 <Camera
                   ref={cameraRef}
                   enabled={cameraEnabled}
@@ -495,47 +487,19 @@ const Dashboard: React.FC = () => {
                 />
 
                 {cameraEnabled && (
-                  <div
-                    style={{
-                      marginTop: "1rem",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "1rem",
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: "500",
-                          color: "var(--text-primary, #213547)",
-                          marginBottom: "0.25rem",
-                        }}
-                      >
+                  <div className={styles.separateUploadToggle}>
+                    <div className={styles.separateUploadLabel}>
+                      <div className={styles.separateUploadTitle}>
                         Separate Upload
                       </div>
-                      <div
-                        style={{
-                          fontSize: "0.625rem",
-                          color: "var(--text-secondary, #6b7280)",
-                        }}
-                      >
+                      <div className={styles.separateUploadDescription}>
                         Also send images to separate endpoint
                       </div>
                     </div>
                     <div
-                      style={{
-                        position: "relative",
-                        width: "2.5rem",
-                        height: "1.25rem",
-                        backgroundColor: uploadToSeparateEndpoint
-                          ? "#646cff"
-                          : "#d1d5db",
-                        borderRadius: "0.625rem",
-                        cursor: "pointer",
-                        transition: "background-color 0.2s ease",
-                      }}
+                      className={`${styles.separateUploadSwitch} ${
+                        uploadToSeparateEndpoint ? styles.active : ""
+                      }`}
                       onClick={() =>
                         handleSeparateEndpointToggle(!uploadToSeparateEndpoint)
                       }
@@ -551,50 +515,22 @@ const Dashboard: React.FC = () => {
                         }
                       }}
                     >
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "0.125rem",
-                          left: "0.125rem",
-                          width: "1rem",
-                          height: "1rem",
-                          backgroundColor: "white",
-                          borderRadius: "50%",
-                          transition: "transform 0.2s ease",
-                          transform: uploadToSeparateEndpoint
-                            ? "translateX(1.25rem)"
-                            : "translateX(0)",
-                          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                        }}
-                      />
+                      <div className={styles.separateUploadKnob} />
                     </div>
                   </div>
                 )}
 
-                
-
                 {lastCapturedImage && (
-                  <div style={{ marginTop: "0.5rem", textAlign: "center" }}>
-                    <div
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "var(--text-secondary, #6b7280)",
-                        marginBottom: "0.25rem",
-                      }}
-                    >
-                      📸 Last captured frame (new frame will be taken on send)
+                  <div className={styles.imageStatus}>
+                    <div className={styles.imageStatusText}>
+                      <span className={styles.imageStatusIcon}>📸</span> Last
+                      captured frame (new frame will be taken on send)
                     </div>
                   </div>
                 )}
 
                 {imageUpload.error && (
-                  <div
-                    style={{
-                      marginTop: "0.5rem",
-                      fontSize: "0.75rem",
-                      color: "#dc2626",
-                    }}
-                  >
+                  <div className={styles.uploadError}>
                     Upload error: {imageUpload.error}
                   </div>
                 )}
@@ -644,13 +580,13 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Threat Logs */}
-        <div className={styles.content}>
+        <aside className={styles.threatLogContainer}>
           <ThreatLogView
             logs={threatLogs.data || []}
             loading={threatLogs.loading}
             error={threatLogs.error}
           />
-        </div>
+        </aside>
       </main>
     </div>
   );
