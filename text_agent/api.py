@@ -258,7 +258,7 @@ async def upload_image(request: ImageUploadRequest):
         # Decode base64 image
         image_data = base64.b64decode(request.image)
         image_id = str(uuid.uuid4())
-        
+
         if image_queue.full():
             print("Queue is full, removing the oldest item.")
             image_queue.get_nowait() # Remove the oldest item to make space
@@ -278,9 +278,7 @@ async def upload_image(request: ImageUploadRequest):
 @app.get("/threat-logs")
 async def get_threat_logs():
     """Get the threat detector logs."""
-    log_file_path = "/app/code/gatekeeper/text_agent/data/logs/threat_detector.json"
+    log_file_path = "./data/logs/threat_detector.json"
     if not os.path.exists(log_file_path):
         raise HTTPException(status_code=404, detail="Log file not found.")
     return FileResponse(log_file_path)
-
-
