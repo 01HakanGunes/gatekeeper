@@ -316,7 +316,7 @@ async def upload_image(request: ImageUploadRequest):
 @app.get("/threat-logs")
 async def get_threat_logs():
     """Get the threat detector logs."""
-    log_file_path = "./data/logs/threat_detector.json"
+    log_file_path = "./data/logs/vision_data_log.json"
 
     if not os.path.exists(log_file_path):
         raise HTTPException(status_code=404, detail="Log file not found.")

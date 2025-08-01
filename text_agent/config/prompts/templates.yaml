@@ -1,15 +1,5 @@
 vision:
-  analyze_image_threat_json:
-    template: |
-      You are a security vision system. Analyze the provided image.
-      You must respond with a valid JSON object following this exact schema:
-      {json_schema}
-
-      Only return valid JSON.
-    type: "string"
-    input_variables:
-      - "json_schema"
-  threat_detector_prompt:
+  security_vision_prompt:
     template: |
       You are a security vision system. Analyze the provided image.
       You must respond with a valid JSON object following this exact schema:

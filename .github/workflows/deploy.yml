@@ -8,6 +8,7 @@ on:
       - text-agent-api
       - caddy-to-nginx-switch
       - gemini-branch
+      - gemini-branch-multiprocessing
 
 jobs:
   deploy:

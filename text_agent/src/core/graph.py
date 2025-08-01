@@ -128,5 +128,6 @@ def create_initial_state() -> State:
         "decision_reasoning": None,
         "vision_schema": None,
         "user_input": "",
-        "invalid_input": False
+        "invalid_input": False,
+        "session_active": False,
     }

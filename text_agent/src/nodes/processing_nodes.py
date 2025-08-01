@@ -124,8 +124,7 @@ def analyze_threat_level_node(state: State) -> State:
     """
     vision_data = state.get("vision_schema")
     if vision_data:
-        # New logic: set threat_level based on dangerous_object_detected and angry_face
-        if vision_data.get("dangerous_object_detected", False):
+        if vision_data.get("dangerous_object", False):
             threat_level = "high"
         elif vision_data.get("angry_face", False):
             threat_level = "medium"

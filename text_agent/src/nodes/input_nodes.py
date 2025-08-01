@@ -77,7 +77,7 @@ def receive_input(state: State) -> State:
 
             # Analyze the frame and extract the json schema accordingly
             vision_data = analyze_image_with_prompt(
-                "visitor.png", "analyze_image_threat_json", "vision_schema"
+                "visitor.png", "security_vision_prompt", "vision_schema"
             )
 
             # Delete the visitor.png file after analysis

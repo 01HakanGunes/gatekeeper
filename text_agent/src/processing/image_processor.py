@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 from src.utils.llm_utilities import analyze_image_with_prompt
 
-LOG_FILE = "./data/logs/threat_detector.json"
+LOG_FILE = "./data/logs/vision_data_log.json"
 LOG_LIMIT = 10
 
 def write_log(log_entry):

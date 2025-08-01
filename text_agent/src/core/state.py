@@ -13,11 +13,10 @@ class VisitorProfile(TypedDict):
 
 
 class VisionSchema(TypedDict):
-    """Schema for the vision analysis results provided by the API."""
     face_detected: bool  # true if there is a face
     angry_face: bool  # true if the face is angry
+    dangerous_object: bool  # true if any dangerous object is detected
     threat_level: str  # one of: low, medium, high
-    dangerous_object_detected: bool  # true if any dangerous object is detected
     details: str  # very short description of what do you see
 
 
@@ -30,3 +29,4 @@ class State(TypedDict):
     vision_schema: Optional[VisionSchema]  # stores vision analysis results
     user_input: str
     invalid_input: bool
+    session_active: bool
