@@ -67,6 +67,14 @@ export interface Message {
   session_complete?: boolean;
 }
 
+export interface ThreatLog {
+  timestamp: string;
+  level: string;
+  message: string;
+  source_ip: string;
+  details: string;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -168,6 +176,10 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  }
+
+  async getThreatLogs(): Promise<ThreatLog[]> {
+    return await this.request<ThreatLog[]>(API_ENDPOINTS.THREAT_LOGS);
   }
 }
 

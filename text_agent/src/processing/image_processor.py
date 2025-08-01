@@ -1,7 +1,29 @@
 import time
 import os
 import base64
+import json
+from datetime import datetime
 from src.utils.llm_utilities import analyze_image_with_prompt
+
+LOG_FILE = "/app/code/gatekeeper/text_agent/data/logs/threat_detector.json"
+LOG_LIMIT = 10
+
+def write_log(log_entry):
+    logs = []
+    if os.path.exists(LOG_FILE):
+        with open(LOG_FILE, "r") as f:
+            try:
+                logs = json.load(f)
+            except json.JSONDecodeError:
+                logs = []
+    
+    logs.append(log_entry)
+    
+    # Keep only the last 10 logs
+    logs = logs[-LOG_LIMIT:]
+    
+    with open(LOG_FILE, "w") as f:
+        json.dump(logs, f, indent=4)
 
 def threat_detector(image_b64):
     print(f"[{os.getpid()}] [Processing Process] Calling threat_detector...")
@@ -9,20 +31,35 @@ def threat_detector(image_b64):
         image_b64, "threat_detector_prompt", "threat_schema"
     )
 
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "vision_data": vision_data,
+        "message": ""
+    }
+
     if vision_data is None:
-        print(f"[{os.getpid()}] [Processing Process] Vision data extraction failed.")
+        message = "Vision data extraction failed."
+        print(f"[{os.getpid()}] [Processing Process] {message}")
+        log_entry["message"] = message
     else:
         print(f"[{os.getpid()}] [Processing Process] Vision data extracted: {vision_data}")
         is_dangerous = vision_data.get("dangerous_object", False)
         is_angry = vision_data.get("angry_face", False)
 
         if is_dangerous:
-            print("❌ Threat detected, security is notified!")
+            message = "❌ Threat detected, security is notified!"
+            print(message)
+            log_entry["message"] = message
         elif is_angry:
-            print("⚠️ Chill bro, you are making me anxious.")
+            message = "⚠️ Chill bro, you are making me anxious."
+            print(message)
+            log_entry["message"] = message
         else:
-            print(f"[{os.getpid()}] [Processing Process] No threat detected in image.")
+            message = f"[{os.getpid()}] [Processing Process] No threat detected in image."
+            print(message)
+            log_entry["message"] = "No threat detected in image."
 
+    write_log(log_entry)
     time.sleep(0.1)  # Simulate some processing time
 
 def image_processing_function(image_queue):

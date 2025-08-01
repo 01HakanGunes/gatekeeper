@@ -6,6 +6,7 @@ import type {
   HealthResponse,
   Message,
   ImageUploadResponse,
+  ThreatLog,
 } from "../services/apiClient";
 
 interface UseApiState<T> {
@@ -35,6 +36,10 @@ interface UseApiReturn {
   // Image upload
   imageUpload: UseApiState<ImageUploadResponse>;
   uploadImage: (image: string) => Promise<void>;
+
+  // Threat logs
+  threatLogs: UseApiState<ThreatLog[]>;
+  fetchThreatLogs: () => Promise<void>;
 
   // Current session ID
   currentSessionId: string | null;
@@ -78,12 +83,18 @@ export const useApi = (): UseApiReturn => {
     error: null,
   });
 
+  const [threatLogs, setThreatLogs] = useState<UseApiState<ThreatLog[]>>({
+    data: [],
+    loading: false,
+    error: null,
+  });
+
   const isLoading =
     session.loading ||
     messages.loading ||
     profile.loading ||
     health.loading ||
-    imageUpload.loading;
+    imageUpload.loading || threatLogs.loading;
 
   const startSession = useCallback(async (): Promise<string | null> => {
     setSession((prev) => ({ ...prev, loading: true, error: null }));
@@ -184,7 +195,7 @@ export const useApi = (): UseApiReturn => {
         }));
       }
     },
-    [currentSessionId],
+    [currentSessionId, fetchProfile],
   );
 
   const fetchProfile = useCallback(async () => {
@@ -245,6 +256,23 @@ export const useApi = (): UseApiReturn => {
     [currentSessionId],
   );
 
+  const fetchThreatLogs = useCallback(async () => {
+    setThreatLogs((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      const data = await apiClient.getThreatLogs();
+      setThreatLogs({ data, loading: false, error: null });
+    } catch (error) {
+      setThreatLogs((prev) => ({
+        ...prev,
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch threat logs",
+      }));
+    }
+  }, []);
+
   // Auto-fetch health on mount
   useEffect(() => {
     fetchHealth();
@@ -262,6 +290,8 @@ export const useApi = (): UseApiReturn => {
     fetchHealth,
     imageUpload,
     uploadImage,
+    threatLogs,
+    fetchThreatLogs,
     currentSessionId,
     isLoading,
   };

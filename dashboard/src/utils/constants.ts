@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
   END_SESSION: "/end-session",
   HEALTH: "/health",
   IMAGE_UPLOAD: "/upload-image",
+  THREAT_LOGS: "/threat-logs",
 } as const;
 
 export const UI_CONSTANTS = {

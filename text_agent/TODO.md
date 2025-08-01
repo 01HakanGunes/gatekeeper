@@ -4,6 +4,8 @@
 
 - Add a way to enable or disable threat detection from a new endpoint
 
+- What happened to the session logic of each user. Make each threat detection log file unique to each session. Somehow for multiple sessions, the same threat detection process should be used. When user disables their own threat detection, their session should stop logging. When there are 0 sessions, the threat detection process should be stopped.
+
 - If the state is not initialized, and a face is detected, initialize the state with the face (send greeting and ask something).
 
 - Update graph with clearer node structure

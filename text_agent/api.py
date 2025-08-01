@@ -10,6 +10,8 @@ import base64
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+import os
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.core.graph import create_security_graph, create_initial_state
@@ -272,5 +274,13 @@ async def upload_image(request: ImageUploadRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
+
+@app.get("/threat-logs")
+async def get_threat_logs():
+    """Get the threat detector logs."""
+    log_file_path = "/app/code/gatekeeper/text_agent/data/logs/threat_detector.json"
+    if not os.path.exists(log_file_path):
+        raise HTTPException(status_code=404, detail="Log file not found.")
+    return FileResponse(log_file_path)
 
 

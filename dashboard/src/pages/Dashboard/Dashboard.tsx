@@ -6,6 +6,7 @@ import Input from "../../components/Input/Input";
 import Camera, { type CameraRef } from "../../components/Camera/Camera";
 import { UI_CONSTANTS } from "../../utils/constants";
 import type { Message, VisitorProfile } from "../../services/apiClient";
+import ThreatLogView from "../../components/ThreatLog/ThreatLog";
 import styles from "./Dashboard.module.css";
 
 const Dashboard: React.FC = () => {
@@ -22,6 +23,8 @@ const Dashboard: React.FC = () => {
     currentSessionId,
     imageUpload,
     uploadImage,
+    threatLogs,
+    fetchThreatLogs,
   } = useApi();
 
   const cameraRef = useRef<CameraRef>(null);
@@ -47,6 +50,17 @@ const Dashboard: React.FC = () => {
       if (interval) clearInterval(interval);
     };
   }, [fetchHealth, fetchProfile, currentSessionId]);
+
+  // Auto-refresh threat logs
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchThreatLogs();
+    }, 2000);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [fetchThreatLogs]);
 
   // Auto-upload image every 2 seconds
   useEffect(() => {
@@ -627,6 +641,15 @@ const Dashboard: React.FC = () => {
               </form>
             </div>
           </div>
+        </div>
+
+        {/* Threat Logs */}
+        <div className={styles.content}>
+          <ThreatLogView
+            logs={threatLogs.data || []}
+            loading={threatLogs.loading}
+            error={threatLogs.error}
+          />
         </div>
       </main>
     </div>
