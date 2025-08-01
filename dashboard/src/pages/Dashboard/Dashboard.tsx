@@ -430,52 +430,6 @@ const Dashboard: React.FC = () => {
               {profile.error &&
                 renderErrorState(profile.error, () => fetchProfile())}
             </div>
-          </div>
-        </aside>
-
-        {/* Main Content - Chat */}
-        <div className={styles.content}>
-          <div className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Security Agent Chat</h2>
-              <div className={styles.sectionActions}>
-                <Button
-                  variant="ghost"
-                  size="small"
-                  onClick={() => fetchProfile()}
-                  loading={profile.loading}
-                  disabled={!currentSessionId}
-                >
-                  🔄
-                </Button>
-              </div>
-            </div>
-            <div className={styles.messagesContainer}>
-              {!currentSessionId &&
-                renderEmptyState(
-                  "💬",
-                  "No Active Session",
-                  "Start a session to begin chatting with the security agent",
-                )}
-
-              {currentSessionId &&
-                messages.data &&
-                messages.data.length === 0 &&
-                renderEmptyState(
-                  "👋",
-                  "Session Started",
-                  "Start the conversation by sending a message",
-                )}
-
-              {messages.data && messages.data.length > 0 && (
-                <div className={styles.messagesList}>
-                  {messages.data.map(renderMessageEntry)}
-                </div>
-              )}
-
-              {messages.error && renderErrorState(messages.error)}
-            </div>
-
             {/* Camera Section */}
             {currentSessionId && (
               <div className={styles.cameraSection}>
@@ -536,6 +490,51 @@ const Dashboard: React.FC = () => {
                 )}
               </div>
             )}
+          </div>
+        </aside>
+
+        {/* Main Content - Chat */}
+        <div className={styles.content}>
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Security Agent Chat</h2>
+              <div className={styles.sectionActions}>
+                <Button
+                  variant="ghost"
+                  size="small"
+                  onClick={() => fetchProfile()}
+                  loading={profile.loading}
+                  disabled={!currentSessionId}
+                >
+                  🔄
+                </Button>
+              </div>
+            </div>
+            <div className={styles.messagesContainer}>
+              {!currentSessionId &&
+                renderEmptyState(
+                  "💬",
+                  "No Active Session",
+                  "Start a session to begin chatting with the security agent",
+                )}
+
+              {currentSessionId &&
+                messages.data &&
+                messages.data.length === 0 &&
+                renderEmptyState(
+                  "👋",
+                  "Session Started",
+                  "Start the conversation by sending a message",
+                )}
+
+              {messages.data && messages.data.length > 0 && (
+                <div className={styles.messagesList}>
+                  {messages.data.map(renderMessageEntry)}
+                </div>
+              )}
+
+              {messages.error && renderErrorState(messages.error)}
+            </div>
 
             {/* Message Input */}
             <div className={styles.messageInput}>
