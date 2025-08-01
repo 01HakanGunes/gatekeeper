@@ -21,6 +21,10 @@ def receive_input(state: State) -> State:
     """
     Handle user input with validation and conversation history display.
     """
+    # If the session_active flag is false return here and go the reset conversation node
+    if not state["session_active"]:
+        return state
+
     # Print conversation history
     messages = state["messages"]
     print("\n" + "=" * 50)

@@ -53,6 +53,10 @@ def create_security_graph():
         if state["invalid_input"] == True:
             # End the session if the input is invalid
             return "invalid"
+
+        if state["session_active"] == False:
+            return "reset_conversation"
+
         session_result = detect_session(state)
         if session_result == "new":
             return "reset_conversation"
