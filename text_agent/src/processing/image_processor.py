@@ -57,9 +57,9 @@ def write_face_detection_to_file(face_detection_queue):
         with open(LOG_FILE, "w") as f:
             json.dump([], f, indent=4)
         print(f"[{os.getpid()}] [Processing Process] Stopping image processing - no faces detected.")
-        return False  # Signal to stop processing
+        return False  # Signal to stop logging
 
-    return True  # Continue processing
+    return True  # Continue logging
 
 def threat_detector(image_b64, face_detection_queue):
     print(f"[{os.getpid()}] [Processing Process] Calling threat_detector...")
@@ -90,8 +90,11 @@ def threat_detector(image_b64, face_detection_queue):
     face_detection_queue.put(face_detected)
     print(f"[{os.getpid()}] [Processing Process] Face detected: {face_detected}, Queue size: {face_detection_queue.qsize()}")
 
-    # Update shared JSON file with current queue values and check if processing should continue
-    should_continue = write_face_detection_to_file(face_detection_queue)
+    continue_logging = write_face_detection_to_file(face_detection_queue)
+
+    if not continue_logging:
+        print("no face detected so the logging stopped")
+        return
 
     if vision_data is None:
         message = "Vision data extraction failed."
@@ -118,8 +121,6 @@ def threat_detector(image_b64, face_detection_queue):
     write_log(log_entry)
     time.sleep(0.1)  # Simulate some processing time
 
-    return should_continue
-
 def image_processing_function(image_queue, face_detection_queue):
     print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
     try:
@@ -129,12 +130,8 @@ def image_processing_function(image_queue, face_detection_queue):
                 print(f"[{os.getpid()}] [Processing Process] Image queue has items. Processing one.")
                 latest_image = image_queue.get()
                 image_b64 = base64.b64encode(latest_image["data"]).decode("utf-8")
-                should_continue = threat_detector(image_b64, face_detection_queue)
+                threat_detector(image_b64, face_detection_queue)
 
-                # Stop processing if all face detection values are False
-                if not should_continue:
-                    print(f"[{os.getpid()}] [Processing Process] Stopping image processing due to no face detection.")
-                    break
             else:
                 time.sleep(1)
     except KeyboardInterrupt:
