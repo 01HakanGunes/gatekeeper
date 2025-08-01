@@ -74,7 +74,6 @@ def create_security_graph():
         },
     )
     graph_builder.add_edge("summarize", "check_visitor_profile")
-    graph_builder.add_edge("reset_conversation", "check_visitor_profile")
     graph_builder.add_edge("check_visitor_profile", "analyze_threat_level")
     graph_builder.add_edge("analyze_threat_level", "validate_contact_person")
     graph_builder.add_conditional_edges(
@@ -91,10 +90,11 @@ def create_security_graph():
         check_decision_for_notification,
         {
             "notify": "notify_contact",
-            "end": END,
+            "end": "reset_conversation",
         },
     )
-    graph_builder.add_edge("notify_contact", END)
+    graph_builder.add_edge("notify_contact", "reset_conversation")
+    graph_builder.add_edge("reset_conversation", END)
 
     # Compile and return the graph
     return graph_builder.compile()

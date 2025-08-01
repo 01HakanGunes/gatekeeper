@@ -1,5 +1,7 @@
 # Text Agent - To-Do List
 
+- Add drawing the mermaid diagram again.
+
 - I need to clean the state value when the final decision happens.
 
 - Make each threat detection log file unique to each session. Somehow for multiple sessions, the same threat detection process should be used. When user disables their own threat detection, their session should stop logging. When there are 0 sessions, the threat detection process should be stopped.
