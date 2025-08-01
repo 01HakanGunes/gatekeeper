@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 from src.utils.llm_utilities import analyze_image_with_prompt
 
-LOG_FILE = "/app/code/gatekeeper/text_agent/data/logs/threat_detector.json"
+LOG_FILE = "./data/logs/threat_detector.json"
 LOG_LIMIT = 10
 
 def write_log(log_entry):
@@ -16,12 +16,12 @@ def write_log(log_entry):
                 logs = json.load(f)
             except json.JSONDecodeError:
                 logs = []
-    
+
     logs.append(log_entry)
-    
+
     # Keep only the last 10 logs
     logs = logs[-LOG_LIMIT:]
-    
+
     with open(LOG_FILE, "w") as f:
         json.dump(logs, f, indent=4)
 

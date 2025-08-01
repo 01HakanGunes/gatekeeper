@@ -291,7 +291,6 @@ async def get_threat_logs():
                 return []
             log_data = json.loads(content)
 
-        # FastAPI will automatically serialize this Python object into a JSON response.
         return log_data
 
     except json.JSONDecodeError:
