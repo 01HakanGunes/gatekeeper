@@ -24,7 +24,7 @@ import multiprocessing
 shared_graph = None
 session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
-image_queue = multiprocessing.Queue(maxsize=10)
+image_queue = multiprocessing.Queue(maxsize=4)
 
 # This queue stores 10 face detection true false values. If a new one added, oldest one is removed.
 face_detection_queue = multiprocessing.Queue(maxsize=10)

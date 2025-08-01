@@ -29,7 +29,7 @@ def receive_input(state: State) -> State:
             with open(face_detection_file, "r") as f:
                 face_detection_values = json.load(f)
 
-            # Check if all values are False (no face detected in last 10 frames)
+            # Check if all values are False (no face detected in last x frames)
             if isinstance(face_detection_values, list) and len(face_detection_values) > 0:
                 if all(value == False for value in face_detection_values):
                     print("❌ No face detected in recent frames. Setting session to inactive.")

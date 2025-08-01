@@ -8,7 +8,7 @@ from src.utils.llm_utilities import analyze_image_with_prompt
 LOG_FILE = "./data/logs/vision_data_log.json"
 FACE_DETECTION_FILE = "./data/shared/face_detected.json"
 LOG_LIMIT = 10
-FACE_QUEUE_LIMIT = 10
+FACE_QUEUE_LIMIT = 4
 
 def write_log(log_entry):
     logs = []
