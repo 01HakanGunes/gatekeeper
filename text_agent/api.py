@@ -286,7 +286,10 @@ async def get_threat_logs():
 
     try:
         with open(log_file_path, "r") as f:
-            log_data = json.load(f)
+            content = f.read()
+            if not content:
+                return []
+            log_data = json.loads(content)
 
         # FastAPI will automatically serialize this Python object into a JSON response.
         return log_data
