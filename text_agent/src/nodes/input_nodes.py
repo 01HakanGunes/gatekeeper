@@ -21,9 +21,35 @@ def receive_input(state: State) -> State:
     """
     Handle user input with validation and conversation history display.
     """
-    # If the session_active flag is false return here and go the reset conversation node
-    if not state["session_active"]:
-        return state
+
+    prev_session_flag = state["session_active"]
+    try:
+        face_detection_file = "./data/shared/face_detected.json"
+        if os.path.exists(face_detection_file):
+            with open(face_detection_file, "r") as f:
+                face_detection_values = json.load(f)
+
+            # Check if all values are False (no face detected in last 10 frames)
+            if isinstance(face_detection_values, list) and len(face_detection_values) > 0:
+                if all(value == False for value in face_detection_values):
+                    print("❌ No face detected in recent frames. Setting session to inactive.")
+                    state["session_active"] = False
+                    return state
+                else:
+                    if prev_session_flag == False:
+                        print("New session is starting")
+                        state["session_active"] = True
+                    else:
+                        print("✅ Face detected in recent frames. Session remains active.")
+            else:
+                print("⚠️ Face detection data is empty or invalid format.")
+        else:
+            print("⚠️ Face detection file not found. Assuming session is active.")
+    except Exception as e:
+        print(f"⚠️ Error reading face detection file: {e}. Assuming session is active.")
+
+
+
 
     # Print conversation history
     messages = state["messages"]
