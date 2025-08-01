@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./ThreatLog.module.css";
-import { ThreatLog } from "../../services/apiClient";
+import type { ThreatLog } from "../../services/apiClient";
 
 interface ThreatLogViewProps {
   logs: ThreatLog[];
@@ -8,7 +8,11 @@ interface ThreatLogViewProps {
   error: string | null;
 }
 
-const ThreatLogView: React.FC<ThreatLogViewProps> = ({ logs, loading, error }) => {
+const ThreatLogView: React.FC<ThreatLogViewProps> = ({
+  logs,
+  loading,
+  error,
+}) => {
   return (
     <div className={styles.container}>
       <h2>Threat Logs</h2>

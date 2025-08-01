@@ -135,6 +135,23 @@ export const useApi = (): UseApiReturn => {
     }
   }, [currentSessionId]);
 
+  const fetchProfile = useCallback(async () => {
+    if (!currentSessionId) return;
+
+    setProfile((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      const data = await apiClient.getProfile(currentSessionId);
+      setProfile({ data, loading: false, error: null });
+    } catch (error) {
+      setProfile((prev) => ({
+        ...prev,
+        loading: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch profile",
+      }));
+    }
+  }, [currentSessionId]);
+
   const sendMessage = useCallback(
     async (messageContent: string, image?: string): Promise<void> => {
       if (!currentSessionId) {
@@ -197,23 +214,6 @@ export const useApi = (): UseApiReturn => {
     },
     [currentSessionId, fetchProfile],
   );
-
-  const fetchProfile = useCallback(async () => {
-    if (!currentSessionId) return;
-
-    setProfile((prev) => ({ ...prev, loading: true, error: null }));
-    try {
-      const data = await apiClient.getProfile(currentSessionId);
-      setProfile({ data, loading: false, error: null });
-    } catch (error) {
-      setProfile((prev) => ({
-        ...prev,
-        loading: false,
-        error:
-          error instanceof Error ? error.message : "Failed to fetch profile",
-      }));
-    }
-  }, [currentSessionId]);
 
   const fetchHealth = useCallback(async () => {
     setHealth((prev) => ({ ...prev, loading: true, error: null }));
