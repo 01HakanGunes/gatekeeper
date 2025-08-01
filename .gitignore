@@ -69,14 +69,8 @@ ipython_config.py
 ehthumbs.db
 Thumbs.db
 
-# Logs
-*.log
-logs/
-
-
 # Temporary files
 *.tmp
 *.temp
 
 *.jpg
-

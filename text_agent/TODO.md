@@ -1,8 +1,8 @@
 # Text Agent - To-Do List
 
-- Is the sent image in base64 format?
+- Save the threat detection logs into json in order to make it requestable from an endpoint
 
-- Add the threat detection as an api endpoint and connect with dashboard
+- Add a way to enable or disable threat detection from a new endpoint
 
 - If the state is not initialized, and a face is detected, initialize the state with the face (send greeting and ask something).
 
