@@ -1,6 +1,6 @@
 # Text Agent - To-Do List
 
-- Image processor should activate the session.
+- Image processor should activate, reset session with interprocess flag value assignment.
 
 - If the state is not initialized, and a face is detected, initialize the state with the face (send greeting and ask something).
   After no face detected for 10 frames, clear the state. Set the state flag to inactive. When the flag is inactive and there is a face detected, initialize the state with the face (send greeting and ask something).
