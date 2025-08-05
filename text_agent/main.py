@@ -23,13 +23,13 @@ def main():
         print("🌐 Integrating Socket.IO with FastAPI...")
         # Wrap the FastAPI app with Socket.IO ASGI middleware
         # This creates the combined ASGI application
-        combined_asgi_app = socketio.ASGIApp(socketio_server=sio, other_asgi_app=app)
+        asgi_app = socketio.ASGIApp(sio)
         print("🔗 FastAPI and Socket.IO combined into ASGI app")
 
         # --- Server Startup ---
         print("🌐 Starting Security Gate System (API + Socket.IO) on http://localhost:8001 ...")
         # Run the combined ASGI application using Uvicorn
-        uvicorn.run(combined_asgi_app, host="0.0.0.0", port=8001)
+        uvicorn.run(asgi_app, host="0.0.0.0", port=8001)
 
         # --- Cleanup ---
         print("🛑 Shutting down image processing...")

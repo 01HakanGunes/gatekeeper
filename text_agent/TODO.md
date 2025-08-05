@@ -1,6 +1,8 @@
 # Text Agent - To-Do List
 
-- Socketio integration
+- Check the api.py and extract the necessary part to other files then backup/delete.
+
+- Check socketio events and channels with the custom webapp
 
 - CORS for socketio
 

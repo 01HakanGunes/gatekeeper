@@ -12,10 +12,10 @@ from pydantic import BaseModel
 import threading
 import multiprocessing
 from config.settings import DEFAULT_RECURSION_LIMIT
-from src.core.graph import create_initial_state
+from src.core.graph import create_initial_state, create_security_graph
 
 # Initialize objects vars
-shared_graph = None
+shared_graph = create_security_graph()
 session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
