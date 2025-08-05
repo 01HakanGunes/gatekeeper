@@ -1,8 +1,3 @@
-"""
-Security Gate System - API Module
-
-FastAPI web interface for the security gate system.
-"""
 
 import json
 import uuid
@@ -17,8 +12,6 @@ from pydantic import BaseModel
 from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT
 import config.settings as settings
-import time
-import ollama
 import multiprocessing
 
 # Shared graph instance and session states
@@ -29,19 +22,6 @@ image_queue = multiprocessing.Queue(maxsize=10)
 
 # This queue stores face detection true false values. If a new one added, oldest one is removed.
 face_detection_queue = multiprocessing.Queue(maxsize=4)
-
-def wait_for_ollama(timeout: int = 30) -> bool:
-    """Wait for the Ollama service to become available."""
-    print("⏳ Waiting for Ollama service...")
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        try:
-            ollama.list()
-            print("✅ Ollama service is available")
-            return True
-        except Exception:
-            time.sleep(1)
-    return False
 
 def _generate_graph_visualization():
     """Generate graph visualization as Mermaid diagram"""
