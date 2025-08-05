@@ -1,14 +1,10 @@
 # Text Agent - To-Do List
 
+- When session deactivated, return "show your face", and when a new session starts return "Hello sir whatup, what do you want sir?"
+
 - Check the api.py and extract the necessary part to other files then backup/delete.
 
-- Check socketio events and channels with the custom webapp
-
-- CORS for socketio
-
 - multiple langgraph instances needed or not needed for multi-session setup i want?
-
-- Dont send an image with chat message.
 
 - Image processor should activate, reset session with interprocess flag value assignment.
 

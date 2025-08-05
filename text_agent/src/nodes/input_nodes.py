@@ -105,38 +105,6 @@ def receive_input(state: State) -> State:
             print("✅ Input validation: Input is valid")
             state["messages"].append(HumanMessage(content=user_input))
 
-            # Analyze the frame and extract the json schema accordingly
-            vision_data = analyze_image_with_prompt(
-                "visitor.png", "security_vision_prompt", "vision_schema"
-            )
-
-            # Delete the visitor.png file after analysis
-            try:
-                if os.path.exists("visitor.png"):
-                    os.remove("visitor.png")
-                    print("🗑️ Cleaned up visitor.png file")
-            except Exception as e:
-                print(f"⚠️ Failed to delete visitor.png: {e}")
-
-            state["vision_schema"] = cast(VisionSchema, vision_data)
-
-            # Check the face_detected field, if no face print a request to show up on the camera
-            vision_schema = state.get("vision_schema")
-            face_detected = False
-            if isinstance(vision_schema, dict):
-                face_detected = vision_schema.get("face_detected", False)
-                details_face_debug = vision_schema.get("details", "details are not there for vision data!")
-                print(details_face_debug)
-            if not face_detected:
-                print(
-                    "❌ No face detected. Please show up on the camera and try again."
-                )
-                message = AIMessage(content="❌ No face detected. Please show up on the camera and try again.")
-                state["messages"].append(message)
-                state["invalid_input"] = True
-                return state
-            else:
-                print("✅ Face detected in the image.")
         elif "unrelated" in result:
             print("❌ Input validation: Input is unrelated/invalid")
             invalid_message = prompt_manager.get_field_data("input_validation")[
