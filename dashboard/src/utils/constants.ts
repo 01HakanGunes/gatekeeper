@@ -1,5 +1,4 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://192.168.0.86/api";
+export const API_BASE_URL = "http://localhost:8001";
 
 export const API_ENDPOINTS = {
   START_SESSION: "/start-session",

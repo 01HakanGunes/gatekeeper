@@ -7,12 +7,12 @@ MAX_HUMAN_MESSAGES = 20
 DEFAULT_HISTORY_MODE = "summarize"  # Options: "summarize" or "shorten"
 SHORTEN_KEEP_MESSAGES = 5  # Number of recent messages to keep in shorten mode
 CURRENT_HISTORY_MODE = (
-    DEFAULT_HISTORY_MODE  # Will be set by main.py based on command-line args
+    DEFAULT_HISTORY_MODE
 )
 
 # Model configurations
 DEFAULT_MODEL_FAST = "qwen3:4b"
-DEFAULT_MODEL_SMART = "qwen3:8b"
+DEFAULT_MODEL_SMART = "qwen3:4b"
 DEFAULT_MODEL_VISION = "gemma3:4b"
 
 # Temperature settings
