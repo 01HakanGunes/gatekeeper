@@ -1,6 +1,6 @@
 # Text Agent - To-Do List
 
-- local dev setup
+- Dont send an image with chat message.
 
 - Socketio integration
 
@@ -18,3 +18,7 @@
 - docker compose file position change
 
 - Remove the thinking extraction and directly use from langchain
+
+- Do i really need this custom lifespan for fastapi: "async def lifespan(app: FastAPI):"
+
+- Import statements are all around the code.

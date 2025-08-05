@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.core.graph import create_security_graph, create_initial_state
 from config.settings import DEFAULT_RECURSION_LIMIT
+import config.settings as settings
 import time
 import ollama
 import multiprocessing
@@ -82,8 +83,7 @@ async def lifespan(app: FastAPI):
     global shared_graph
 
     # Set global history mode
-    import config.settings as settings
-    settings.CURRENT_HISTORY_MODE = "summarize"  # Default for API mode
+    settings.CURRENT_HISTORY_MODE = "summarize"
 
     print("🌐 Initializing Security Gate API...")
 
@@ -112,7 +112,6 @@ app.add_middleware(
 
 class UserInput(BaseModel):
     message: str
-    image: Optional[str] = None
 
 class SessionResponse(BaseModel):
     agent_response: str
@@ -197,23 +196,6 @@ async def chat(session_id: str, user_input: UserInput):
     try:
         # Update state with user input
         current_state["user_input"] = user_input.message
-
-        # Save image if provided
-        if user_input.image:
-            try:
-                # Decode base64 image
-                image_data = base64.b64decode(user_input.image)
-
-                # Save to visitor.png in project root
-                image_path = "visitor.png"
-                with open(image_path, "wb") as f:
-                    f.write(image_data)
-
-                print(f"📸 Image saved to {image_path}")
-            except Exception as e:
-                print(f"❌ Error saving image: {str(e)}")
-        else:
-            print("No image provided")
 
         # Process using shared graph
         updated_state = shared_graph.invoke(
