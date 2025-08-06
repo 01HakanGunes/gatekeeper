@@ -56,8 +56,11 @@ def write_face_detection_to_file(face_detection_queue):
         # Clear the vision data log
         with open(LOG_FILE, "w") as f:
             json.dump([], f, indent=4)
-        print(f"[{os.getpid()}] [Processing Process] Stopping image processing - no faces detected.")
-        return False  # Signal to stop logging
+        print(f"[{os.getpid()}] [Processing Process] Stopping logging - no faces detected.")
+
+        # TODO Here we need to send socketio event as a new message according to no face detected please show up to the camera etc.
+
+        return False  # stop logging
 
     return True  # Continue logging
 
@@ -119,7 +122,6 @@ def threat_detector(image_b64, face_detection_queue):
             log_entry["message"] = "No threat detected in image."
 
     write_log(log_entry)
-    time.sleep(0.1)  # Simulate some processing time
 
 def image_processing_function(image_queue, face_detection_queue):
     print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
