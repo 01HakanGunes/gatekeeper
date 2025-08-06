@@ -103,7 +103,7 @@ function Dashboard() {
       }
 
       // Send message with freshly captured image
-      await sendMessage(messageContent, capturedImage);
+      await sendMessage(messageContent);
 
       // If we have separate endpoint enabled and an image, upload it separately
       if (uploadToSeparateEndpoint && capturedImage) {

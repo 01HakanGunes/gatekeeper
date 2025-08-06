@@ -12,7 +12,6 @@ export interface SessionResponse {
 
 export interface ChatRequest {
   message: string;
-  image?: string; // base64 encoded image
 }
 
 export interface ChatResponse {
@@ -22,7 +21,7 @@ export interface ChatResponse {
 
 export interface ImageUploadRequest {
   session_id: string;
-  image: string; // base64 encoded image
+  image: string;
   timestamp: string;
 }
 
@@ -124,15 +123,8 @@ class ApiClient {
     });
   }
 
-  async sendMessage(
-    sessionId: string,
-    message: string,
-    image?: string,
-  ): Promise<ChatResponse> {
+  async sendMessage(sessionId: string, message: string): Promise<ChatResponse> {
     const payload: ChatRequest = { message };
-    if (image) {
-      payload.image = image;
-    }
 
     return await this.request<ChatResponse>(
       `${API_ENDPOINTS.CHAT}/${sessionId}`,
