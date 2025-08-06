@@ -14,12 +14,52 @@ import multiprocessing
 from config.settings import DEFAULT_RECURSION_LIMIT
 from src.core.graph import create_initial_state, create_security_graph
 
+# Utility
+
+def _generate_graph_visualization():
+    """Generate graph visualization as Mermaid diagram"""
+    print("📊 Generating graph visualization...")
+
+    if shared_graph is None:
+        print("⚠️ Graph not initialized, skipping visualization")
+        return
+
+    try:
+        compiled_graph = shared_graph.get_graph()
+
+        # Save Mermaid source code (.mmd file)
+        try:
+            mermaid_source = compiled_graph.draw_mermaid()
+            mermaid_filename = "security_gate_diagram.mmd"
+            with open(mermaid_filename, "w", encoding="utf-8") as f:
+                f.write(mermaid_source)
+            print(f"✅ Mermaid source saved to {mermaid_filename}")
+        except Exception as e:
+            print(f"⚠️ Could not save Mermaid source: {e}")
+
+        # Save PNG visualization
+        png_data = compiled_graph.draw_mermaid_png()
+        if png_data:
+            png_filename = "security_gate_diagram.png"
+            with open(png_filename, "wb") as f:
+                f.write(png_data)
+            print(f"✅ Mermaid diagram (PNG) saved to {png_filename}")
+        else:
+            print("❌ Could not generate Mermaid PNG data.")
+
+    except Exception as e:
+        print(f"⚠️ Could not generate graph diagram: {e}")
+
+
 # Initialize objects vars
 shared_graph = create_security_graph()
 session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
 face_detection_queue = multiprocessing.Queue(maxsize=4)
+
+# Graph visulized and saved as image
+_generate_graph_visualization()
 
 # --- Pydantic models for request/response validation (if needed locally) ---
 # Define them here or ensure they are accessible without importing api.py directly if there's a circular import issue.

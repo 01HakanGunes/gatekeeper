@@ -1,8 +1,10 @@
 # Text Agent - To-Do List
 
-- When session deactivated, return "show your face", and when a new session starts return "Hello sir whatup, what do you want sir?"
+- Create 2 branches for frontend and backend
 
 - Check the api.py and extract the necessary part to other files then backup/delete.
+
+- When session deactivated, return "show your face", and when a new session starts return "Hello sir whatup, what do you want sir?"
 
 - multiple langgraph instances needed or not needed for multi-session setup i want?
 
@@ -20,8 +22,6 @@
 ## Refactoring
 
 - docker compose file position change
-
-- Remove the thinking extraction and directly use from langchain
 
 - Do i really need this custom lifespan for fastapi: "async def lifespan(app: FastAPI):"
 
