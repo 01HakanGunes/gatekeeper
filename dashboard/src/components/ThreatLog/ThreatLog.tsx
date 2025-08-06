@@ -1,14 +1,13 @@
-
 import styles from "./ThreatLog.module.css";
 import type { ThreatLog } from "../../services/apiClient";
 
+interface ThreatLogViewProps {
+  logs: ThreatLog[];
+  loading: boolean;
+  error: string | null;
+}
 
-
-const ThreatLogView = ({
-  logs,
-  loading,
-  error,
-}: { logs: ThreatLog[]; loading: boolean; error: string | null }) => {
+function ThreatLogView({ logs, loading, error }: ThreatLogViewProps) {
   return (
     <div className={styles.container}>
       <h2>Threat Logs</h2>
@@ -23,6 +22,6 @@ const ThreatLogView = ({
       </div>
     </div>
   );
-};
+}
 
 export default ThreatLogView;

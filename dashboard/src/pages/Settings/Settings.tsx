@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { useState, useCallback, useEffect } from "react";
 import { useApi } from "../../hooks/useApi";
@@ -15,7 +14,7 @@ interface SettingsData {
   enableNotifications: boolean;
 }
 
-const Settings = () => {
+function Settings() {
   const { health, fetchHealth } = useApi();
 
   const [settings, setSettings] = useState<SettingsData>({
@@ -339,6 +338,6 @@ const Settings = () => {
       </main>
     </div>
   );
-};
+}
 
 export default Settings;

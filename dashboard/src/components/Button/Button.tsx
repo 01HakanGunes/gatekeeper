@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React from "react";
 import styles from "./Button.module.css";
 
 export interface ButtonProps
@@ -9,6 +9,7 @@ export interface ButtonProps
   fullWidth?: boolean;
   iconOnly?: boolean;
   children: React.ReactNode;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
 export interface LinkButtonProps
@@ -20,91 +21,80 @@ export interface LinkButtonProps
   iconOnly?: boolean;
   href: string;
   children: React.ReactNode;
+  ref?: React.Ref<HTMLAnchorElement>;
 }
 
-type ButtonComponent = React.ForwardRefExoticComponent<
-  ButtonProps & React.RefAttributes<HTMLButtonElement>
-> & {
-  Link: React.ForwardRefExoticComponent<
-    LinkButtonProps & React.RefAttributes<HTMLAnchorElement>
-  >;
+type ButtonComponent = typeof Button & {
+  Link: typeof LinkButton;
 };
 
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = "primary",
-      size = "medium",
-      loading = false,
-      fullWidth = false,
-      iconOnly = false,
-      disabled,
-      className,
-      children,
-      ...props
-    },
-    ref,
-  ) => {
-    const buttonClasses = [
-      styles.button,
-      styles[variant],
-      styles[size],
-      loading && styles.loading,
-      disabled && styles.disabled,
-      fullWidth && styles.fullWidth,
-      iconOnly && styles.iconOnly,
-      className,
-    ]
-      .filter(Boolean)
-      .join(" ");
+function Button({
+  variant = "primary",
+  size = "medium",
+  loading = false,
+  fullWidth = false,
+  iconOnly = false,
+  disabled,
+  className,
+  children,
+  ref,
+  ...props
+}: ButtonProps) {
+  const buttonClasses = [
+    styles.button,
+    styles[variant],
+    styles[size],
+    loading && styles.loading,
+    disabled && styles.disabled,
+    fullWidth && styles.fullWidth,
+    iconOnly && styles.iconOnly,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-    return (
-      <button
-        ref={ref}
-        className={buttonClasses}
-        disabled={disabled || loading}
-        aria-disabled={disabled || loading}
-        {...props}
-      >
-        {children}
-      </button>
-    );
-  },
-);
+  return (
+    <button
+      ref={ref}
+      className={buttonClasses}
+      disabled={disabled || loading}
+      aria-disabled={disabled || loading}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 
-const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(
-  (
-    {
-      variant = "primary",
-      size = "medium",
-      loading = false,
-      fullWidth = false,
-      iconOnly = false,
-      className,
-      children,
-      ...props
-    },
-    ref,
-  ) => {
-    const linkClasses = [
-      styles.button,
-      styles[variant],
-      styles[size],
-      loading && styles.loading,
-      fullWidth && styles.fullWidth,
-      iconOnly && styles.iconOnly,
-      className,
-    ]
-      .filter(Boolean)
-      .join(" ");
+function LinkButton({
+  variant = "primary",
+  size = "medium",
+  loading = false,
+  fullWidth = false,
+  iconOnly = false,
+  className,
+  children,
+  ref,
+  ...props
+}: LinkButtonProps) {
+  const linkClasses = [
+    styles.button,
+    styles[variant],
+    styles[size],
+    loading && styles.loading,
+    fullWidth && styles.fullWidth,
+    iconOnly && styles.iconOnly,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-    return (
-      <a ref={ref} className={linkClasses} aria-disabled={loading} {...props}>
-        {children}
-      </a>
-    );
-  },
-);
+  return (
+    <a ref={ref} className={linkClasses} aria-disabled={loading} {...props}>
+      {children}
+    </a>
+  );
+}
 
 Button.displayName = "Button";
 LinkButton.displayName = "Button.Link";

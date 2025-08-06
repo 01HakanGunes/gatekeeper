@@ -2,7 +2,7 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Settings from "./pages/Settings/Settings";
 
-const AppRouter = () => {
+function AppRouter() {
   return (
     <HashRouter>
       <Routes>
@@ -13,6 +13,6 @@ const AppRouter = () => {
       </Routes>
     </HashRouter>
   );
-};
+}
 
 export default AppRouter;

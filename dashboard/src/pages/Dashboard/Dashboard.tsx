@@ -9,7 +9,7 @@ import type { Message, VisitorProfile } from "../../services/apiClient";
 import ThreatLogView from "../../components/ThreatLog/ThreatLog";
 import styles from "./Dashboard.module.css";
 
-const Dashboard = () => {
+function Dashboard() {
   const {
     session,
     startSession,
@@ -589,6 +589,6 @@ const Dashboard = () => {
       </main>
     </div>
   );
-};
+}
 
 export default Dashboard;
