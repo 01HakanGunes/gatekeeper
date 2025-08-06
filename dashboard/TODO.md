@@ -1,7 +1,5 @@
 # Dashboard - To-Do List
 
-- Read the restapi implementations
-
 ## Refactor
 
 - Decomponent the dashboard page into multiple
