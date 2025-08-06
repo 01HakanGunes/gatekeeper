@@ -1,10 +1,8 @@
 # Text Agent - To-Do List
 
-- Create 2 branches for frontend and backend
-
-- Check the api.py and extract the necessary part to other files then backup/delete.
-
-- When session deactivated, return "show your face", and when a new session starts return "Hello sir whatup, what do you want sir?"
+- With socketio setup, most of the time i get echo response, because i removed the seperate face detection feedback.
+  When session deactivated, return "show your face", and when a new session starts return "Hello sir whatup, what do you want sir?"
+  Send the messages from the face detection process by using socketio events.
 
 - multiple langgraph instances needed or not needed for multi-session setup i want?
 

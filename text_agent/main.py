@@ -7,8 +7,7 @@ This is the main entry point for the security gate system.
 import sys
 import uvicorn
 import socketio
-from api import app, image_queue, face_detection_queue
-from sockets import sio
+from sockets import image_queue, face_detection_queue, sio
 from src.processing.image_processor import image_processing_function
 import multiprocessing
 
