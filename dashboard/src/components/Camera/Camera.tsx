@@ -5,6 +5,7 @@ import {
   useCallback,
   useImperativeHandle,
 } from "react";
+import type { Ref } from "react";
 import { UI_CONSTANTS, ERROR_MESSAGES } from "../../utils/constants";
 import styles from "./Camera.module.css";
 
@@ -13,7 +14,7 @@ export interface CameraProps {
   onToggle: (enabled: boolean) => void;
   onCapture?: (imageData: string) => void;
   autoCapture?: boolean;
-  ref?: React.Ref<CameraRef>;
+  ref?: Ref<CameraRef>;
 }
 
 export interface CameraRef {

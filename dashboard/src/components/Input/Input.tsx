@@ -1,4 +1,11 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
+import type {
+  ReactNode,
+  Ref,
+  InputHTMLAttributes,
+  TextareaHTMLAttributes,
+  ChangeEvent,
+} from "react";
 import styles from "./Input.module.css";
 
 export interface BaseInputProps {
@@ -8,22 +15,22 @@ export interface BaseInputProps {
   label?: string;
   helperText?: string;
   required?: boolean;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
   maxLength?: number;
   showCharacterCount?: boolean;
 }
 
 export interface InputProps
   extends BaseInputProps,
-    Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
-  ref?: React.Ref<HTMLInputElement>;
+    Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
+  ref?: Ref<HTMLInputElement>;
 }
 
 export interface TextareaProps
   extends BaseInputProps,
-    Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "size"> {
-  ref?: React.Ref<HTMLTextAreaElement>;
+    Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size"> {
+  ref?: Ref<HTMLTextAreaElement>;
 }
 
 type InputComponent = typeof Input & {
@@ -52,7 +59,7 @@ function Input({
   const currentValue = value !== undefined ? String(value) : internalValue;
 
   const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       if (value === undefined) {
         setInternalValue(e.target.value);
       }
@@ -157,7 +164,7 @@ function Textarea({
   const currentValue = value !== undefined ? String(value) : internalValue;
 
   const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
       if (value === undefined) {
         setInternalValue(e.target.value);
       }

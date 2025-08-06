@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useApi } from "../../hooks/useApi";
 import Button from "../../components/Button/Button";
@@ -82,7 +83,7 @@ function Dashboard() {
   }, [cameraEnabled, currentSessionId, uploadImage]);
 
   const handleSendMessage = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
 
       if (!messageInput.trim() || !currentSessionId) return;
@@ -201,7 +202,7 @@ function Dashboard() {
     icon: string,
     title: string,
     subtitle: string,
-    action?: React.ReactNode,
+    action?: ReactNode,
   ) => (
     <div className={styles.emptyState}>
       <div className={styles.emptyStateIcon}>{icon}</div>

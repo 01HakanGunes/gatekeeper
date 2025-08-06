@@ -1,27 +1,31 @@
-import React from "react";
+import type {
+  ButtonHTMLAttributes,
+  AnchorHTMLAttributes,
+  ReactNode,
+  Ref,
+} from "react";
 import styles from "./Button.module.css";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "danger" | "success" | "ghost";
   size?: "small" | "medium" | "large";
   loading?: boolean;
   fullWidth?: boolean;
   iconOnly?: boolean;
-  children: React.ReactNode;
-  ref?: React.Ref<HTMLButtonElement>;
+  children: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export interface LinkButtonProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  extends AnchorHTMLAttributes<HTMLAnchorElement> {
   variant?: "primary" | "secondary" | "danger" | "success" | "ghost";
   size?: "small" | "medium" | "large";
   loading?: boolean;
   fullWidth?: boolean;
   iconOnly?: boolean;
   href: string;
-  children: React.ReactNode;
-  ref?: React.Ref<HTMLAnchorElement>;
+  children: ReactNode;
+  ref?: Ref<HTMLAnchorElement>;
 }
 
 type ButtonComponent = typeof Button & {
