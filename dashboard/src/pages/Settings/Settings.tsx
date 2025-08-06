@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useEffect } from "react";
+
 import { Link } from "react-router-dom";
+import { useState, useCallback, useEffect } from "react";
 import { useApi } from "../../hooks/useApi";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
@@ -14,7 +15,7 @@ interface SettingsData {
   enableNotifications: boolean;
 }
 
-const Settings: React.FC = () => {
+const Settings = () => {
   const { health, fetchHealth } = useApi();
 
   const [settings, setSettings] = useState<SettingsData>({

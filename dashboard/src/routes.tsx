@@ -1,9 +1,8 @@
-import React from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Settings from "./pages/Settings/Settings";
 
-const AppRouter: React.FC = () => {
+const AppRouter = () => {
   return (
     <HashRouter>
       <Routes>

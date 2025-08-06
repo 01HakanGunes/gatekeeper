@@ -9,7 +9,7 @@ import type { Message, VisitorProfile } from "../../services/apiClient";
 import ThreatLogView from "../../components/ThreatLog/ThreatLog";
 import styles from "./Dashboard.module.css";
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   const {
     session,
     startSession,
