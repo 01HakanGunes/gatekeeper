@@ -9,7 +9,6 @@ import os
 import time
 from typing import Any, Dict, Optional
 from pydantic import BaseModel
-import threading
 import multiprocessing
 import asyncio
 import aiofiles
@@ -115,7 +114,6 @@ async def disconnect(sid: str):
 
 # --- Core API Functionality via Socket.IO ---
 
-# Equivalent to POST /start-session
 @sio.event
 async def start_session(sid: str, data: Dict[str, Any]):
     """Start a new security gate session."""
@@ -145,7 +143,6 @@ async def start_session(sid: str, data: Dict[str, Any]):
             "message": f"Error starting session: {str(e)}"
         }, to=sid)
 
-# Equivalent to POST /chat/{session_id}
 @sio.event
 async def send_message(sid: str, data: Dict[str, Any]):
     """Handle incoming chat message via Socket.IO"""
@@ -213,7 +210,6 @@ async def send_message(sid: str, data: Dict[str, Any]):
         await sio.emit('error', {'msg': f"Error processing message: {str(e)}"}, to=sid)
 
 
-# Equivalent to GET /profile/{session_id}
 @sio.event
 async def get_profile(sid: str, data: Dict[str, Any]):
     """Get current visitor profile for a session."""
@@ -236,7 +232,6 @@ async def get_profile(sid: str, data: Dict[str, Any]):
     }
     await sio.emit('profile_data', profile_data, to=sid)
 
-# Equivalent to POST /end-session/{session_id}
 @sio.event
 async def end_session(sid: str, data: Dict[str, Any]):
     """End a specific security gate session."""
@@ -266,7 +261,6 @@ async def end_session(sid: str, data: Dict[str, Any]):
     await emit_session_update(session_id, {"type": "session_ended", "message": "Session ended by user"})
 
 
-# Equivalent to POST /upload-image
 @sio.event
 async def upload_image(sid: str, data: Dict[str, Any]):
     """Upload image separately via Socket.IO (queued processing)."""
@@ -315,7 +309,6 @@ async def upload_image(sid: str, data: Dict[str, Any]):
        await sio.emit('error', {'msg': f"Error uploading image: {str(e)}"}, to=sid)
 
 
-# Equivalent to GET /health
 @sio.event
 async def request_health_check(sid: str, data: Dict[str, Any]):
     """Perform health check."""
@@ -328,10 +321,14 @@ async def request_health_check(sid: str, data: Dict[str, Any]):
     }
     await sio.emit('health_status', health_data, to=sid)
 
-# Equivalent to GET /threat-logs
 @sio.event
 async def request_threat_logs(sid: str, data: Dict[str, Any]):
     """Get the threat detector logs."""
+    session_id = data.get("session_id")
+    if not session_id:
+        await sio.emit('error', {'msg': 'session_id is required'}, to=sid)
+        return
+
     log_file_path = "./data/logs/vision_data_log.json"
     if not os.path.exists(log_file_path):
         await sio.emit('error', {'msg': 'Log file not found.'}, to=sid)
@@ -344,7 +341,10 @@ async def request_threat_logs(sid: str, data: Dict[str, Any]):
                  await sio.emit('threat_logs', [], to=sid)
                  return
             log_data = json.loads(content)
-        await sio.emit('threat_logs', log_data, to=sid)
+
+        # Filter logs by session_id
+        session_logs = [log for log in log_data if log.get("session_id") == session_id]
+        await sio.emit('threat_logs', session_logs, to=sid)
     except json.JSONDecodeError:
         await sio.emit('error', {'msg': 'Invalid JSON format in log file.'}, to=sid)
     except Exception as e:
@@ -437,5 +437,3 @@ async def start_event_processor_if_needed():
         asyncio.create_task(process_socketio_events())
         _event_processor_started = True
         print("🔄 Started Socket.IO event processor")
-
-# Add more event handlers and emit functions as needed for your real-time features

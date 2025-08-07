@@ -147,13 +147,13 @@ def image_processing_function(image_queue, face_detection_queue, socketio_events
 
                 if temp_images:
                     # Get the latest (last) image for processing
-                    latest_image = temp_images[-1]
+                    latest_image_queue_element = temp_images[-1]
 
                     # Put back all images except the one we're processing
                     for img in temp_images[:-1]:
                         image_queue.put(img)
 
-                    image_b64 = base64.b64encode(latest_image["data"]).decode("utf-8")
+                    image_b64 = base64.b64encode(latest_image_queue_element["data"]).decode("utf-8")
                     threat_detector(image_b64, face_detection_queue, socketio_events_queue)
 
             else:

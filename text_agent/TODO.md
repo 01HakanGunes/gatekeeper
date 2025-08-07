@@ -1,5 +1,7 @@
 # Text Agent - To-Do List
 
+- vision_log file should include session id field for each session, Each send image should be sent with session id and image processor should save the results to appropriate one.
+
 - With socketio setup, most of the time i get echo response, because i removed the seperate face detection feedback.
   When session deactivated, return "show your face", and when a new session starts return "Hello sir whatup, what do you want sir?"
   Send the messages from the face detection process by using socketio events.
@@ -18,6 +20,10 @@
 - Try on mobile device with chromium browser
 
 ## Refactoring
+
+- vision_data_log.json -> vision_log.json
+
+- Change the threatLog naming with visionLog everywhere
 
 - docker compose file position change
 
