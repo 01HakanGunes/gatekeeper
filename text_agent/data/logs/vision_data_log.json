@@ -1,1 +1,51 @@
-[]
+[
+    {
+        "session_id": "de0b9a11-2b30-400a-abb1-47cb460ffb68",
+        "face_detected": [
+            false,
+            false,
+            false,
+            false
+        ],
+        "log_entries": []
+    },
+    {
+        "session_id": "782757ee-f97a-40d6-85d3-73cd58a83136",
+        "face_detected": [
+            false,
+            false,
+            false,
+            false
+        ],
+        "log_entries": []
+    },
+    {
+        "session_id": "64fb3418-dfa9-47bf-8c5a-a535798f076d",
+        "face_detected": [
+            false,
+            false,
+            false,
+            false
+        ],
+        "log_entries": []
+    },
+    {
+        "session_id": "d606462a-988f-44db-a8a6-b2d9bbc5f7b3",
+        "face_detected": [
+            false
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-07T16:39:45.563482",
+                "vision_data": {
+                    "face_detected": false,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A light strip."
+                },
+                "message": "No threat detected in image."
+            }
+        ]
+    }
+]
