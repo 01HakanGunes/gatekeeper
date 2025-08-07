@@ -7,16 +7,19 @@ This is the main entry point for the security gate system.
 import sys
 import uvicorn
 import socketio
-from sockets import image_queue, face_detection_queue, sio
+from sockets import image_queue, face_detection_queue, socketio_events_queue, sio
 from src.processing.image_processor import image_processing_function
 import multiprocessing
+import asyncio
 
 def main():
     """Main entry point for the security gate system."""
     try:
         # Start image processing in a separate process
-        processing_process = multiprocessing.Process(target=image_processing_function, args=(image_queue, face_detection_queue))
+        processing_process = multiprocessing.Process(target=image_processing_function, args=(image_queue, face_detection_queue, socketio_events_queue))
         processing_process.start()
+
+
 
         # --- Socket.IO Integration ---
         print("🌐 Integrating Socket.IO with FastAPI...")

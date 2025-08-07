@@ -57,6 +57,7 @@ session_states: Dict[str, Any] = {}
 sessions_lock = threading.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
 face_detection_queue = multiprocessing.Queue(maxsize=4)
+socketio_events_queue = multiprocessing.Queue(maxsize=20)
 
 # Graph visulized and saved as image
 _generate_graph_visualization()
@@ -99,6 +100,8 @@ def _get_agent_response(updated_state):
 async def connect(sid: str, environ: dict, auth: Any = None):
     """Handle new client connections."""
     print(f"🔌 Client connected: {sid}")
+    # Start event processor on first connection
+    await start_event_processor_if_needed()
     # Send a welcome message or initial state if needed
     await sio.emit('status', {'msg': 'Connected to Security Gate System'}, to=sid)
     await sio.emit('system_status', {'healthy': True, 'active_sessions': 0}, to=sid)
@@ -376,5 +379,41 @@ async def emit_session_update(session_id: str, update_data: Dict[str, Any]):
 async def emit_general_notification(message: str):
     """Emit a general notification to all clients."""
     await sio.emit('notification', {'message': message})
+
+# --- Background Task for Processing Socket.IO Events from Other Processes ---
+import asyncio
+
+# Global variable to track if background task is started
+_event_processor_started = False
+
+async def process_socketio_events():
+    """Background task to process Socket.IO events from the event queue."""
+    while True:
+        try:
+            if not socketio_events_queue.empty():
+                event_data = socketio_events_queue.get_nowait()
+                event_type = event_data.get("type")
+                message = event_data.get("message", "")
+
+                if event_type == "no_face_detected":
+                    await sio.emit('camera_instruction', {
+                        'type': 'no_face_detected',
+                        'message': message,
+                        'instruction': 'Please position yourself in front of the camera'
+                    })
+                    print(f"📢 Emitted no face detected event: {message}")
+
+            await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
+        except Exception as e:
+            print(f"Error processing Socket.IO events: {e}")
+            await asyncio.sleep(1)
+
+async def start_event_processor_if_needed():
+    """Start the event processor task if not already started."""
+    global _event_processor_started
+    if not _event_processor_started:
+        asyncio.create_task(process_socketio_events())
+        _event_processor_started = True
+        print("🔄 Started Socket.IO event processor")
 
 # Add more event handlers and emit functions as needed for your real-time features

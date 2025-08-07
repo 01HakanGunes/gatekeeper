@@ -27,7 +27,7 @@ def write_log(log_entry):
     with open(LOG_FILE, "w") as f:
         json.dump(logs, f, indent=4)
 
-def write_face_detection_to_file(face_detection_queue):
+def write_face_detection_to_file(face_detection_queue, socketio_events_queue=None):
     """Write current face detection queue values to shared JSON file"""
     face_values = []
     temp_queue = []
@@ -58,13 +58,23 @@ def write_face_detection_to_file(face_detection_queue):
             json.dump([], f, indent=4)
         print(f"[{os.getpid()}] [Processing Process] Stopping logging - no faces detected.")
 
-        # TODO Here we need to send socketio event as a new message according to no face detected please show up to the camera etc.
+        # Send Socket.IO event for no face detected
+        if socketio_events_queue is not None:
+            try:
+                event_data = {
+                    "type": "no_face_detected",
+                    "message": "No face detected. Please position yourself in front of the camera."
+                }
+                socketio_events_queue.put_nowait(event_data)
+                print(f"[{os.getpid()}] [Processing Process] Sent no face detected event to Socket.IO queue.")
+            except Exception as e:
+                print(f"[{os.getpid()}] [Processing Process] Failed to send Socket.IO event: {e}")
 
         return False  # stop logging
 
     return True  # Continue logging
 
-def threat_detector(image_b64, face_detection_queue):
+def threat_detector(image_b64, face_detection_queue, socketio_events_queue=None):
     print(f"[{os.getpid()}] [Processing Process] Calling threat_detector...")
     vision_data = analyze_image_with_prompt(
         image_b64, "security_vision_prompt", "vision_schema"
@@ -93,7 +103,7 @@ def threat_detector(image_b64, face_detection_queue):
     face_detection_queue.put(face_detected)
     print(f"[{os.getpid()}] [Processing Process] Face detected: {face_detected}, Queue size: {face_detection_queue.qsize()}")
 
-    continue_logging = write_face_detection_to_file(face_detection_queue)
+    continue_logging = write_face_detection_to_file(face_detection_queue, socketio_events_queue)
 
     if not continue_logging:
         print("no face detected so the logging stopped")
@@ -123,7 +133,7 @@ def threat_detector(image_b64, face_detection_queue):
 
     write_log(log_entry)
 
-def image_processing_function(image_queue, face_detection_queue):
+def image_processing_function(image_queue, face_detection_queue, socketio_events_queue=None):
     print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
     try:
         print(f"[{os.getpid()}] [Processing Process] Entering processing loop...")
@@ -144,7 +154,7 @@ def image_processing_function(image_queue, face_detection_queue):
                         image_queue.put(img)
 
                     image_b64 = base64.b64encode(latest_image["data"]).decode("utf-8")
-                    threat_detector(image_b64, face_detection_queue)
+                    threat_detector(image_b64, face_detection_queue, socketio_events_queue)
 
             else:
                 time.sleep(1)
