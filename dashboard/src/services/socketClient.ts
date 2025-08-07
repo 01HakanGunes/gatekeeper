@@ -356,7 +356,7 @@ class SocketClient {
     });
   }
 
-  async getThreatLogs(): Promise<ThreatLog[]> {
+  async getThreatLogs(sessionId: string): Promise<ThreatLog[]> {
     return new Promise((resolve, reject) => {
       if (!this.socket || !this.socket.connected) {
         reject(new Error("Socket not connected"));
@@ -386,7 +386,9 @@ class SocketClient {
       this.socket.on(SOCKET_EVENTS.ERROR, onError);
 
       // Send request
-      this.socket.emit(SOCKET_EVENTS.REQUEST_THREAT_LOGS, {});
+      this.socket.emit(SOCKET_EVENTS.REQUEST_THREAT_LOGS, {
+        session_id: sessionId,
+      });
     });
   }
 

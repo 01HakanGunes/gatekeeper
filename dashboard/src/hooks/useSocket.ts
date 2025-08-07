@@ -427,6 +427,14 @@ export const useSocket = (): UseSocketReturn => {
   );
 
   const fetchThreatLogs = useCallback(async () => {
+    if (!currentSessionId) {
+      setThreatLogs((prev) => ({
+        ...prev,
+        error: "No active session. Please start a new session.",
+      }));
+      return;
+    }
+
     if (connectionStatus !== "connected") {
       setThreatLogs((prev) => ({
         ...prev,
@@ -437,7 +445,7 @@ export const useSocket = (): UseSocketReturn => {
 
     setThreatLogs((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const data = await socketClient.getThreatLogs();
+      const data = await socketClient.getThreatLogs(currentSessionId);
       setThreatLogs({ data, loading: false, error: null });
     } catch (error) {
       setThreatLogs((prev) => ({
@@ -449,7 +457,7 @@ export const useSocket = (): UseSocketReturn => {
             : "Failed to fetch threat logs",
       }));
     }
-  }, [connectionStatus]);
+  }, [currentSessionId, connectionStatus]);
 
   // Auto-fetch health when connected
   useEffect(() => {
