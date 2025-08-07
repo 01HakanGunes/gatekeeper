@@ -1,5 +1,5 @@
 import styles from "./ThreatLog.module.css";
-import type { ThreatLog } from "../../services/apiClient";
+import type { ThreatLog } from "../../services/socketClient";
 
 interface ThreatLogViewProps {
   logs: ThreatLog[];

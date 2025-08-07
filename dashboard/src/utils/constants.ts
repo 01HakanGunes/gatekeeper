@@ -1,13 +1,36 @@
-export const API_BASE_URL = "http://localhost:8001";
+export const SOCKET_BASE_URL = "http://localhost:8001";
 
-export const API_ENDPOINTS = {
-  START_SESSION: "/start-session",
-  CHAT: "/chat",
-  PROFILE: "/profile",
-  END_SESSION: "/end-session",
-  HEALTH: "/health",
-  IMAGE_UPLOAD: "/upload-image",
-  THREAT_LOGS: "/threat-logs",
+export const SOCKET_EVENTS = {
+  // Client to server events
+  START_SESSION: "start_session",
+  SEND_MESSAGE: "send_message",
+  GET_PROFILE: "get_profile",
+  END_SESSION: "end_session",
+  REQUEST_HEALTH_CHECK: "request_health_check",
+  UPLOAD_IMAGE: "upload_image",
+  REQUEST_THREAT_LOGS: "request_threat_logs",
+  JOIN_SESSION_UPDATES: "join_session_updates",
+  LEAVE_SESSION_UPDATES: "leave_session_updates",
+
+  // Server to client events (responses)
+  SESSION_STARTED: "session_started",
+  CHAT_RESPONSE: "chat_response",
+  PROFILE_DATA: "profile_data",
+  SESSION_ENDED: "session_ended",
+  HEALTH_STATUS: "health_status",
+  IMAGE_UPLOAD_RESPONSE: "image_upload_response",
+  THREAT_LOGS: "threat_logs",
+
+  // Real-time events from server
+  SYSTEM_STATUS: "system_status",
+  NOTIFICATION: "notification",
+  SESSION_UPDATE: "session_update",
+  STATUS: "status",
+  ERROR: "error",
+
+  // Connection events
+  CONNECT: "connect",
+  DISCONNECT: "disconnect",
 } as const;
 
 export const UI_CONSTANTS = {

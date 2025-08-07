@@ -1,17 +1,18 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { useApi } from "../../hooks/useApi";
+import { useSocket } from "../../hooks/useSocket";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
 import Camera, { type CameraRef } from "../../components/Camera/Camera";
 import { UI_CONSTANTS } from "../../utils/constants";
-import type { Message, VisitorProfile } from "../../services/apiClient";
+import type { Message, VisitorProfile } from "../../services/socketClient";
 import ThreatLogView from "../../components/ThreatLog/ThreatLog";
 import styles from "./Dashboard.module.css";
 
 function Dashboard() {
   const {
+    connectionStatus,
     session,
     startSession,
     endSession,
@@ -26,7 +27,7 @@ function Dashboard() {
     uploadImage,
     threatLogs,
     fetchThreatLogs,
-  } = useApi();
+  } = useSocket();
 
   const cameraRef = useRef<CameraRef>(null);
   const [messageInput, setMessageInput] = useState("");
@@ -295,6 +296,28 @@ function Dashboard() {
       <header className={styles.header}>
         <h1 className={styles.headerTitle}>Security Gate Dashboard</h1>
         <div className={styles.statusContainer}>
+          {/* Connection Status */}
+          <div
+            className={`${styles.statusIndicator} ${
+              connectionStatus === "connected"
+                ? styles.statusOnline
+                : styles.statusOffline
+            }`}
+          >
+            <div
+              className={`${styles.statusDot} ${
+                connectionStatus === "connected"
+                  ? styles.statusDotOnline
+                  : styles.statusDotOffline
+              }`}
+            />
+            {connectionStatus === "connected" && "Socket Connected"}
+            {connectionStatus === "connecting" && "Connecting..."}
+            {connectionStatus === "reconnecting" && "Reconnecting..."}
+            {connectionStatus === "disconnected" && "Disconnected"}
+          </div>
+
+          {/* System Health */}
           {health.data && (
             <div
               className={`${styles.statusIndicator} ${
@@ -419,7 +442,10 @@ function Dashboard() {
                       </div>
                       <div className={styles.confidence}>
                         Confidence:{" "}
-                        {(profile.data.decision_confidence * 100).toFixed(1)}%
+                        {profile.data.decision_confidence !== null
+                          ? (profile.data.decision_confidence * 100).toFixed(1)
+                          : "N/A"}
+                        %
                       </div>
                     </div>
                   )}
