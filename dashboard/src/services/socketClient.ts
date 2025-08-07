@@ -221,39 +221,13 @@ class SocketClient {
     });
   }
 
-  async sendMessage(sessionId: string, message: string): Promise<ChatResponse> {
-    return new Promise((resolve, reject) => {
-      if (!this.socket || !this.socket.connected) {
-        reject(new Error("Socket not connected"));
-        return;
-      }
+  sendMessage(sessionId: string, message: string): void {
+    if (!this.socket || !this.socket.connected) {
+      throw new Error("Socket not connected");
+    }
 
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
-      // Listen for response
-      const onChatResponse = (response: ChatResponse) => {
-        clearTimeout(timeout);
-        this.socket?.off(SOCKET_EVENTS.CHAT_RESPONSE, onChatResponse);
-        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
-        resolve(response);
-      };
-
-      const onError = (error: ErrorResponse) => {
-        clearTimeout(timeout);
-        this.socket?.off(SOCKET_EVENTS.CHAT_RESPONSE, onChatResponse);
-        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
-        reject(new Error(error.msg));
-      };
-
-      this.socket.on(SOCKET_EVENTS.CHAT_RESPONSE, onChatResponse);
-      this.socket.on(SOCKET_EVENTS.ERROR, onError);
-
-      // Send request
-      const payload: ChatRequest = { session_id: sessionId, message };
-      this.socket.emit(SOCKET_EVENTS.SEND_MESSAGE, payload);
-    });
+    const payload: ChatRequest = { session_id: sessionId, message };
+    this.socket.emit(SOCKET_EVENTS.SEND_MESSAGE, payload);
   }
 
   async getProfile(sessionId: string): Promise<ProfileResponse> {
@@ -490,6 +464,17 @@ class SocketClient {
   }
 
   // Real-time event listeners
+  onChatResponse(callback: (response: ChatResponse) => void): () => void {
+    if (!this.socket) return () => {};
+
+    this.socket.on(SOCKET_EVENTS.CHAT_RESPONSE, callback);
+    return () => {
+      if (this.socket) {
+        this.socket.off(SOCKET_EVENTS.CHAT_RESPONSE, callback);
+      }
+    };
+  }
+
   onSystemStatus(callback: (status: SystemStatus) => void): () => void {
     if (!this.socket) return () => {};
 

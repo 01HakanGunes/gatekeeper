@@ -28,7 +28,7 @@ interface UseSocketReturn {
 
   // Chat
   messages: UseSocketState<Message[]>;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string) => void;
 
   // Profile
   profile: UseSocketState<ProfileResponse>;
@@ -111,7 +111,6 @@ export const useSocket = (): UseSocketReturn => {
 
   const isLoading =
     session.loading ||
-    messages.loading ||
     profile.loading ||
     health.loading ||
     imageUpload.loading ||
@@ -145,6 +144,24 @@ export const useSocket = (): UseSocketReturn => {
   // Setup real-time listeners when connected
   useEffect(() => {
     if (connectionStatus === "connected") {
+      // Chat response listener
+      const chatCleanup = socketClient.onChatResponse((response) => {
+        const agentMessage: Message = {
+          id: `agent-${Date.now()}`,
+          content: response.agent_response,
+          timestamp: new Date().toISOString(),
+          sender: "agent",
+          session_complete: response.session_complete,
+        };
+
+        setMessages((prev) => ({
+          data: prev.data ? [agentMessage, ...prev.data] : [agentMessage],
+          loading: false,
+          error: null,
+        }));
+      });
+      cleanupFunctions.current.push(chatCleanup);
+
       // System status listener
       const systemStatusCleanup = socketClient.onSystemStatus((status) => {
         setSystemStatus(status);
@@ -302,7 +319,7 @@ export const useSocket = (): UseSocketReturn => {
   }, [currentSessionId, connectionStatus]);
 
   const sendMessage = useCallback(
-    async (messageContent: string): Promise<void> => {
+    (messageContent: string): void => {
       if (!currentSessionId) {
         setMessages((prev) => ({
           ...prev,
@@ -319,9 +336,7 @@ export const useSocket = (): UseSocketReturn => {
         return;
       }
 
-      setMessages((prev) => ({ ...prev, loading: true, error: null }));
-
-      // Add user message to the list
+      // Add user message to the list immediately
       const userMessage: Message = {
         id: `user-${Date.now()}`,
         content: messageContent,
@@ -330,36 +345,17 @@ export const useSocket = (): UseSocketReturn => {
       };
 
       setMessages((prev) => ({
-        ...prev,
         data: prev.data ? [userMessage, ...prev.data] : [userMessage],
+        loading: false,
+        error: null,
       }));
 
       try {
-        const response = await socketClient.sendMessage(
-          currentSessionId,
-          messageContent,
-        );
-
-        // Add agent response to the list
-        const agentMessage: Message = {
-          id: `agent-${Date.now()}`,
-          content: response.agent_response,
-          timestamp: new Date().toISOString(),
-          sender: "agent",
-          session_complete: response.session_complete,
-        };
-
-        setMessages((prev) => ({
-          data: prev.data ? [agentMessage, ...prev.data] : [agentMessage],
-          loading: false,
-          error: null,
-        }));
-
-        // If session is complete, profile will be updated via session_update event
+        // Send message (fire and forget - response will come via event listener)
+        socketClient.sendMessage(currentSessionId, messageContent);
       } catch (error) {
         setMessages((prev) => ({
           ...prev,
-          loading: false,
           error:
             error instanceof Error ? error.message : "Failed to send message",
         }));
