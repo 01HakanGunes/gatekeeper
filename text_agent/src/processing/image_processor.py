@@ -6,67 +6,88 @@ from datetime import datetime
 from src.utils.llm_utilities import analyze_image_with_prompt
 
 LOG_FILE = "./data/logs/vision_data_log.json"
-FACE_DETECTION_FILE = "./data/shared/face_detected.json"
 LOG_LIMIT = 10
 FACE_QUEUE_LIMIT = 4
 
-def write_log(log_entry):
-    logs = []
+def load_sessions_data():
+    """Load sessions data from JSON file"""
     if os.path.exists(LOG_FILE):
-        with open(LOG_FILE, "r") as f:
-            try:
-                logs = json.load(f)
-            except json.JSONDecodeError:
-                logs = []
-
-    logs.append(log_entry)
-
-    # Keep only the last 10 logs
-    logs = logs[-LOG_LIMIT:]
-
-    with open(LOG_FILE, "w") as f:
-        json.dump(logs, f, indent=4)
-
-def write_face_detection_to_file(face_detection_queue, socketio_events_queue=None):
-    """Write current face detection queue values to shared JSON file"""
-    face_values = []
-    temp_queue = []
-
-    # Extract all values from queue while preserving them
-    while not face_detection_queue.empty():
         try:
-            value = face_detection_queue.get_nowait()
-            temp_queue.append(value)
-            face_values.append(value)
-        except:
-            break
+            with open(LOG_FILE, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            return []
+    return []
 
-    # Put values back into queue
-    for value in temp_queue:
-        face_detection_queue.put(value)
+def save_sessions_data(sessions_data):
+    """Save sessions data to JSON file"""
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+    with open(LOG_FILE, "w") as f:
+        json.dump(sessions_data, f, indent=4)
 
-    # Write to shared JSON file
-    os.makedirs(os.path.dirname(FACE_DETECTION_FILE), exist_ok=True)
-    with open(FACE_DETECTION_FILE, "w") as f:
-        json.dump(face_values, f, indent=4)
+def get_or_create_session(sessions_data, session_id):
+    """Get existing session or create new one"""
+    for session in sessions_data:
+        if session["session_id"] == session_id:
+            return session
+
+    # Create new session
+    new_session = {
+        "session_id": session_id,
+        "face_detected": [],
+        "log_entries": []
+    }
+    sessions_data.append(new_session)
+    return new_session
+
+def write_log(session_id, log_entry):
+    """Write log entry for specific session"""
+    sessions_data = load_sessions_data()
+    session = get_or_create_session(sessions_data, session_id)
+
+    session["log_entries"].append(log_entry)
+
+    # Keep only the last LOG_LIMIT entries per session
+    session["log_entries"] = session["log_entries"][-LOG_LIMIT:]
+
+    save_sessions_data(sessions_data)
+
+def update_face_detection(session_id, face_detected, socketio_events_queue=None):
+    """Update face detection status for session and check if logging should continue"""
+    sessions_data = load_sessions_data()
+    session = get_or_create_session(sessions_data, session_id)
+
+    # Add face detection result to session
+    session["face_detected"].append(face_detected)
+
+    # Keep only the last FACE_QUEUE_LIMIT values
+    session["face_detected"] = session["face_detected"][-FACE_QUEUE_LIMIT:]
+
+    save_sessions_data(sessions_data)
+
+    print(f"[{os.getpid()}] [Processing Process] Face detected: {face_detected}, Session: {session_id}, Queue size: {len(session['face_detected'])}")
 
     # Check if all face detection values are False and queue is full
+    face_values = session["face_detected"]
     if len(face_values) == FACE_QUEUE_LIMIT and all(value == False for value in face_values):
-        print(f"[{os.getpid()}] [Processing Process] All face detection values are False. Clearing vision data log.")
-        # Clear the vision data log
-        with open(LOG_FILE, "w") as f:
-            json.dump([], f, indent=4)
-        print(f"[{os.getpid()}] [Processing Process] Stopping logging - no faces detected.")
+        print(f"[{os.getpid()}] [Processing Process] All face detection values are False for session {session_id}. Clearing log entries.")
+
+        # Clear the log entries for this session
+        session["log_entries"] = []
+        save_sessions_data(sessions_data)
+
+        print(f"[{os.getpid()}] [Processing Process] Stopping logging for session {session_id} - no faces detected.")
 
         # Send Socket.IO event for no face detected
         if socketio_events_queue is not None:
             try:
                 event_data = {
                     "type": "no_face_detected",
-                    "message": "No face detected. Please position yourself in front of the camera."
+                    "message": "No face detected. Please position yourself in front of the camera.",
+                    "session_id": session_id
                 }
                 socketio_events_queue.put_nowait(event_data)
-                print(f"[{os.getpid()}] [Processing Process] Sent no face detected event to Socket.IO queue.")
+                print(f"[{os.getpid()}] [Processing Process] Sent no face detected event to Socket.IO queue for session {session_id}.")
             except Exception as e:
                 print(f"[{os.getpid()}] [Processing Process] Failed to send Socket.IO event: {e}")
 
@@ -74,8 +95,10 @@ def write_face_detection_to_file(face_detection_queue, socketio_events_queue=Non
 
     return True  # Continue logging
 
-def threat_detector(image_b64, face_detection_queue, socketio_events_queue=None):
-    print(f"[{os.getpid()}] [Processing Process] Calling threat_detector...")
+def threat_detector(session_id, image_b64, socketio_events_queue=None):
+    """Analyze image for threats and update session data"""
+    print(f"[{os.getpid()}] [Processing Process] Calling threat_detector for session {session_id}...")
+
     vision_data = analyze_image_with_prompt(
         image_b64, "security_vision_prompt", "vision_schema"
     )
@@ -86,27 +109,17 @@ def threat_detector(image_b64, face_detection_queue, socketio_events_queue=None)
         "message": ""
     }
 
-    # Extract face detection boolean and add to queue
+    # Extract face detection boolean
     face_detected = False
     if vision_data is not None:
         # Check if there's any face-related data (angry_face or general face detection)
         face_detected = vision_data.get("angry_face", False) or vision_data.get("face_detected", False)
 
-    # Add face detection result to queue
-    if face_detection_queue.qsize() >= FACE_QUEUE_LIMIT:
-        # Remove oldest entry if queue is full
-        try:
-            face_detection_queue.get_nowait()
-        except:
-            pass  # Queue might be empty due to race condition
-
-    face_detection_queue.put(face_detected)
-    print(f"[{os.getpid()}] [Processing Process] Face detected: {face_detected}, Queue size: {face_detection_queue.qsize()}")
-
-    continue_logging = write_face_detection_to_file(face_detection_queue, socketio_events_queue)
+    # Update face detection for this session
+    continue_logging = update_face_detection(session_id, face_detected, socketio_events_queue)
 
     if not continue_logging:
-        print("no face detected so the logging stopped")
+        print(f"No face detected for session {session_id}, logging stopped")
         return
 
     if vision_data is None:
@@ -131,9 +144,10 @@ def threat_detector(image_b64, face_detection_queue, socketio_events_queue=None)
             print(message)
             log_entry["message"] = "No threat detected in image."
 
-    write_log(log_entry)
+    write_log(session_id, log_entry)
 
 def image_processing_function(image_queue, face_detection_queue, socketio_events_queue=None):
+    """Main image processing loop"""
     print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
     try:
         print(f"[{os.getpid()}] [Processing Process] Entering processing loop...")
@@ -153,15 +167,15 @@ def image_processing_function(image_queue, face_detection_queue, socketio_events
                     for img in temp_images[:-1]:
                         image_queue.put(img)
 
+                    # Extract session_id and image data
+                    session_id = latest_image_queue_element.get("session_id", "unknown")
                     image_b64 = base64.b64encode(latest_image_queue_element["data"]).decode("utf-8")
-                    threat_detector(image_b64, face_detection_queue, socketio_events_queue)
 
+                    threat_detector(session_id, image_b64, socketio_events_queue)
             else:
                 time.sleep(1)
     except KeyboardInterrupt:
-        print(
-            f"[{os.getpid()}] [Processing Process] KeyboardInterrupt caught. Shutting down processing."
-        )
+        print(f"[{os.getpid()}] [Processing Process] KeyboardInterrupt caught. Shutting down processing.")
     except Exception as e:
         print(f"[{os.getpid()}] [Processing Process] An unexpected error occurred: {e}")
     finally:
