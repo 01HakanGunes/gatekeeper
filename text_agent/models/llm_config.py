@@ -13,7 +13,7 @@ from config.settings import (
 )
 
 # Get Ollama host from environment variable (set by docker-compose)
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://192.168.0.86:11434")
 
 
 # Initialize all LLMs with containerized Ollama host

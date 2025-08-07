@@ -11,6 +11,8 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel
 import threading
 import multiprocessing
+import asyncio
+import aiofiles
 from config.settings import DEFAULT_RECURSION_LIMIT
 from src.core.graph import create_initial_state, create_security_graph
 
@@ -54,7 +56,7 @@ def _generate_graph_visualization():
 # Initialize objects vars
 shared_graph = create_security_graph()
 session_states: Dict[str, Any] = {}
-sessions_lock = threading.Lock()
+sessions_lock = asyncio.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
 face_detection_queue = multiprocessing.Queue(maxsize=4)
 socketio_events_queue = multiprocessing.Queue(maxsize=20)
@@ -129,7 +131,7 @@ async def start_session(sid: str, data: Dict[str, Any]):
     try:
         # Create initial state for this session
         initial_state = create_initial_state()
-        with sessions_lock:
+        async with sessions_lock:
             session_states[session_id] = initial_state
         await sio.emit('session_started', {
             "session_id": session_id,
@@ -158,23 +160,25 @@ async def send_message(sid: str, data: Dict[str, Any]):
         await sio.emit('error', {'msg': 'Graph not initialized'}, to=sid)
         return
 
-    with sessions_lock:
+    async with sessions_lock:
         if session_id not in session_states:
             await sio.emit('error', {'msg': 'Session not found'}, to=sid)
             return
-        current_state = session_states[session_id]
+        current_state = session_states[session_id].copy()
 
     try:
         # Update state with user input
         current_state["user_input"] = user_message
 
-        # Process using shared graph
-        updated_state = shared_graph.invoke(
-            current_state, {"recursion_limit": DEFAULT_RECURSION_LIMIT}
+        # Process using shared graph in separate thread to avoid blocking
+        updated_state = await asyncio.to_thread(
+            shared_graph.invoke,
+            current_state,
+            {"recursion_limit": DEFAULT_RECURSION_LIMIT}
         )
 
         # Update stored state
-        with sessions_lock:
+        async with sessions_lock:
             session_states[session_id] = updated_state
 
         # Get response and completion status
@@ -218,7 +222,7 @@ async def get_profile(sid: str, data: Dict[str, Any]):
         await sio.emit('error', {'msg': 'session_id is required'}, to=sid)
         return
 
-    with sessions_lock:
+    async with sessions_lock:
         if session_id not in session_states:
             await sio.emit('error', {'msg': 'Session not found'}, to=sid)
             return
@@ -244,7 +248,7 @@ async def end_session(sid: str, data: Dict[str, Any]):
         }, to=sid)
         return
 
-    with sessions_lock:
+    async with sessions_lock:
         if session_id not in session_states:
             await sio.emit('session_ended', {
                 "status": "error",
@@ -282,15 +286,24 @@ async def upload_image(sid: str, data: Dict[str, Any]):
         # Decode base64 image
         image_data = base64.b64decode(image_b64)
         image_id = str(uuid.uuid4())
-        if image_queue.full():
-            print("Queue is full, removing the oldest item.")
-            try:
-                image_queue.get_nowait() # Remove the oldest item to make space
-            except:
-                pass # Queue might have been emptied by another process
 
-        image_queue.put({"id": image_id, "data": image_data, "timestamp": timestamp, "session_id": session_id}) # Include session_id
-        print(f"📸 Image {image_id} added to the queue. Queue size: {image_queue.qsize()}")
+        # Safe queue operation with timeout
+        try:
+            if image_queue.full():
+                print("Queue is full, removing the oldest item.")
+                try:
+                    image_queue.get_nowait()
+                except:
+                    pass
+
+            image_queue.put_nowait({"id": image_id, "data": image_data, "timestamp": timestamp, "session_id": session_id})
+            print(f"📸 Image {image_id} added to the queue. Queue size: {image_queue.qsize()}")
+        except Exception as queue_error:
+            await sio.emit('image_upload_response', {
+                "status": "error",
+                "message": f"Queue operation failed: {str(queue_error)}"
+            }, to=sid)
+            return
 
         await sio.emit('image_upload_response', {
             "status": "success",
@@ -306,7 +319,7 @@ async def upload_image(sid: str, data: Dict[str, Any]):
 @sio.event
 async def request_health_check(sid: str, data: Dict[str, Any]):
     """Perform health check."""
-    with sessions_lock:
+    async with sessions_lock:
         active_sessions = len(session_states)
     health_data = {
         "status": "healthy",
@@ -325,8 +338,8 @@ async def request_threat_logs(sid: str, data: Dict[str, Any]):
         return
 
     try:
-        with open(log_file_path, "r") as f:
-            content = f.read()
+        async with aiofiles.open(log_file_path, "r") as f:
+            content = await f.read()
             if not content:
                  await sio.emit('threat_logs', [], to=sid)
                  return
@@ -390,20 +403,29 @@ async def process_socketio_events():
     """Background task to process Socket.IO events from the event queue."""
     while True:
         try:
-            if not socketio_events_queue.empty():
-                event_data = socketio_events_queue.get_nowait()
-                event_type = event_data.get("type")
-                message = event_data.get("message", "")
+            # Process multiple events in batch for better performance
+            events_processed = 0
+            max_events_per_cycle = 5
 
-                if event_type == "no_face_detected":
-                    await sio.emit('camera_instruction', {
-                        'type': 'no_face_detected',
-                        'message': message,
-                        'instruction': 'Please position yourself in front of the camera'
-                    })
-                    print(f"📢 Emitted no face detected event: {message}")
+            while not socketio_events_queue.empty() and events_processed < max_events_per_cycle:
+                try:
+                    event_data = socketio_events_queue.get_nowait()
+                    event_type = event_data.get("type")
+                    message = event_data.get("message", "")
 
-            await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
+                    if event_type == "no_face_detected":
+                        await sio.emit('camera_instruction', {
+                            'type': 'no_face_detected',
+                            'message': message,
+                            'instruction': 'Please position yourself in front of the camera'
+                        })
+                        print(f"📢 Emitted no face detected event: {message}")
+
+                    events_processed += 1
+                except:
+                    break  # Queue empty or other issue
+
+            await asyncio.sleep(0.05 if events_processed > 0 else 0.1)
         except Exception as e:
             print(f"Error processing Socket.IO events: {e}")
             await asyncio.sleep(1)
