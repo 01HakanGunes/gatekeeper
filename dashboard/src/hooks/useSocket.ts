@@ -123,16 +123,11 @@ export const useSocket = (): UseSocketReturn => {
   }, []);
 
   const disconnect = useCallback(() => {
-    // Leave session updates if we have an active session
-    if (currentSessionId) {
-      socketClient.leaveSessionUpdates(currentSessionId).catch(console.error);
-    }
-
     socketClient.disconnect();
     // Clean up all listeners
     cleanupFunctions.current.forEach((cleanup) => cleanup());
     cleanupFunctions.current = [];
-  }, [currentSessionId]);
+  }, []);
 
   // Setup connection status listener
   useEffect(() => {
