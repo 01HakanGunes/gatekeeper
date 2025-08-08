@@ -55,6 +55,7 @@ def _generate_graph_visualization():
 # Initialize objects vars
 shared_graph = create_security_graph()
 session_states: Dict[str, Any] = {}  # Now keyed by sid
+active_connections: Dict[str, bool] = {}  # Track active sids
 sessions_lock = asyncio.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
 face_detection_queue = multiprocessing.Queue(maxsize=4)
@@ -98,9 +99,10 @@ async def connect(sid: str, environ: dict, auth: Any = None):
     print(f"🔌 Client connected: {sid}")
     await start_event_processor_if_needed()
 
-    # Initialize session state immediately
+    # Initialize session state and register active connection
     async with sessions_lock:
         session_states[sid] = create_initial_state()
+        active_connections[sid] = True
 
     await sio.emit('status', {'msg': 'Connected to Security Gate System'}, to=sid)
     await sio.emit('session_ready', {'session_id': sid}, to=sid)
@@ -113,6 +115,7 @@ async def disconnect(sid: str):
     # Automatic cleanup
     async with sessions_lock:
         session_states.pop(sid, None)
+        active_connections.pop(sid, None)
 
 @sio.event
 async def send_message(sid: str, data: Dict[str, Any]):
@@ -288,6 +291,32 @@ async def leave_session_updates(sid: str, data: Dict[str, Any]):
 
 # --- Server-side Functions to Emit Events ---
 
+async def send_to_sid(sid: str, event: str, data: Dict[str, Any]) -> bool:
+    """Send event to specific client by sid. Returns True if sent successfully."""
+    async with sessions_lock:
+        if sid not in active_connections:
+            return False
+    try:
+        await sio.emit(event, data, to=sid)
+        return True
+    except Exception as e:
+        print(f"Failed to send to sid {sid}: {e}")
+        return False
+
+async def send_to_all_active(event: str, data: Dict[str, Any]):
+    """Send event to all active clients."""
+    await sio.emit(event, data)
+
+async def get_active_sids() -> list[str]:
+    """Get list of all active sids."""
+    async with sessions_lock:
+        return list(active_connections.keys())
+
+async def is_sid_active(sid: str) -> bool:
+    """Check if sid is currently active."""
+    async with sessions_lock:
+        return sid in active_connections
+
 async def emit_system_status(status_data: Dict[str, Any]):
     """Emit system status to all connected clients."""
     await sio.emit('system_status', status_data)
@@ -341,49 +370,3 @@ async def start_event_processor_if_needed():
         asyncio.create_task(process_socketio_events())
         _event_processor_started = True
         print("🔄 Started Socket.IO event processor")
-```
-
-## How to Use the New Version
-
-### Frontend Changes Required:
-
-1. **Remove session management calls:**
-```javascript
-// OLD - Remove these
-socket.emit('start_session', {});
-socket.emit('end_session', {session_id: sessionId});
-
-// NEW - Sessions start automatically on connect
-```
-
-2. **Update event calls to remove session_id parameter:**
-```javascript
-// OLD
-socket.emit('send_message', {
-    session_id: sessionId,
-    message: 'Hello'
-});
-
-// NEW
-socket.emit('send_message', {
-    message: 'Hello'
-});
-```
-
-3. **Listen for session_ready event:**
-```javascript
-socket.on('session_ready', (data) => {
-    console.log('Session ready:', data.session_id);
-    // You can store this if needed, but it's just the socket ID
-});
-```
-
-### Key Changes:
-- **No more `start_session`/`end_session`** events
-- **Session starts automatically** on connect
-- **Session ends automatically** on disconnect
-- **Remove `session_id` parameter** from all event calls
-- **Socket ID (`sid`) is now the session identifier**
-- **Automatic cleanup** on disconnect
-
-The system is now simpler and more robust!

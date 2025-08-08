@@ -112,8 +112,7 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None):
     # Extract face detection boolean
     face_detected = False
     if vision_data is not None:
-        # Check if there's any face-related data (angry_face or general face detection)
-        face_detected = vision_data.get("angry_face", False) or vision_data.get("face_detected", False)
+        face_detected = vision_data.get("face_detected", False)
 
     # Update face detection for this session
     continue_logging = update_face_detection(session_id, face_detected, socketio_events_queue)
@@ -146,7 +145,7 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None):
 
     write_log(session_id, log_entry)
 
-def image_processing_function(image_queue, face_detection_queue, socketio_events_queue=None):
+def image_processing_function(image_queue, socketio_events_queue=None):
     """Main image processing loop"""
     print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
     try:
