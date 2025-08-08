@@ -60,6 +60,8 @@ sessions_lock = asyncio.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
 face_detection_queue = multiprocessing.Queue(maxsize=4)
 socketio_events_queue = multiprocessing.Queue(maxsize=20)
+state_request_queue = multiprocessing.Queue(maxsize=50)
+state_response_queue = multiprocessing.Queue(maxsize=50)
 
 # Graph visualized and saved as image
 _generate_graph_visualization()
@@ -99,10 +101,13 @@ async def connect(sid: str, environ: dict, auth: Any = None):
     """Handle new client connections."""
     print(f"🔌 Client connected: {sid}")
     await start_event_processor_if_needed()
+    await start_state_processor_if_needed()
 
     # Initialize session state and register active connection
     async with sessions_lock:
-        session_states[sid] = create_initial_state()
+        initial_state = create_initial_state()
+        initial_state["session_active"] = True
+        session_states[sid] = initial_state
         active_connections[sid] = True
 
     await sio.emit('status', {'msg': 'Connected to Security Gate System'}, to=sid)
@@ -372,3 +377,44 @@ async def start_event_processor_if_needed():
         asyncio.create_task(process_socketio_events())
         _event_processor_started = True
         print("🔄 Started Socket.IO event processor")
+
+# --- State Management for Image Processor ---
+
+_state_processor_started = False
+
+async def process_state_requests():
+    """Background task to handle state requests from image processor."""
+    while True:
+        try:
+            requests_processed = 0
+            max_requests_per_cycle = 10
+
+            while not state_request_queue.empty() and requests_processed < max_requests_per_cycle:
+                try:
+                    request = state_request_queue.get_nowait()
+                    action = request.get("action")
+                    session_id = request.get("session_id")
+
+                    if action == "update" and session_id:
+                        updates = request.get("updates", {})
+                        async with sessions_lock:
+                            if session_id in session_states:
+                                session_states[session_id].update(updates)
+                                print(f"🔄 Updated state for session {session_id}: {updates}")
+
+                    requests_processed += 1
+                except:
+                    break
+
+            await asyncio.sleep(0.01 if requests_processed > 0 else 0.05)
+        except Exception as e:
+            print(f"Error processing state requests: {e}")
+            await asyncio.sleep(1)
+
+async def start_state_processor_if_needed():
+    """Start the state processor task if not already started."""
+    global _state_processor_started
+    if not _state_processor_started:
+        asyncio.create_task(process_state_requests())
+        _state_processor_started = True
+        print("🔄 Started state processor")

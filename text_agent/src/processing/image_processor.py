@@ -52,7 +52,19 @@ def write_log(session_id, log_entry):
 
     save_sessions_data(sessions_data)
 
-def update_face_detection(session_id, face_detected, socketio_events_queue=None):
+def update_session_state(session_id, updates, state_request_queue):
+    """Update session state via queue communication"""
+    try:
+        state_request_queue.put_nowait({
+            "action": "update",
+            "session_id": session_id,
+            "updates": updates
+        })
+        print(f"[{os.getpid()}] [Processing Process] Sent state update for session {session_id}: {updates}")
+    except Exception as e:
+        print(f"[{os.getpid()}] [Processing Process] Failed to update session state: {e}")
+
+def update_face_detection(session_id, face_detected, socketio_events_queue=None, state_request_queue=None):
     """Update face detection status for session and check if logging should continue"""
     sessions_data = load_sessions_data()
     session = get_or_create_session(sessions_data, session_id)
@@ -67,6 +79,10 @@ def update_face_detection(session_id, face_detected, socketio_events_queue=None)
 
     print(f"[{os.getpid()}] [Processing Process] Face detected: {face_detected}, Session: {session_id}, Queue size: {len(session['face_detected'])}")
 
+    # Update session_active flag based on face detection
+    if face_detected and state_request_queue is not None:
+        update_session_state(session_id, {"session_active": True}, state_request_queue)
+
     # Check if all face detection values are False and queue is full
     face_values = session["face_detected"]
     if len(face_values) == FACE_QUEUE_LIMIT and all(value == False for value in face_values):
@@ -75,6 +91,10 @@ def update_face_detection(session_id, face_detected, socketio_events_queue=None)
         # Clear the log entries for this session
         session["log_entries"] = []
         save_sessions_data(sessions_data)
+
+        # Set session_active to False
+        if state_request_queue is not None:
+            update_session_state(session_id, {"session_active": False}, state_request_queue)
 
         print(f"[{os.getpid()}] [Processing Process] Stopping logging for session {session_id} - no faces detected.")
 
@@ -95,7 +115,7 @@ def update_face_detection(session_id, face_detected, socketio_events_queue=None)
 
     return True  # Continue logging
 
-def threat_detector(session_id, image_b64, socketio_events_queue=None):
+def threat_detector(session_id, image_b64, socketio_events_queue=None, state_request_queue=None):
     """Analyze image for threats and update session data"""
     print(f"[{os.getpid()}] [Processing Process] Calling threat_detector for session {session_id}...")
 
@@ -115,7 +135,7 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None):
         face_detected = vision_data.get("face_detected", False)
 
     # Update face detection for this session
-    continue_logging = update_face_detection(session_id, face_detected, socketio_events_queue)
+    continue_logging = update_face_detection(session_id, face_detected, socketio_events_queue, state_request_queue)
 
     if not continue_logging:
         print(f"No face detected for session {session_id}, logging stopped")
@@ -145,7 +165,7 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None):
 
     write_log(session_id, log_entry)
 
-def image_processing_function(image_queue, socketio_events_queue=None):
+def image_processing_function(image_queue, socketio_events_queue=None, state_request_queue=None):
     """Main image processing loop"""
     print(f"[{os.getpid()}] [Processing Process] Starting image processing...")
     try:
@@ -170,7 +190,7 @@ def image_processing_function(image_queue, socketio_events_queue=None):
                     session_id = latest_image_queue_element.get("session_id", "unknown")
                     image_b64 = base64.b64encode(latest_image_queue_element["data"]).decode("utf-8")
 
-                    threat_detector(session_id, image_b64, socketio_events_queue)
+                    threat_detector(session_id, image_b64, socketio_events_queue, state_request_queue)
             else:
                 time.sleep(1)
     except KeyboardInterrupt:
