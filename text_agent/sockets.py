@@ -89,6 +89,7 @@ def _get_agent_response(updated_state):
         if hasattr(last_msg, 'content'):
             assistant_response = last_msg.content
     session_complete = bool(updated_state.get("decision"))
+    print("Assistant response: " + assistant_response)
     return assistant_response, session_complete
 
 # --- Socket.IO Event Handlers ---
@@ -137,6 +138,7 @@ async def send_message(sid: str, data: Dict[str, Any]):
         current_state["user_input"] = user_message
 
         # Process using shared graph in separate thread to avoid blocking
+        # TODO this is the root problem
         updated_state = await asyncio.to_thread(
             shared_graph.invoke,
             current_state,
@@ -239,7 +241,7 @@ async def upload_image(sid: str, data: Dict[str, Any]):
        await sio.emit('error', {'msg': f"Error uploading image: {str(e)}"}, to=sid)
 
 @sio.event
-async def request_health_check(sid: str, data: Dict[str, Any]):
+async def request_health_check(sid: str, _data: Dict[str, Any]):
     """Perform health check."""
     async with sessions_lock:
         active_sessions = len(session_states)

@@ -22,6 +22,13 @@ def receive_input(state: State) -> State:
     Handle user input with validation and conversation history display.
     """
 
+
+    # Debug: Print all state messages
+    print("All messages: ")
+    print(state["messages"])
+
+    # TODO: This code is deprecated.
+
     prev_session_flag = state["session_active"]
     try:
         face_detection_file = "./data/shared/face_detected.json"
@@ -48,31 +55,6 @@ def receive_input(state: State) -> State:
     except Exception as e:
         print(f"⚠️ Error reading face detection file: {e}. Assuming session is active.")
 
-
-
-
-    # Print conversation history
-    messages = state["messages"]
-    print("\n" + "=" * 50)
-    print("📜 CONVERSATION HISTORY")
-    print("=" * 50)
-
-    for i, message in enumerate(messages, 1):
-        if hasattr(message, "type") and hasattr(message, "content"):
-            if message.type == "system":
-                print(f"{i}. 🔧 System: {message.content}")
-            elif message.type == "human":
-                print(f"{i}. 👤 User: {message.content}")
-            elif message.type == "ai":
-                print(f"{i}. 🤖 Agent: {message.content}")
-            else:
-                print(f"{i}. {message.type}: {message.content}")
-
-    print("=" * 50)
-
-    # Display the most recent AI message if one exists
-    if messages and hasattr(messages[-1], "type") and messages[-1].type == "ai":
-        print(f"Agent: {messages[-1].content}")
 
     # Basic check for empty input
     user_input = state.get("user_input", "")

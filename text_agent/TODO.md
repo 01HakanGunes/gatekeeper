@@ -1,6 +1,6 @@
 # Text Agent - To-Do List
 
-- i need sids' saved of each session so backend can send them message whenever they need.
+- I break the chat part. Assistant response is wrong. Maybe async problem. Messages or not added to the state. !Problem is the seesion active flag! It is deprecated.
 
 - vision_log file should include session id field for each session, Each send image should be sent with session id and image processor should save the results to appropriate one.
 
