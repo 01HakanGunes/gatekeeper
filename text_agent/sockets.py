@@ -54,22 +54,20 @@ def _generate_graph_visualization():
 
 # Initialize objects vars
 shared_graph = create_security_graph()
-session_states: Dict[str, Any] = {}
+session_states: Dict[str, Any] = {}  # Now keyed by sid
 sessions_lock = asyncio.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
 face_detection_queue = multiprocessing.Queue(maxsize=4)
 socketio_events_queue = multiprocessing.Queue(maxsize=20)
 
-# Graph visulized and saved as image
+# Graph visualized and saved as image
 _generate_graph_visualization()
 
-# --- Pydantic models for request/response validation (if needed locally) ---
-# Define them here or ensure they are accessible without importing api.py directly if there's a circular import issue.
+# --- Pydantic models for request/response validation ---
 class UserInput(BaseModel):
     message: str
 
 class ImageUploadRequest(BaseModel):
-    session_id: str
     image: str
     timestamp: str
 
@@ -79,9 +77,6 @@ class ImageUploadResponse(BaseModel):
     image_id: Optional[str] = None
 
 # --- Socket.IO Server Instance ---
-# Create the Socket.IO server instance
-# Use 'asgi' for FastAPI integration and allow CORS for all origins (*)
-# Adjust CORS settings as needed for production
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 
 # --- Helper Functions ---
@@ -101,67 +96,38 @@ def _get_agent_response(updated_state):
 async def connect(sid: str, environ: dict, auth: Any = None):
     """Handle new client connections."""
     print(f"🔌 Client connected: {sid}")
-    # Start event processor on first connection
     await start_event_processor_if_needed()
-    # Send a welcome message or initial state if needed
+
+    # Initialize session state immediately
+    async with sessions_lock:
+        session_states[sid] = create_initial_state()
+
     await sio.emit('status', {'msg': 'Connected to Security Gate System'}, to=sid)
-    await sio.emit('system_status', {'healthy': True, 'active_sessions': 0}, to=sid)
+    await sio.emit('session_ready', {'session_id': sid}, to=sid)
 
 @sio.event
 async def disconnect(sid: str):
     """Handle client disconnections."""
     print(f"🔌 Client disconnected: {sid}")
 
-# --- Core API Functionality via Socket.IO ---
-
-@sio.event
-async def start_session(sid: str, data: Dict[str, Any]):
-    """Start a new security gate session."""
-    if shared_graph is None:
-        await sio.emit('session_started', {
-            "session_id": "",
-            "status": "error",
-            "message": "API not properly initialized"
-        }, to=sid)
-        return
-
-    session_id = str(uuid.uuid4())
-    try:
-        # Create initial state for this session
-        initial_state = create_initial_state()
-        async with sessions_lock:
-            session_states[session_id] = initial_state
-        await sio.emit('session_started', {
-            "session_id": session_id,
-            "status": "success",
-            "message": "Session started successfully"
-        }, to=sid)
-    except Exception as e:
-        await sio.emit('session_started', {
-            "session_id": "",
-            "status": "error",
-            "message": f"Error starting session: {str(e)}"
-        }, to=sid)
+    # Automatic cleanup
+    async with sessions_lock:
+        session_states.pop(sid, None)
 
 @sio.event
 async def send_message(sid: str, data: Dict[str, Any]):
     """Handle incoming chat message via Socket.IO"""
-    session_id = data.get("session_id")
     user_message = data.get("message", "")
-
-    if not session_id:
-        await sio.emit('error', {'msg': 'session_id is required'}, to=sid)
-        return
 
     if shared_graph is None:
         await sio.emit('error', {'msg': 'Graph not initialized'}, to=sid)
         return
 
     async with sessions_lock:
-        if session_id not in session_states:
+        if sid not in session_states:
             await sio.emit('error', {'msg': 'Session not found'}, to=sid)
             return
-        current_state = session_states[session_id].copy()
+        current_state = session_states[sid].copy()
 
     try:
         # Update state with user input
@@ -176,7 +142,7 @@ async def send_message(sid: str, data: Dict[str, Any]):
 
         # Update stored state
         async with sessions_lock:
-            session_states[session_id] = updated_state
+            session_states[sid] = updated_state
 
         # Get response and completion status
         assistant_response, session_complete = _get_agent_response(updated_state)
@@ -190,17 +156,15 @@ async def send_message(sid: str, data: Dict[str, Any]):
         # Emit response back to the specific client
         await sio.emit('chat_response', response_data, to=sid)
 
-        # If session is complete or profile changed significantly, notify room members
-        # This part depends on your frontend needs. Example:
+        # If session is complete, notify room members
         if session_complete:
-             # Get profile data to send with completion
             profile_data = {
                 "visitor_profile": updated_state.get("visitor_profile", {}),
                 "decision": updated_state.get("decision"),
                 "decision_confidence": updated_state.get("decision_confidence"),
                 "session_active": True
             }
-            await emit_session_update(session_id, {
+            await emit_session_update(sid, {
                 "type": "session_complete",
                 "profile": profile_data,
                 "final_response": assistant_response
@@ -209,20 +173,14 @@ async def send_message(sid: str, data: Dict[str, Any]):
     except Exception as e:
         await sio.emit('error', {'msg': f"Error processing message: {str(e)}"}, to=sid)
 
-
 @sio.event
 async def get_profile(sid: str, data: Dict[str, Any]):
     """Get current visitor profile for a session."""
-    session_id = data.get("session_id")
-    if not session_id:
-        await sio.emit('error', {'msg': 'session_id is required'}, to=sid)
-        return
-
     async with sessions_lock:
-        if session_id not in session_states:
+        if sid not in session_states:
             await sio.emit('error', {'msg': 'Session not found'}, to=sid)
             return
-        current_state = session_states[session_id]
+        current_state = session_states[sid]
 
     profile_data = {
         "visitor_profile": current_state.get("visitor_profile", {}),
@@ -233,46 +191,15 @@ async def get_profile(sid: str, data: Dict[str, Any]):
     await sio.emit('profile_data', profile_data, to=sid)
 
 @sio.event
-async def end_session(sid: str, data: Dict[str, Any]):
-    """End a specific security gate session."""
-    session_id = data.get("session_id")
-    if not session_id:
-        await sio.emit('session_ended', {
-            "status": "error",
-            "message": "session_id is required"
-        }, to=sid)
-        return
-
-    async with sessions_lock:
-        if session_id not in session_states:
-            await sio.emit('session_ended', {
-                "status": "error",
-                "message": "Session not found"
-            }, to=sid)
-            return
-        del session_states[session_id]
-
-    await sio.emit('session_ended', {
-        "status": "success",
-        "message": "Session ended successfully"
-    }, to=sid)
-
-    # Notify room that session ended
-    await emit_session_update(session_id, {"type": "session_ended", "message": "Session ended by user"})
-
-
-@sio.event
 async def upload_image(sid: str, data: Dict[str, Any]):
     """Upload image separately via Socket.IO (queued processing)."""
-    # Basic validation (consider using Pydantic models)
-    session_id = data.get("session_id")
     image_b64 = data.get("image")
-    timestamp = data.get("timestamp", str(time.time())) # Default timestamp if not provided
+    timestamp = data.get("timestamp", str(time.time()))
 
-    if not session_id or not image_b64:
+    if not image_b64:
         await sio.emit('image_upload_response', {
             "status": "error",
-            "message": "session_id and image are required"
+            "message": "image is required"
         }, to=sid)
         return
 
@@ -290,7 +217,7 @@ async def upload_image(sid: str, data: Dict[str, Any]):
                 except:
                     pass
 
-            image_queue.put_nowait({"id": image_id, "data": image_data, "timestamp": timestamp, "session_id": session_id})
+            image_queue.put_nowait({"id": image_id, "data": image_data, "timestamp": timestamp, "session_id": sid})
             print(f"📸 Image {image_id} added to the queue. Queue size: {image_queue.qsize()}")
         except Exception as queue_error:
             await sio.emit('image_upload_response', {
@@ -308,7 +235,6 @@ async def upload_image(sid: str, data: Dict[str, Any]):
     except Exception as e:
        await sio.emit('error', {'msg': f"Error uploading image: {str(e)}"}, to=sid)
 
-
 @sio.event
 async def request_health_check(sid: str, data: Dict[str, Any]):
     """Perform health check."""
@@ -324,11 +250,6 @@ async def request_health_check(sid: str, data: Dict[str, Any]):
 @sio.event
 async def request_threat_logs(sid: str, data: Dict[str, Any]):
     """Get the threat detector logs."""
-    session_id = data.get("session_id")
-    if not session_id:
-        await sio.emit('error', {'msg': 'session_id is required'}, to=sid)
-        return
-
     log_file_path = "./data/logs/vision_data_log.json"
     if not os.path.exists(log_file_path):
         await sio.emit('error', {'msg': 'Log file not found.'}, to=sid)
@@ -342,43 +263,30 @@ async def request_threat_logs(sid: str, data: Dict[str, Any]):
                  return
             log_data = json.loads(content)
 
-        # Filter logs by session_id
-        session_logs = [log for log in log_data if log.get("session_id") == session_id]
+        # Filter logs by session_id (now sid)
+        session_logs = [log for log in log_data if log.get("session_id") == sid]
         await sio.emit('threat_logs', session_logs, to=sid)
     except json.JSONDecodeError:
         await sio.emit('error', {'msg': 'Invalid JSON format in log file.'}, to=sid)
     except Exception as e:
         await sio.emit('error', {'msg': f'Error reading log file: {str(e)}'}, to=sid)
 
+# --- Session Subscription Events ---
 
-# --- Session Subscription Events (already present, kept for clarity) ---
-
-# Client can emit 'join_session_updates' to subscribe to updates for a specific session
 @sio.event
 async def join_session_updates(sid: str, data: Dict[str, Any]):
     """Allow client to join a room for session-specific updates."""
-    session_id = data.get('session_id')
-    if session_id:
-        # Join a room named after the session ID
-        await sio.enter_room(sid, session_id)
-        await sio.emit('status', {'msg': f'Joined updates for session {session_id}'}, to=sid)
-    else:
-        await sio.emit('error', {'msg': 'session_id required'}, to=sid)
+    # Join a room named after the session ID (which is now the sid)
+    await sio.enter_room(sid, sid)
+    await sio.emit('status', {'msg': f'Joined updates for session {sid}'}, to=sid)
 
-# Client can emit 'leave_session_updates'
 @sio.event
 async def leave_session_updates(sid: str, data: Dict[str, Any]):
     """Allow client to leave a room for session-specific updates."""
-    session_id = data.get('session_id')
-    if session_id:
-        await sio.leave_room(sid, session_id)
-        await sio.emit('status', {'msg': f'Left updates for session {session_id}'}, to=sid)
-    else:
-        await sio.emit('error', {'msg': 'session_id required'}, to=sid)
+    await sio.leave_room(sid, sid)
+    await sio.emit('status', {'msg': f'Left updates for session {sid}'}, to=sid)
 
-# --- Server-side Functions to Emit Events (already present, kept for clarity) ---
-# These functions can be called from other parts of your application (e.g., api.py or background tasks)
-# to push updates to connected clients.
+# --- Server-side Functions to Emit Events ---
 
 async def emit_system_status(status_data: Dict[str, Any]):
     """Emit system status to all connected clients."""
@@ -386,7 +294,6 @@ async def emit_system_status(status_data: Dict[str, Any]):
 
 async def emit_session_update(session_id: str, update_data: Dict[str, Any]):
     """Emit an update specific to a session to clients in that session's room."""
-    # Emit to the room named after the session_id
     await sio.emit('session_update', update_data, room=session_id)
 
 async def emit_general_notification(message: str):
@@ -394,16 +301,13 @@ async def emit_general_notification(message: str):
     await sio.emit('notification', {'message': message})
 
 # --- Background Task for Processing Socket.IO Events from Other Processes ---
-import asyncio
 
-# Global variable to track if background task is started
 _event_processor_started = False
 
 async def process_socketio_events():
     """Background task to process Socket.IO events from the event queue."""
     while True:
         try:
-            # Process multiple events in batch for better performance
             events_processed = 0
             max_events_per_cycle = 5
 
@@ -423,7 +327,7 @@ async def process_socketio_events():
 
                     events_processed += 1
                 except:
-                    break  # Queue empty or other issue
+                    break
 
             await asyncio.sleep(0.05 if events_processed > 0 else 0.1)
         except Exception as e:
@@ -437,3 +341,49 @@ async def start_event_processor_if_needed():
         asyncio.create_task(process_socketio_events())
         _event_processor_started = True
         print("🔄 Started Socket.IO event processor")
+```
+
+## How to Use the New Version
+
+### Frontend Changes Required:
+
+1. **Remove session management calls:**
+```javascript
+// OLD - Remove these
+socket.emit('start_session', {});
+socket.emit('end_session', {session_id: sessionId});
+
+// NEW - Sessions start automatically on connect
+```
+
+2. **Update event calls to remove session_id parameter:**
+```javascript
+// OLD
+socket.emit('send_message', {
+    session_id: sessionId,
+    message: 'Hello'
+});
+
+// NEW
+socket.emit('send_message', {
+    message: 'Hello'
+});
+```
+
+3. **Listen for session_ready event:**
+```javascript
+socket.on('session_ready', (data) => {
+    console.log('Session ready:', data.session_id);
+    // You can store this if needed, but it's just the socket ID
+});
+```
+
+### Key Changes:
+- **No more `start_session`/`end_session`** events
+- **Session starts automatically** on connect
+- **Session ends automatically** on disconnect
+- **Remove `session_id` parameter** from all event calls
+- **Socket ID (`sid`) is now the session identifier**
+- **Automatic cleanup** on disconnect
+
+The system is now simpler and more robust!
