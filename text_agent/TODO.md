@@ -1,5 +1,7 @@
 # Text Agent - To-Do List
 
+- 1 sid that is created by socketio enough?
+
 - i need sids' saved of each session so backend can send them message whenever they need.
 
 - vision_log file should include session id field for each session, Each send image should be sent with session id and image processor should save the results to appropriate one.
