@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { socketClient, type ConnectionStatus } from "../services/socketClient";
 import type {
-  SessionResponse,
   ProfileResponse,
   HealthResponse,
   Message,
@@ -20,11 +19,6 @@ interface UseSocketState<T> {
 interface UseSocketReturn {
   // Connection status
   connectionStatus: ConnectionStatus;
-
-  // Session management
-  session: UseSocketState<SessionResponse>;
-  startSession: () => Promise<string | null>;
-  endSession: () => Promise<void>;
 
   // Chat
   messages: UseSocketState<Message[]>;
@@ -50,9 +44,6 @@ interface UseSocketReturn {
   systemStatus: SystemStatus | null;
   notifications: Notification[];
 
-  // Current session ID
-  currentSessionId: string | null;
-
   // Global loading state
   isLoading: boolean;
 
@@ -64,18 +55,11 @@ interface UseSocketReturn {
 export const useSocket = (): UseSocketReturn => {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Cleanup functions for real-time listeners
   const cleanupFunctions = useRef<(() => void)[]>([]);
-
-  const [session, setSession] = useState<UseSocketState<SessionResponse>>({
-    data: null,
-    loading: false,
-    error: null,
-  });
 
   const [messages, setMessages] = useState<UseSocketState<Message[]>>({
     data: [],
@@ -110,7 +94,6 @@ export const useSocket = (): UseSocketReturn => {
   });
 
   const isLoading =
-    session.loading ||
     profile.loading ||
     health.loading ||
     imageUpload.loading ||
@@ -176,44 +159,6 @@ export const useSocket = (): UseSocketReturn => {
       );
       cleanupFunctions.current.push(notificationCleanup);
 
-      // Session update listener
-      const sessionUpdateCleanup = socketClient.onSessionUpdate((update) => {
-        console.log("Session update received:", update);
-
-        if (update.type === "session_complete" && update.profile) {
-          // Update profile when session completes
-          setProfile({
-            data: update.profile as ProfileResponse,
-            loading: false,
-            error: null,
-          });
-
-          // Add final response to messages if provided
-          if (update.final_response) {
-            const finalMessage: Message = {
-              id: `final-${Date.now()}`,
-              content: update.final_response,
-              timestamp: new Date().toISOString(),
-              sender: "agent",
-              session_complete: true,
-            };
-
-            setMessages((prev) => ({
-              data: prev.data ? [finalMessage, ...prev.data] : [finalMessage],
-              loading: false,
-              error: null,
-            }));
-          }
-        } else if (update.type === "session_ended") {
-          // Clear session data
-          setCurrentSessionId(null);
-          setSession({ data: null, loading: false, error: null });
-          setMessages({ data: [], loading: false, error: null });
-          setProfile({ data: null, loading: false, error: null });
-        }
-      });
-      cleanupFunctions.current.push(sessionUpdateCleanup);
-
       // General error listener
       const errorCleanup = socketClient.onError((error) => {
         console.error("Socket error:", error.msg);
@@ -236,77 +181,12 @@ export const useSocket = (): UseSocketReturn => {
     };
   }, [connect, disconnect]);
 
-  const startSession = useCallback(async (): Promise<string | null> => {
-    if (connectionStatus !== "connected") {
-      setSession((prev) => ({
-        ...prev,
-        error: "Socket not connected. Please wait for connection.",
-      }));
-      return null;
-    }
-
-    setSession((prev) => ({ ...prev, loading: true, error: null }));
-    try {
-      const data = await socketClient.startSession();
-
-      if (data.status === "error") {
-        throw new Error(data.message);
-      }
-
-      setSession({ data, loading: false, error: null });
-      setCurrentSessionId(data.session_id);
-      setMessages({ data: [], loading: false, error: null });
-      setProfile({ data: null, loading: false, error: null });
-
-      // Join session updates to receive real-time updates
-      await socketClient.joinSessionUpdates(data.session_id);
-
-      return data.session_id;
-    } catch (error) {
-      setSession((prev) => ({
-        ...prev,
-        loading: false,
-        error:
-          error instanceof Error ? error.message : "Failed to start session",
-      }));
-      return null;
-    }
-  }, [connectionStatus]);
-
-  const endSession = useCallback(async () => {
-    if (!currentSessionId || connectionStatus !== "connected") return;
-
-    setSession((prev) => ({ ...prev, loading: true, error: null }));
-    try {
-      // Leave session updates first
-      await socketClient.leaveSessionUpdates(currentSessionId);
-
-      // Then end session
-      const response = await socketClient.endSession(currentSessionId);
-
-      if (response.status === "error") {
-        throw new Error(response.message);
-      }
-
-      setSession({ data: null, loading: false, error: null });
-      setCurrentSessionId(null);
-      setMessages({ data: [], loading: false, error: null });
-      setProfile({ data: null, loading: false, error: null });
-    } catch (error) {
-      setSession((prev) => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : "Failed to end session",
-      }));
-    }
-  }, [currentSessionId, connectionStatus]);
-
   const fetchProfile = useCallback(async () => {
-    if (!currentSessionId || connectionStatus !== "connected") return;
+    if (connectionStatus !== "connected") return;
 
     setProfile((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const data = await socketClient.getProfile(currentSessionId);
+      const data = await socketClient.getProfile();
       setProfile({ data, loading: false, error: null });
     } catch (error) {
       setProfile((prev) => ({
@@ -316,18 +196,10 @@ export const useSocket = (): UseSocketReturn => {
           error instanceof Error ? error.message : "Failed to fetch profile",
       }));
     }
-  }, [currentSessionId, connectionStatus]);
+  }, [connectionStatus]);
 
   const sendMessage = useCallback(
     (messageContent: string): void => {
-      if (!currentSessionId) {
-        setMessages((prev) => ({
-          ...prev,
-          error: "No active session. Please start a new session.",
-        }));
-        return;
-      }
-
       if (connectionStatus !== "connected") {
         setMessages((prev) => ({
           ...prev,
@@ -352,7 +224,7 @@ export const useSocket = (): UseSocketReturn => {
 
       try {
         // Send message (fire and forget - response will come via event listener)
-        socketClient.sendMessage(currentSessionId, messageContent);
+        socketClient.sendMessage(messageContent);
       } catch (error) {
         setMessages((prev) => ({
           ...prev,
@@ -361,7 +233,7 @@ export const useSocket = (): UseSocketReturn => {
         }));
       }
     },
-    [currentSessionId, connectionStatus],
+    [connectionStatus],
   );
 
   const fetchHealth = useCallback(async () => {
@@ -389,14 +261,6 @@ export const useSocket = (): UseSocketReturn => {
 
   const uploadImage = useCallback(
     async (image: string): Promise<void> => {
-      if (!currentSessionId) {
-        setImageUpload((prev) => ({
-          ...prev,
-          error: "No active session. Please start a new session.",
-        }));
-        return;
-      }
-
       if (connectionStatus !== "connected") {
         setImageUpload((prev) => ({
           ...prev,
@@ -407,7 +271,7 @@ export const useSocket = (): UseSocketReturn => {
 
       setImageUpload((prev) => ({ ...prev, loading: true, error: null }));
       try {
-        const data = await socketClient.uploadImage(currentSessionId, image);
+        const data = await socketClient.uploadImage(image);
 
         if (data.status === "error") {
           throw new Error(data.message);
@@ -423,18 +287,10 @@ export const useSocket = (): UseSocketReturn => {
         }));
       }
     },
-    [currentSessionId, connectionStatus],
+    [connectionStatus],
   );
 
   const fetchThreatLogs = useCallback(async () => {
-    if (!currentSessionId) {
-      setThreatLogs((prev) => ({
-        ...prev,
-        error: "No active session. Please start a new session.",
-      }));
-      return;
-    }
-
     if (connectionStatus !== "connected") {
       setThreatLogs((prev) => ({
         ...prev,
@@ -445,7 +301,7 @@ export const useSocket = (): UseSocketReturn => {
 
     setThreatLogs((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const data = await socketClient.getThreatLogs(currentSessionId);
+      const data = await socketClient.getThreatLogs();
       setThreatLogs({ data, loading: false, error: null });
     } catch (error) {
       setThreatLogs((prev) => ({
@@ -457,7 +313,7 @@ export const useSocket = (): UseSocketReturn => {
             : "Failed to fetch threat logs",
       }));
     }
-  }, [currentSessionId, connectionStatus]);
+  }, [connectionStatus]);
 
   // Auto-fetch health when connected
   useEffect(() => {
@@ -485,9 +341,6 @@ export const useSocket = (): UseSocketReturn => {
 
   return {
     connectionStatus,
-    session,
-    startSession,
-    endSession,
     messages,
     sendMessage,
     profile,
@@ -500,7 +353,6 @@ export const useSocket = (): UseSocketReturn => {
     fetchThreatLogs,
     systemStatus,
     notifications,
-    currentSessionId,
     isLoading,
     connect,
     disconnect,

@@ -1,14 +1,7 @@
 import { io, Socket } from "socket.io-client";
 import { SOCKET_BASE_URL, SOCKET_EVENTS } from "../utils/constants";
 
-export interface SessionResponse {
-  session_id: string;
-  status: "success" | "error";
-  message: string;
-}
-
 export interface ChatRequest {
-  session_id: string;
   message: string;
 }
 
@@ -18,7 +11,6 @@ export interface ChatResponse {
 }
 
 export interface ImageUploadRequest {
-  session_id: string;
   image: string;
   timestamp?: string;
 }
@@ -43,11 +35,6 @@ export interface ProfileResponse {
   decision: string | null;
   decision_confidence: number | null;
   session_active: boolean;
-}
-
-export interface EndSessionResponse {
-  status: "success" | "error";
-  message: string;
 }
 
 export interface HealthResponse {
@@ -76,13 +63,6 @@ export interface SystemStatus {
   healthy: boolean;
   active_sessions: number;
   [key: string]: boolean | number | string;
-}
-
-export interface SessionUpdate {
-  type: string;
-  profile?: object;
-  final_response?: string;
-  message?: string;
 }
 
 export interface Notification {
@@ -195,42 +175,16 @@ class SocketClient {
     };
   }
 
-  // Session management
-  async startSession(): Promise<SessionResponse> {
-    return new Promise((resolve, reject) => {
-      if (!this.socket || !this.socket.connected) {
-        reject(new Error("Socket not connected"));
-        return;
-      }
-
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
-      // Listen for response
-      this.socket.once(
-        SOCKET_EVENTS.SESSION_STARTED,
-        (response: SessionResponse) => {
-          clearTimeout(timeout);
-          resolve(response);
-        },
-      );
-
-      // Send request
-      this.socket.emit(SOCKET_EVENTS.START_SESSION, {});
-    });
-  }
-
-  sendMessage(sessionId: string, message: string): void {
+  sendMessage(message: string): void {
     if (!this.socket || !this.socket.connected) {
       throw new Error("Socket not connected");
     }
 
-    const payload: ChatRequest = { session_id: sessionId, message };
+    const payload: ChatRequest = { message };
     this.socket.emit(SOCKET_EVENTS.SEND_MESSAGE, payload);
   }
 
-  async getProfile(sessionId: string): Promise<ProfileResponse> {
+  async getProfile(): Promise<ProfileResponse> {
     return new Promise((resolve, reject) => {
       if (!this.socket || !this.socket.connected) {
         reject(new Error("Socket not connected"));
@@ -260,32 +214,7 @@ class SocketClient {
       this.socket.on(SOCKET_EVENTS.ERROR, onError);
 
       // Send request
-      this.socket.emit(SOCKET_EVENTS.GET_PROFILE, { session_id: sessionId });
-    });
-  }
-
-  async endSession(sessionId: string): Promise<EndSessionResponse> {
-    return new Promise((resolve, reject) => {
-      if (!this.socket || !this.socket.connected) {
-        reject(new Error("Socket not connected"));
-        return;
-      }
-
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
-      // Listen for response
-      const onSessionEnded = (response: EndSessionResponse) => {
-        clearTimeout(timeout);
-        this.socket?.off(SOCKET_EVENTS.SESSION_ENDED, onSessionEnded);
-        resolve(response);
-      };
-
-      this.socket.on(SOCKET_EVENTS.SESSION_ENDED, onSessionEnded);
-
-      // Send request
-      this.socket.emit(SOCKET_EVENTS.END_SESSION, { session_id: sessionId });
+      this.socket.emit(SOCKET_EVENTS.GET_PROFILE, {});
     });
   }
 
@@ -314,10 +243,7 @@ class SocketClient {
     });
   }
 
-  async uploadImage(
-    sessionId: string,
-    image: string,
-  ): Promise<ImageUploadResponse> {
+  async uploadImage(image: string): Promise<ImageUploadResponse> {
     return new Promise((resolve, reject) => {
       if (!this.socket || !this.socket.connected) {
         reject(new Error("Socket not connected"));
@@ -348,7 +274,6 @@ class SocketClient {
 
       // Send request
       const payload: ImageUploadRequest = {
-        session_id: sessionId,
         image,
         timestamp: new Date().toISOString(),
       };
@@ -356,7 +281,7 @@ class SocketClient {
     });
   }
 
-  async getThreatLogs(sessionId: string): Promise<ThreatLog[]> {
+  async getThreatLogs(): Promise<ThreatLog[]> {
     return new Promise((resolve, reject) => {
       if (!this.socket || !this.socket.connected) {
         reject(new Error("Socket not connected"));
@@ -386,82 +311,7 @@ class SocketClient {
       this.socket.on(SOCKET_EVENTS.ERROR, onError);
 
       // Send request
-      this.socket.emit(SOCKET_EVENTS.REQUEST_THREAT_LOGS, {
-        session_id: sessionId,
-      });
-    });
-  }
-
-  // Session subscription management
-  async joinSessionUpdates(sessionId: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.socket || !this.socket.connected) {
-        reject(new Error("Socket not connected"));
-        return;
-      }
-
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
-      // Listen for response
-      const onStatus = () => {
-        clearTimeout(timeout);
-        this.socket?.off(SOCKET_EVENTS.STATUS, onStatus);
-        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
-        resolve();
-      };
-
-      const onError = (error: ErrorResponse) => {
-        clearTimeout(timeout);
-        this.socket?.off(SOCKET_EVENTS.STATUS, onStatus);
-        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
-        reject(new Error(error.msg));
-      };
-
-      this.socket.on(SOCKET_EVENTS.STATUS, onStatus);
-      this.socket.on(SOCKET_EVENTS.ERROR, onError);
-
-      // Send request
-      this.socket.emit(SOCKET_EVENTS.JOIN_SESSION_UPDATES, {
-        session_id: sessionId,
-      });
-    });
-  }
-
-  async leaveSessionUpdates(sessionId: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.socket || !this.socket.connected) {
-        reject(new Error("Socket not connected"));
-        return;
-      }
-
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
-      // Listen for response
-      const onStatus = () => {
-        clearTimeout(timeout);
-        this.socket?.off(SOCKET_EVENTS.STATUS, onStatus);
-        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
-        resolve();
-      };
-
-      const onError = (error: ErrorResponse) => {
-        clearTimeout(timeout);
-        this.socket?.off(SOCKET_EVENTS.STATUS, onStatus);
-        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
-        reject(new Error(error.msg));
-      };
-
-      this.socket.on(SOCKET_EVENTS.STATUS, onStatus);
-      this.socket.on(SOCKET_EVENTS.ERROR, onError);
-
-      // Send request
-      this.socket.emit(SOCKET_EVENTS.LEAVE_SESSION_UPDATES, {
-        session_id: sessionId,
-      });
+      this.socket.emit(SOCKET_EVENTS.REQUEST_THREAT_LOGS, {});
     });
   }
 
@@ -495,17 +345,6 @@ class SocketClient {
     return () => {
       if (this.socket) {
         this.socket.off(SOCKET_EVENTS.NOTIFICATION, callback);
-      }
-    };
-  }
-
-  onSessionUpdate(callback: (update: SessionUpdate) => void): () => void {
-    if (!this.socket) return () => {};
-
-    this.socket.on(SOCKET_EVENTS.SESSION_UPDATE, callback);
-    return () => {
-      if (this.socket) {
-        this.socket.off(SOCKET_EVENTS.SESSION_UPDATE, callback);
       }
     };
   }

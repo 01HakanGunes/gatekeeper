@@ -2,21 +2,15 @@ export const SOCKET_BASE_URL = "http://localhost:8001";
 
 export const SOCKET_EVENTS = {
   // Client to server events
-  START_SESSION: "start_session",
   SEND_MESSAGE: "send_message",
   GET_PROFILE: "get_profile",
-  END_SESSION: "end_session",
   REQUEST_HEALTH_CHECK: "request_health_check",
   UPLOAD_IMAGE: "upload_image",
   REQUEST_THREAT_LOGS: "request_threat_logs",
-  JOIN_SESSION_UPDATES: "join_session_updates",
-  LEAVE_SESSION_UPDATES: "leave_session_updates",
 
   // Server to client events (responses)
-  SESSION_STARTED: "session_started",
   CHAT_RESPONSE: "chat_response",
   PROFILE_DATA: "profile_data",
-  SESSION_ENDED: "session_ended",
   HEALTH_STATUS: "health_status",
   IMAGE_UPLOAD_RESPONSE: "image_upload_response",
   THREAT_LOGS: "threat_logs",
@@ -24,7 +18,6 @@ export const SOCKET_EVENTS = {
   // Real-time events from server
   SYSTEM_STATUS: "system_status",
   NOTIFICATION: "notification",
-  SESSION_UPDATE: "session_update",
   STATUS: "status",
   ERROR: "error",
 
@@ -46,16 +39,7 @@ export const ERROR_MESSAGES = {
   UNAUTHORIZED: "Unauthorized access. Please check your credentials.",
   SERVER_ERROR: "Server error occurred. Please try again later.",
   INVALID_MESSAGE: "Please enter a valid message.",
-  SESSION_ERROR: "Session error. Please start a new session.",
+
   CAMERA_ERROR: "Camera access denied or not available.",
   IMAGE_CAPTURE_ERROR: "Failed to capture image from camera.",
 } as const;
-
-export const SESSION_STATUS = {
-  ACTIVE: "active",
-  COMPLETED: "completed",
-  ENDED: "ended",
-} as const;
-
-export type SessionStatus =
-  (typeof SESSION_STATUS)[keyof typeof SESSION_STATUS];
