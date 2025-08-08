@@ -399,6 +399,24 @@ async def process_state_requests():
                         updates = request.get("updates", {})
                         async with sessions_lock:
                             if session_id in session_states:
+                                # Check if session_active is being updated
+                                if "session_active" in updates:
+                                    old_active = session_states[session_id].get("session_active")
+                                    new_active = updates["session_active"]
+
+                                    # Send message if status changed
+                                    if old_active != new_active:
+                                        if new_active:
+                                            await sio.emit('chat_response', {
+                                                "agent_response": "Welcome sir, I am here to help, what do you want?",
+                                                "session_complete": False
+                                            }, to=session_id)
+                                        else:
+                                            await sio.emit('chat_response', {
+                                                "agent_response": "Goodbye sir...",
+                                                "session_complete": False
+                                            }, to=session_id)
+
                                 session_states[session_id].update(updates)
                                 print(f"🔄 Updated state for session {session_id}: {updates}")
 
