@@ -23,6 +23,7 @@ graph TD;
 	notify_contact --> reset_conversation;
 	receive_input -. &nbsp;invalid&nbsp; .-> __end__;
 	receive_input -.-> check_visitor_profile;
+	receive_input -. &nbsp;call_security&nbsp; .-> make_decision;
 	receive_input -.-> reset_conversation;
 	receive_input -.-> summarize;
 	summarize --> check_visitor_profile;

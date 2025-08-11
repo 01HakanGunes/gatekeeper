@@ -173,8 +173,6 @@ async def send_message(sid: str, data: Dict[str, Any]):
         # Update state with user input
         current_state["user_input"] = user_message
 
-        # Process using shared graph in separate thread to avoid blocking
-        # TODO this is the root problem
         updated_state = await asyncio.to_thread(
             shared_graph.invoke,
             current_state,
@@ -391,6 +389,13 @@ async def process_socketio_events():
                             'instruction': 'Please position yourself in front of the camera'
                         })
                         print(f"📢 Emitted no face detected event: {message}")
+                    elif event_type == "trigger_langgraph":
+                        session_id = event_data.get("session_id")
+                        dummy_message = event_data.get("message", "I am here to visit someone")
+
+                        if session_id:
+                            await send_message(session_id, {"message": dummy_message})
+                            print(f"📢 Triggered langgraph for high threat level in session {session_id}")
 
                     events_processed += 1
                 except:
@@ -439,12 +444,12 @@ async def process_state_requests():
                                     if old_active != new_active:
                                         if new_active:
                                             await sio.emit('chat_response', {
-                                                "agent_response": "Welcome sir, I am here to help, what do you want?",
+                                                "agent_response": "Dur yolcu, sen kimsin!",
                                                 "session_complete": False
                                             }, to=session_id)
                                         else:
                                             await sio.emit('chat_response', {
-                                                "agent_response": "Goodbye sir...",
+                                                "agent_response": "Tekrar görüşecez...",
                                                 "session_complete": False
                                             }, to=session_id)
 

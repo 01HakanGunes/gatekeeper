@@ -177,6 +177,20 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None, state_req
             update_session_state(session_id, {"vision_schema": validated_vision_schema}, state_request_queue)
             print(f"[{os.getpid()}] [Processing Process] Saved complete vision schema to session {session_id}")
 
+        # Trigger langgraph if threat level is high
+        threat_level = validated_vision_schema.get("threat_level", "low")
+        if threat_level == "high" and socketio_events_queue is not None:
+            try:
+                langgraph_trigger_event = {
+                    "type": "trigger_langgraph",
+                    "session_id": session_id,
+                    "message": "I am here to visit someone"
+                }
+                socketio_events_queue.put_nowait(langgraph_trigger_event)
+                print(f"[{os.getpid()}] [Processing Process] Triggered langgraph for high threat level in session {session_id}")
+            except Exception as e:
+                print(f"[{os.getpid()}] [Processing Process] Failed to trigger langgraph: {e}")
+
         is_dangerous = validated_vision_schema.get("dangerous_object", False)
         is_angry = validated_vision_schema.get("angry_face", False)
 

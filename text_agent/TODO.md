@@ -2,17 +2,18 @@
 
 ## Bugs/Fixes
 
-- !Threat level is not set correctly.
+- Each time threat level high extracted, another invoke to the graph in parallel happens. Instead of this only fetch from the state, when thet high threat detected somehow stop the processing of following high threat frames until the state is cleared and session initialized again from scratch.
 
-- !Security question? Agent still asks and works badly. Deprecated.
-
-- My .env data is not passed.
+- Analyze threat level node is depreacted delete it.
 
 - After threat level high, directly jump to decision as call security and reset graph.
+  Make the image processor trigger the graph when the threat level field is high (find a way to jump to the decision part/ is it really necessary)
 
 - Add the decisions as seperate tools.
 
 - Too slow
+
+- My .env data is not passed.
 
 ## Features
 
@@ -33,6 +34,8 @@
 - Try on mobile device with chromium browser
 
 ## Refactoring
+
+- Deprecated function inside sockets.py
 
 - !Change the threatLog naming with visionLog everywhere
 

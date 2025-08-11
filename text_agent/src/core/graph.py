@@ -57,6 +57,10 @@ def create_security_graph():
         if state["session_active"] == False:
             return "reset_conversation"
 
+        threat_level_value = state['vision_schema']['threat_level']
+        if threat_level_value == "high":
+            return "call_security"
+
         session_result = detect_session(state)
         if session_result == "new":
             return "reset_conversation"
@@ -75,6 +79,7 @@ def create_security_graph():
             "reset_conversation": "reset_conversation",
             "summarize": "summarize",
             "check_visitor_profile": "check_visitor_profile",
+            "call_security": "make_decision",
         },
     )
     graph_builder.add_edge("summarize", "check_visitor_profile")
@@ -93,6 +98,7 @@ def create_security_graph():
         "make_decision",
         check_decision_for_notification,
         {
+            "call_security": "reset_conversation",
             "notify": "notify_contact",
             "end": "reset_conversation",
         },
