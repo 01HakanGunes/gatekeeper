@@ -115,6 +115,27 @@ def update_face_detection(session_id, face_detected, socketio_events_queue=None,
 
     return True  # Continue logging
 
+def validate_vision_schema(vision_data):
+    """Validate and clean vision data to match VisionSchema"""
+    if vision_data is None:
+        return None
+
+    # Ensure all required fields exist with proper defaults
+    validated_schema = {
+        "face_detected": bool(vision_data.get("face_detected", False)),
+        "angry_face": bool(vision_data.get("angry_face", False)),
+        "dangerous_object": bool(vision_data.get("dangerous_object", False)),
+        "threat_level": str(vision_data.get("threat_level", "low")),
+        "details": str(vision_data.get("details", ""))
+    }
+
+    # Validate threat_level is one of the expected values
+    valid_threat_levels = ["low", "medium", "high"]
+    if validated_schema["threat_level"] not in valid_threat_levels:
+        validated_schema["threat_level"] = "low"
+
+    return validated_schema
+
 def threat_detector(session_id, image_b64, socketio_events_queue=None, state_request_queue=None):
     """Analyze image for threats and update session data"""
     print(f"[{os.getpid()}] [Processing Process] Calling threat_detector for session {session_id}...")
@@ -123,20 +144,19 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None, state_req
         image_b64, "security_vision_prompt", "vision_schema"
     )
 
-    # TODO: Here we extracted the vision data as json object, and need to save into each session state.
-    #
-    #
-    #
+    # Validate and clean the vision data
+    validated_vision_schema = validate_vision_schema(vision_data)
+
     log_entry = {
         "timestamp": datetime.now().isoformat(),
-        "vision_data": vision_data,
+        "vision_data": validated_vision_schema,
         "message": ""
     }
 
     # Extract face detection boolean
     face_detected = False
-    if vision_data is not None:
-        face_detected = vision_data.get("face_detected", False)
+    if validated_vision_schema is not None:
+        face_detected = validated_vision_schema.get("face_detected", False)
 
     # Update face detection for this session
     continue_logging = update_face_detection(session_id, face_detected, socketio_events_queue, state_request_queue)
@@ -145,14 +165,20 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None, state_req
         print(f"No face detected for session {session_id}, logging stopped")
         return
 
-    if vision_data is None:
+    if validated_vision_schema is None:
         message = "Vision data extraction failed."
         print(f"[{os.getpid()}] [Processing Process] {message}")
         log_entry["message"] = message
     else:
-        print(f"[{os.getpid()}] [Processing Process] Vision data extracted: {vision_data}")
-        is_dangerous = vision_data.get("dangerous_object", False)
-        is_angry = vision_data.get("angry_face", False)
+        print(f"[{os.getpid()}] [Processing Process] Vision data extracted: {validated_vision_schema}")
+
+        # Save complete vision schema to session state
+        if state_request_queue is not None:
+            update_session_state(session_id, {"vision_schema": validated_vision_schema}, state_request_queue)
+            print(f"[{os.getpid()}] [Processing Process] Saved complete vision schema to session {session_id}")
+
+        is_dangerous = validated_vision_schema.get("dangerous_object", False)
+        is_angry = validated_vision_schema.get("angry_face", False)
 
         if is_dangerous:
             message = "❌ Threat detected, security is notified!"
