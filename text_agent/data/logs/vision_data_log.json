@@ -1542,6 +1542,50 @@
     {
         "session_id": "FM5Zwmk6z8-KBZW5AAAC",
         "face_detected": [
+            false,
+            true,
+            false,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-11T11:04:11.360357",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-11T11:04:13.612755",
+                "vision_data": {
+                    "face_detected": false,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "No faces or dangerous objects detected."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:04:15.814415",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "A serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            }
+        ]
+    },
+    {
+        "session_id": "3dtFgwdTcgXXdOXcAAAC",
+        "face_detected": [
             true,
             true,
             true,
@@ -1549,112 +1593,210 @@
         ],
         "log_entries": [
             {
-                "timestamp": "2025-08-11T11:01:50.536915",
-                "vision_data": {
-                    "face_detected": true,
-                    "angry_face": true,
-                    "dangerous_object": false,
-                    "threat_level": "medium",
-                    "details": "Person appears to be slightly frowning."
-                },
-                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
-            },
-            {
-                "timestamp": "2025-08-11T11:01:52.285205",
-                "vision_data": {
-                    "face_detected": true,
-                    "angry_face": true,
-                    "dangerous_object": false,
-                    "threat_level": "medium",
-                    "details": "Person with a serious expression"
-                },
-                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
-            },
-            {
-                "timestamp": "2025-08-11T11:01:54.088901",
-                "vision_data": {
-                    "face_detected": true,
-                    "angry_face": true,
-                    "dangerous_object": false,
-                    "threat_level": "medium",
-                    "details": "Person with a serious expression"
-                },
-                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
-            },
-            {
-                "timestamp": "2025-08-11T11:01:55.772022",
-                "vision_data": {
-                    "face_detected": true,
-                    "angry_face": true,
-                    "dangerous_object": false,
-                    "threat_level": "medium",
-                    "details": "Person with an angry expression"
-                },
-                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
-            },
-            {
-                "timestamp": "2025-08-11T11:01:57.566439",
-                "vision_data": {
-                    "face_detected": true,
-                    "angry_face": true,
-                    "dangerous_object": false,
-                    "threat_level": "medium",
-                    "details": "Person with a serious expression"
-                },
-                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
-            },
-            {
-                "timestamp": "2025-08-11T11:01:59.362060",
-                "vision_data": {
-                    "face_detected": true,
-                    "angry_face": true,
-                    "dangerous_object": false,
-                    "threat_level": "medium",
-                    "details": "Person with a serious expression"
-                },
-                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
-            },
-            {
-                "timestamp": "2025-08-11T11:02:01.051840",
+                "timestamp": "2025-08-11T11:09:54.542680",
                 "vision_data": {
                     "face_detected": true,
                     "angry_face": false,
                     "dangerous_object": false,
                     "threat_level": "low",
-                    "details": "Person with headphones"
+                    "details": "Person wearing headphones, no obvious threats detected."
                 },
                 "message": "No threat detected in image."
             },
             {
-                "timestamp": "2025-08-11T11:02:02.845909",
-                "vision_data": {
-                    "face_detected": true,
-                    "angry_face": false,
-                    "dangerous_object": false,
-                    "threat_level": "low",
-                    "details": "Person with headphones"
-                },
-                "message": "No threat detected in image."
-            },
-            {
-                "timestamp": "2025-08-11T11:02:04.704616",
+                "timestamp": "2025-08-11T11:09:56.595082",
                 "vision_data": {
                     "face_detected": true,
                     "angry_face": true,
                     "dangerous_object": false,
                     "threat_level": "medium",
-                    "details": "Person appears to be slightly angry."
+                    "details": "Person with a serious expression"
                 },
                 "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
             },
             {
-                "timestamp": "2025-08-11T11:02:06.592332",
+                "timestamp": "2025-08-11T11:09:58.640038",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-11T11:10:00.555624",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person looking serious"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-11T11:10:02.565885",
                 "vision_data": {
                     "face_detected": true,
                     "angry_face": false,
                     "dangerous_object": false,
                     "threat_level": "low",
-                    "details": "Person looking at the camera."
+                    "details": "Person looking serious"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:10:04.614643",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with sunglasses and headphones"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:10:06.667748",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            }
+        ]
+    },
+    {
+        "session_id": "EOEJNmQXMkFH0FtcAAAC",
+        "face_detected": [
+            false,
+            false,
+            false,
+            false
+        ],
+        "log_entries": []
+    },
+    {
+        "session_id": "1bTnBi82AT-fjvblAAAF",
+        "face_detected": [
+            true,
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-11T11:28:25.787268",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person looking directly at the camera."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:27.844693",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:29.910783",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:32.102037",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with glasses, appears slightly concerned."
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:34.185050",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:36.340956",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:38.419558",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:40.533747",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:42.797721",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses, appears calm."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-11T11:28:44.953484",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
                 },
                 "message": "No threat detected in image."
             }

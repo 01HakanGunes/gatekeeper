@@ -1,12 +1,12 @@
 # Text Agent - To-Do List
 
-- image processor doesnt reset the state of any session. Carry from the graph to the imageprocessor
+- Cam id based authorization.
 
-- If session is not active, do not process data.
+- Name based auth.
+
+- not shutting down gracefully.
 
 - Too slow
-
-- when the app starts fresh the initial flag value is wrong.
 
 - increase the framerate of processing, decrease the threshold to change the session state.
 

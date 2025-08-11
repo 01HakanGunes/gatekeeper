@@ -192,7 +192,7 @@ def image_processing_function(image_queue, socketio_events_queue=None, state_req
 
                     threat_detector(session_id, image_b64, socketio_events_queue, state_request_queue)
             else:
-                time.sleep(1)
+                time.sleep(0.1)
     except KeyboardInterrupt:
         print(f"[{os.getpid()}] [Processing Process] KeyboardInterrupt caught. Shutting down processing.")
     except Exception as e:

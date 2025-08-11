@@ -138,7 +138,6 @@ async def connect(sid: str, environ: dict, auth: Any = None):
     # Initialize session state and register active connection
     async with sessions_lock:
         initial_state = create_initial_state()
-        initial_state["session_active"] = True
         session_states[sid] = initial_state
         active_connections[sid] = True
 
