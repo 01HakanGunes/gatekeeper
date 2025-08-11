@@ -99,33 +99,32 @@ async def reset_session_state(sid: str):
     from langchain_core.messages import SystemMessage
     from src.utils.prompt_manager import prompt_manager
 
-    async with sessions_lock:
-        if sid not in session_states:
-            return
+    if sid not in session_states:
+        return
 
-        state = session_states[sid]
-        # Clear state
-        state["messages"].clear()
-        state["visitor_profile"] = {
-            "name": None,
-            "purpose": None,
-            "contact_person": None,
-            "threat_level": None,
-            "affiliation": None,
-            "id_verified": None,
-        }
-        state["decision"] = ""
-        state["decision_confidence"] = None
-        state["decision_reasoning"] = None
-        state["user_input"] = ""
-        state["invalid_input"] = False
-        state["session_active"] = False
+    state = session_states[sid]
+    # Clear state
+    state["messages"].clear()
+    state["visitor_profile"] = {
+        "name": None,
+        "purpose": None,
+        "contact_person": None,
+        "threat_level": None,
+        "affiliation": None,
+        "id_verified": None,
+    }
+    state["decision"] = ""
+    state["decision_confidence"] = None
+    state["decision_reasoning"] = None
+    state["user_input"] = ""
+    state["invalid_input"] = False
+    state["session_active"] = False
 
         # Re-add system message
-        system_msg_content = prompt_manager.format_prompt("input", "system_message")
-        state["messages"].append(SystemMessage(content=system_msg_content))
+    system_msg_content = prompt_manager.format_prompt("input", "system_message")
+    state["messages"].append(SystemMessage(content=system_msg_content))
 
-        print(f"🔄 Session {sid} state reset due to inactivity")
+    print(f"🔄 Session {sid} state reset due to inactivity")
 
 # --- Socket.IO Event Handlers ---
 
