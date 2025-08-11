@@ -94,6 +94,39 @@ def _get_agent_response(updated_state):
     print("Assistant response: " + assistant_response)
     return assistant_response, session_complete
 
+async def reset_session_state(sid: str):
+    """Reset session state immediately when session becomes inactive."""
+    from langchain_core.messages import SystemMessage
+    from src.utils.prompt_manager import prompt_manager
+
+    async with sessions_lock:
+        if sid not in session_states:
+            return
+
+        state = session_states[sid]
+        # Clear state
+        state["messages"].clear()
+        state["visitor_profile"] = {
+            "name": None,
+            "purpose": None,
+            "contact_person": None,
+            "threat_level": None,
+            "affiliation": None,
+            "id_verified": None,
+        }
+        state["decision"] = ""
+        state["decision_confidence"] = None
+        state["decision_reasoning"] = None
+        state["user_input"] = ""
+        state["invalid_input"] = False
+        state["session_active"] = False
+
+        # Re-add system message
+        system_msg_content = prompt_manager.format_prompt("input", "system_message")
+        state["messages"].append(SystemMessage(content=system_msg_content))
+
+        print(f"🔄 Session {sid} state reset due to inactivity")
+
 # --- Socket.IO Event Handlers ---
 
 @sio.event
@@ -416,6 +449,9 @@ async def process_state_requests():
                                                 "agent_response": "Goodbye sir...",
                                                 "session_complete": False
                                             }, to=session_id)
+
+                                            # Immediately reset conversation state
+                                            await reset_session_state(session_id)
 
                                 session_states[session_id].update(updates)
                                 print(f"🔄 Updated state for session {session_id}: {updates}")
