@@ -1,5 +1,15 @@
 # Text Agent - To-Do List
 
+- image processor doesnt reset the state of any session. Carry from the graph to the imageprocessor
+
+- If session is not active, do not process data.
+
+- Too slow
+
+- when the app starts fresh the initial flag value is wrong.
+
+- increase the framerate of processing, decrease the threshold to change the session state.
+
 - Test with multiple sessions.
 
 - Image processor should activate, reset session with interprocess flag value assignment.
@@ -15,12 +25,8 @@
 
 ## Refactoring
 
-- vision_data_log.json -> vision_log.json
-
 - Change the threatLog naming with visionLog everywhere
 
 - docker compose file position change
-
-- Do i really need this custom lifespan for fastapi: "async def lifespan(app: FastAPI):"
 
 - Import statements are all around the code.
