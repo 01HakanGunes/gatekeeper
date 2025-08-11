@@ -34,7 +34,6 @@ function Camera({
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isCapturing, setIsCapturing] = useState(false);
 
   const startCamera = useCallback(async () => {
     try {
@@ -79,7 +78,6 @@ function Camera({
     }
 
     try {
-      setIsCapturing(true);
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
@@ -104,12 +102,10 @@ function Camera({
       // Remove data URL prefix to get just the base64 data
       const base64Data = imageData.split(",")[1];
 
-      setTimeout(() => setIsCapturing(false), 300);
       return base64Data;
     } catch (err) {
       console.error("Image capture error:", err);
       setError(ERROR_MESSAGES.IMAGE_CAPTURE_ERROR);
-      setIsCapturing(false);
       return null;
     }
   }, [isStreaming]);
@@ -223,16 +219,11 @@ function Camera({
                 <button
                   className={styles.captureButton}
                   onClick={handleCapture}
-                  disabled={isCapturing}
                   aria-label="Capture photo"
                   title="Capture photo"
                 >
                   📸
                 </button>
-
-                {isCapturing && (
-                  <div className={styles.captureIndicator}>✨</div>
-                )}
               </>
             )}
           </>
