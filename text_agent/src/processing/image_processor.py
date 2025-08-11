@@ -123,6 +123,10 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None, state_req
         image_b64, "security_vision_prompt", "vision_schema"
     )
 
+    # TODO: Here we extracted the vision data as json object, and need to save into each session state.
+    #
+    #
+    #
     log_entry = {
         "timestamp": datetime.now().isoformat(),
         "vision_data": vision_data,
