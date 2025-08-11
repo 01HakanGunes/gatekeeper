@@ -70,7 +70,7 @@ function Dashboard() {
           await uploadImage(capturedImage);
         }
       }
-    }, 2000);
+    }, 500);
 
     return () => {
       clearInterval(imageUploadInterval);

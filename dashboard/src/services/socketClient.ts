@@ -191,20 +191,14 @@ class SocketClient {
         return;
       }
 
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
       // Listen for response
       const onProfileData = (response: ProfileResponse) => {
-        clearTimeout(timeout);
         this.socket?.off(SOCKET_EVENTS.PROFILE_DATA, onProfileData);
         this.socket?.off(SOCKET_EVENTS.ERROR, onError);
         resolve(response);
       };
 
       const onError = (error: ErrorResponse) => {
-        clearTimeout(timeout);
         this.socket?.off(SOCKET_EVENTS.PROFILE_DATA, onProfileData);
         this.socket?.off(SOCKET_EVENTS.ERROR, onError);
         reject(new Error(error.msg));
@@ -225,15 +219,10 @@ class SocketClient {
         return;
       }
 
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
       // Listen for response
       this.socket.once(
         SOCKET_EVENTS.HEALTH_STATUS,
         (response: HealthResponse) => {
-          clearTimeout(timeout);
           resolve(response);
         },
       );
@@ -250,20 +239,14 @@ class SocketClient {
         return;
       }
 
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
       // Listen for response
       const onImageResponse = (response: ImageUploadResponse) => {
-        clearTimeout(timeout);
         this.socket?.off(SOCKET_EVENTS.IMAGE_UPLOAD_RESPONSE, onImageResponse);
         this.socket?.off(SOCKET_EVENTS.ERROR, onError);
         resolve(response);
       };
 
       const onError = (error: ErrorResponse) => {
-        clearTimeout(timeout);
         this.socket?.off(SOCKET_EVENTS.IMAGE_UPLOAD_RESPONSE, onImageResponse);
         this.socket?.off(SOCKET_EVENTS.ERROR, onError);
         reject(new Error(error.msg));
@@ -288,20 +271,14 @@ class SocketClient {
         return;
       }
 
-      const timeout = setTimeout(() => {
-        reject(new Error("Request timeout"));
-      }, 10000);
-
       // Listen for response
       const onThreatLogs = (response: ThreatLog[]) => {
-        clearTimeout(timeout);
         this.socket?.off(SOCKET_EVENTS.THREAT_LOGS, onThreatLogs);
         this.socket?.off(SOCKET_EVENTS.ERROR, onError);
         resolve(response);
       };
 
       const onError = (error: ErrorResponse) => {
-        clearTimeout(timeout);
         this.socket?.off(SOCKET_EVENTS.THREAT_LOGS, onThreatLogs);
         this.socket?.off(SOCKET_EVENTS.ERROR, onError);
         reject(new Error(error.msg));
