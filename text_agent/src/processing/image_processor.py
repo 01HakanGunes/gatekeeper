@@ -8,6 +8,7 @@ from src.utils.llm_utilities import analyze_image_with_prompt
 LOG_FILE = "./data/logs/vision_data_log.json"
 LOG_LIMIT = 10
 FACE_QUEUE_LIMIT = 4
+LANGGRAPH_COOLDOWN_SECONDS = 10
 
 def load_sessions_data():
     """Load sessions data from JSON file"""
@@ -35,7 +36,8 @@ def get_or_create_session(sessions_data, session_id):
     new_session = {
         "session_id": session_id,
         "face_detected": [],
-        "log_entries": []
+        "log_entries": [],
+        "last_langgraph_trigger": None
     }
     sessions_data.append(new_session)
     return new_session
@@ -50,6 +52,29 @@ def write_log(session_id, log_entry):
     # Keep only the last LOG_LIMIT entries per session
     session["log_entries"] = session["log_entries"][-LOG_LIMIT:]
 
+    save_sessions_data(sessions_data)
+
+def can_trigger_langgraph(session_id):
+    """Check if langgraph can be triggered for this session (cooldown check)"""
+    sessions_data = load_sessions_data()
+    session = get_or_create_session(sessions_data, session_id)
+
+    last_trigger = session.get("last_langgraph_trigger")
+    if last_trigger is None:
+        return True
+
+    try:
+        last_trigger_time = datetime.fromisoformat(last_trigger)
+        time_since_last = datetime.now() - last_trigger_time
+        return time_since_last.total_seconds() >= LANGGRAPH_COOLDOWN_SECONDS
+    except (ValueError, TypeError):
+        return True
+
+def update_langgraph_trigger_time(session_id):
+    """Update the last langgraph trigger time for a session"""
+    sessions_data = load_sessions_data()
+    session = get_or_create_session(sessions_data, session_id)
+    session["last_langgraph_trigger"] = datetime.now().isoformat()
     save_sessions_data(sessions_data)
 
 def update_session_state(session_id, updates, state_request_queue):
@@ -177,20 +202,23 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None, state_req
             update_session_state(session_id, {"vision_schema": validated_vision_schema}, state_request_queue)
             print(f"[{os.getpid()}] [Processing Process] Saved complete vision schema to session {session_id}")
 
-        # Trigger langgraph if threat level is high
+        # Trigger langgraph if threat level is high (with cooldown)
         threat_level = validated_vision_schema.get("threat_level", "low")
         if threat_level == "high" and socketio_events_queue is not None:
-            # TODO: Here we have a client with high threat. Somehow only trigger langgraph once and put a sleep time without blocking the image_processor.
-            try:
-                langgraph_trigger_event = {
-                    "type": "trigger_langgraph",
-                    "session_id": session_id,
-                    "message": "I am here to visit someone"
-                }
-                socketio_events_queue.put_nowait(langgraph_trigger_event)
-                print(f"[{os.getpid()}] [Processing Process] Triggered langgraph for high threat level in session {session_id}")
-            except Exception as e:
-                print(f"[{os.getpid()}] [Processing Process] Failed to trigger langgraph: {e}")
+            if can_trigger_langgraph(session_id):
+                try:
+                    langgraph_trigger_event = {
+                        "type": "trigger_langgraph",
+                        "session_id": session_id,
+                        "message": "I am here to visit someone"
+                    }
+                    socketio_events_queue.put_nowait(langgraph_trigger_event)
+                    update_langgraph_trigger_time(session_id)
+                    print(f"[{os.getpid()}] [Processing Process] Triggered langgraph for high threat level in session {session_id}")
+                except Exception as e:
+                    print(f"[{os.getpid()}] [Processing Process] Failed to trigger langgraph: {e}")
+            else:
+                print(f"[{os.getpid()}] [Processing Process] Langgraph trigger skipped for session {session_id} - cooldown active")
 
         is_dangerous = validated_vision_schema.get("dangerous_object", False)
         is_angry = validated_vision_schema.get("angry_face", False)
