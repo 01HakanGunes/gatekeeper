@@ -133,13 +133,6 @@ def analyze_threat_level_node(state: State) -> State:
         state["visitor_profile"]["threat_level"] = threat_level
         print(f"🔍 Vision analysis result: {vision_data}")
 
-    # Print current visitor profile status for debugging
-    print(f"\n📋 Current Visitor Profile (after threat analysis):")
-    for field, value in state["visitor_profile"].items():
-        status = "✅" if value is not None and value != "-1" else "❌"
-        print(f"  {status} {field}: {value}")
-    print()
-
     return state
 
 
@@ -216,6 +209,7 @@ def question_visitor(state: State) -> State:
     """
     Ask specific questions for missing visitor profile fields.
     """
+
     # Get questions from prompt manager
     known_contacts_list = ", ".join(CONTACTS.keys())
 
@@ -243,7 +237,7 @@ def question_visitor(state: State) -> State:
 
             question = AIMessage(content=question_text)
             state["messages"].append(question)
-            print(f"🤔 Asking for missing field: {field}")
+            state["agent_response"] = question
             return state
 
     # Fallback if somehow all fields are filled but we're still here
@@ -252,4 +246,5 @@ def question_visitor(state: State) -> State:
     ]
     question = AIMessage(content=fallback_question)
     state["messages"].append(question)
+    state["agent_response"] = question
     return state

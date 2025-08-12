@@ -15,7 +15,7 @@ def make_decision(state: State) -> State:
     Make a security decision based on visitor profile and conversation context.
     Uses LLM to analyze all information and choose appropriate action with structured JSON output.
     """
-    # Get visitor profile and conversation context
+
     profile = state["visitor_profile"]
     messages = state["messages"]
     if state["vision_schema"] is None:
@@ -24,7 +24,9 @@ def make_decision(state: State) -> State:
 
     if threat_level_value == "high":
         state["decision"] = "call_security"
+        state["agent_response"] = "Security called"
         return state
+
     # Get recent conversation context for decision making
     conversation_text = "\n".join(
         [
@@ -94,20 +96,11 @@ def make_decision(state: State) -> State:
             message_content = (
                 f"{decision_messages[decision_result]} (Confidence: {confidence:.2f})"
             )
-            state["messages"].append(AIMessage(content=message_content))
+            state["agent_response"] = message_content
 
             print(f"🔒 Security Decision: {decision_result.upper()}")
             print(f"📊 Confidence: {confidence:.2f}")
             print(f"📋 Reason: {reasoning}")
-
-            # Log threat indicators if any
-            if (
-                "threat_indicators" in decision_data
-                and decision_data["threat_indicators"]
-            ):
-                print(
-                    f"⚠️ Threat Indicators: {', '.join(decision_data['threat_indicators'])}"
-                )
 
             return state
 
@@ -120,7 +113,7 @@ def make_decision(state: State) -> State:
         fallback_message = prompt_manager.get_data("decision", "fallback_messages")[
             "unclear_decision"
         ]
-        state["messages"].append(AIMessage(content=fallback_message))
+        state["agent_response"] = fallback_message
         return state
 
     except (json.JSONDecodeError, KeyError, Exception) as error:
@@ -131,7 +124,7 @@ def make_decision(state: State) -> State:
         error_message = prompt_manager.get_data("decision", "fallback_messages")[
             "error_decision"
         ]
-        state["messages"].append(AIMessage(content=error_message))
+        state["agent_response"] = error_message
         return state
 
 
@@ -178,14 +171,12 @@ def notify_contact(state: State) -> State:
             if tool_calls:
                 tool_node = ToolNode(tools=tools)
                 # Execute the tool calls
-                tool_result = tool_node.invoke({"messages": [response]})
+                tool_node.invoke({"messages": [response]})
 
                 success_message = prompt_manager.get_data(
                     "communication", "notification_messages"
                 )["success"]
-                state["messages"].append(
-                    AIMessage(content=success_message.format(contact_name=contact_name))
-                )
+                state["agent_response"] = success_message.format(contact_name=contact_name)
                 print(f"✅ Email notification sent to {contact_name}")
             else:
                 print(f"⚠️ Failed to send email notification to {contact_name}")

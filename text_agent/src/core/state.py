@@ -28,5 +28,6 @@ class State(TypedDict):
     decision_reasoning: Optional[str]
     vision_schema: Optional[VisionSchema]  # stores vision analysis results
     user_input: str
+    agent_response: str
     invalid_input: bool
     session_active: bool

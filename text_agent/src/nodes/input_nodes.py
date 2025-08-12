@@ -22,11 +22,6 @@ def receive_input(state: State) -> State:
     Handle user input with validation and conversation history display.
     """
 
-
-    # Debug: Print all state messages
-    print("All messages: ")
-    print(state["messages"])
-
     # Basic check for empty input
     user_input = state.get("user_input", "")
     state["invalid_input"] = False
@@ -67,7 +62,7 @@ def receive_input(state: State) -> State:
             print(f"Agent: {invalid_message}")
 
             message = AIMessage(content=f"Agent: {invalid_message}")
-            state["messages"].append(message)
+            state["agent_response"] =  message
 
             state["invalid_input"] = True
             return state
@@ -80,13 +75,6 @@ def receive_input(state: State) -> State:
         print(f"⚠️ Input validation error: {error}")
         # If validation fails, default to valid to avoid blocking legitimate users
         state["messages"].append(HumanMessage(content=user_input))
-
-    # Print current visitor profile status after each user input for debugging
-    print("\n📋 Visitor Profile Status (after user input):")
-    for field, value in state["visitor_profile"].items():
-        status = "✅" if value is not None and value != "-1" else "❌"
-        print(f"  {status} {field}: {value}")
-    print()
 
     return state
 
@@ -149,37 +137,24 @@ def detect_session(state: State) -> Literal["same", "new"]:
             raise ValueError("Response content is not a string")
 
         session_type = session_data.get("session_type", "same").lower()
-        confidence = session_data.get("confidence", 0.0)
-        indicators = session_data.get("indicators", [])
-        greeting_detected = session_data.get("greeting_detected", False)
 
         # Validate session type
         if session_type in ["new", "same"]:
-            print(
-                f"🔍 Session detection: {session_type.upper()} (confidence: {confidence:.2f})"
-            )
-            if indicators:
-                print(f"📝 Indicators: {', '.join(indicators)}")
-            if greeting_detected:
-                print("👋 New greeting/introduction detected")
             return session_type
         else:
-            print("⚠️ Invalid session type in JSON response, defaulting to same session")
             return "same"
 
     except (json.JSONDecodeError, KeyError, Exception) as error:
         print(f"⚠️ JSON session detection failed: {error}")
-        # Default to same session if JSON detection fails
-        print("🔄 Session detection: Defaulting to same session")
         return "same"
 
 
 def check_context_length(state: State) -> Literal["over_limit", "under_limit"]:
     """
     Check if conversation context is too long by counting human messages.
-
     Limits conversation to x human messages to keep context manageable.
     """
+
     # Count human messages
     human_message_count = 0
     for message in state["messages"]:
@@ -376,7 +351,7 @@ def reset_conversation(state: State) -> State:
     Reset conversation for a new visitor by clearing the entire state.
     """
     # Keep reference to the new visitor's message
-    # new_visitor_message = state["messages"][-1] if state["messages"] else None
+    agent_feedback = state["messages"][-1] if state["messages"] else None
 
     # Clear the whole state
     _clear_state(state)
@@ -384,8 +359,8 @@ def reset_conversation(state: State) -> State:
     # Create new message list with initial system message and new visitor's message
     system_msg_content = prompt_manager.format_prompt("input", "system_message")
     state["messages"].append(SystemMessage(content=system_msg_content))
-    # if new_visitor_message:
-    #     state["messages"].append(new_visitor_message)
+    if agent_feedback:
+        state["agent_response"] = agent_feedback + "debug reset state"
 
     print("🔄 Reset conversation: Properly cleared state for new visitor")
     return state

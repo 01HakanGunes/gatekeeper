@@ -91,7 +91,7 @@ def _get_agent_response(updated_state):
         if hasattr(last_msg, 'content'):
             assistant_response = last_msg.content
     session_complete = bool(updated_state.get("decision"))
-    print("Assistant response: " + assistant_response)
+    print("!!!!!!!!!!!!!!!Debug")
     return assistant_response, session_complete
 
 async def reset_session_state(sid: str):
