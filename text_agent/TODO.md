@@ -2,10 +2,7 @@
 
 ## Bugs/Fixes
 
-- Frontend cannot display direct string returend from socket event?
-
-- When the final decision happens i need to reset the state but the last message from state is used as the user feedback. Fix that
-  (use a seperate field)
+- Deploy to server
 
 - Add the decisions as seperate tools.
 
@@ -13,7 +10,7 @@
 
 - My .env data is not passed.
 
-- Put a cooldown to send messages from cleint
+- Put a cooldown to send messages from clint
 
 ## Features
 
@@ -26,10 +23,6 @@
 - If cargo arrived, check if a cargo is expected (logged), in a file if not reject (send notification)
 
 ## Testing
-
-- Send multiple messages
-
-- !Test the whole tree and complete the process.
 
 - Test with multiple sessions.
 

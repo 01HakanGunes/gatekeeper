@@ -4,7 +4,7 @@ name: Deploy to Self-Hosted Server
 on:
   push:
     branches:
-      - main
+      - final-week-wednesday
 
 jobs:
   deploy:
