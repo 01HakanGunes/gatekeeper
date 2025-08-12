@@ -62,7 +62,7 @@ def receive_input(state: State) -> State:
             print(f"Agent: {invalid_message}")
 
             message = AIMessage(content=f"Agent: {invalid_message}")
-            state["agent_response"] =  message
+            state["agent_response"] =  f"Agent: {invalid_message}"
 
             state["invalid_input"] = True
             return state
@@ -359,8 +359,9 @@ def reset_conversation(state: State) -> State:
     # Create new message list with initial system message and new visitor's message
     system_msg_content = prompt_manager.format_prompt("input", "system_message")
     state["messages"].append(SystemMessage(content=system_msg_content))
-    if agent_feedback:
-        state["agent_response"] = agent_feedback + "debug reset state"
+    # TODO:
+    #if agent_feedback:
+    #    state["agent_response"] = "debug reset state"
 
     print("🔄 Reset conversation: Properly cleared state for new visitor")
     return state

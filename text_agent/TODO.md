@@ -2,6 +2,8 @@
 
 ## Bugs/Fixes
 
+- Frontend cannot display direct string returend from socket event?
+
 - When the final decision happens i need to reset the state but the last message from state is used as the user feedback. Fix that
   (use a seperate field)
 

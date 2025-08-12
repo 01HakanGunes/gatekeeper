@@ -237,7 +237,7 @@ def question_visitor(state: State) -> State:
 
             question = AIMessage(content=question_text)
             state["messages"].append(question)
-            state["agent_response"] = question
+            state["agent_response"] = question_text
             return state
 
     # Fallback if somehow all fields are filled but we're still here
@@ -246,5 +246,5 @@ def question_visitor(state: State) -> State:
     ]
     question = AIMessage(content=fallback_question)
     state["messages"].append(question)
-    state["agent_response"] = question
+    state["agent_response"] = fallback_question
     return state

@@ -83,16 +83,17 @@ class ImageUploadResponse(BaseModel):
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 
 # --- Helper Functions ---
+# TODO: This is supposed to use the agent_response field inside the state.
 def _get_agent_response(updated_state):
     """Extracts the agent response and completion status from the state."""
-    assistant_response = ""
-    if updated_state["messages"]:
-        last_msg = updated_state["messages"][-1]
-        if hasattr(last_msg, 'content'):
-            assistant_response = last_msg.content
+    agent_response = ""
+    if updated_state["agent_response"]:
+        # We entered here
+        agent_response = updated_state["agent_response"]
+        # Execution cannot access here. The following is not printed. Nothing is accessible after this.
+        print("!!!!!!Response returned: " + agent_response)
     session_complete = bool(updated_state.get("decision"))
-    print("!!!!!!!!!!!!!!!Debug")
-    return assistant_response, session_complete
+    return agent_response, session_complete
 
 async def reset_session_state(sid: str):
     """Reset session state immediately when session becomes inactive."""
