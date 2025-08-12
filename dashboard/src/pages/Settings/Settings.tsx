@@ -1,24 +1,24 @@
-import React, { useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useApi } from "../../hooks/useApi";
+import { useState, useCallback, useEffect } from "react";
+import { useSocket } from "../../hooks/useSocket";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
-import { API_BASE_URL, UI_CONSTANTS } from "../../utils/constants";
+import { SOCKET_BASE_URL, UI_CONSTANTS } from "../../utils/constants";
 import styles from "./Settings.module.css";
 
 interface SettingsData {
-  apiEndpoint: string;
+  socketEndpoint: string;
   refreshInterval: number;
   autoRefresh: boolean;
   showTimestamps: boolean;
   enableNotifications: boolean;
 }
 
-const Settings: React.FC = () => {
-  const { health, fetchHealth } = useApi();
+function Settings() {
+  const { health, fetchHealth, connectionStatus } = useSocket();
 
   const [settings, setSettings] = useState<SettingsData>({
-    apiEndpoint: API_BASE_URL,
+    socketEndpoint: SOCKET_BASE_URL,
     refreshInterval: UI_CONSTANTS.REFRESH_INTERVAL / 1000, // Convert to seconds
     autoRefresh: true,
     showTimestamps: true,
@@ -89,7 +89,7 @@ const Settings: React.FC = () => {
 
   const handleReset = useCallback(() => {
     const defaultSettings: SettingsData = {
-      apiEndpoint: API_BASE_URL,
+      socketEndpoint: SOCKET_BASE_URL,
       refreshInterval: UI_CONSTANTS.REFRESH_INTERVAL / 1000,
       autoRefresh: true,
       showTimestamps: true,
@@ -167,27 +167,28 @@ const Settings: React.FC = () => {
               Current status and information about the security gate system.
             </p>
 
+            <div
+              className={`${styles.connectionStatus} ${
+                connectionStatus === "connected"
+                  ? styles.connectionOnline
+                  : styles.connectionOffline
+              }`}
+            >
+              <div
+                className={`${styles.connectionDot} ${
+                  connectionStatus === "connected"
+                    ? styles.connectionDotOnline
+                    : styles.connectionDotOffline
+                }`}
+              />
+              {connectionStatus === "connected" && "Socket Connected"}
+              {connectionStatus === "connecting" && "Connecting..."}
+              {connectionStatus === "reconnecting" && "Reconnecting..."}
+              {connectionStatus === "disconnected" && "Disconnected"}
+            </div>
+
             {health.data && (
               <>
-                <div
-                  className={`${styles.connectionStatus} ${
-                    health.data.status === "healthy"
-                      ? styles.connectionOnline
-                      : styles.connectionOffline
-                  }`}
-                >
-                  <div
-                    className={`${styles.connectionDot} ${
-                      health.data.status === "healthy"
-                        ? styles.connectionDotOnline
-                        : styles.connectionDotOffline
-                    }`}
-                  />
-                  {health.data.status === "healthy"
-                    ? "System Healthy"
-                    : "System Error"}
-                </div>
-
                 <div className={styles.statusGrid}>
                   <div className={styles.statusCard}>
                     <div className={styles.statusLabel}>Status</div>
@@ -221,22 +222,23 @@ const Settings: React.FC = () => {
             </Button>
           </section>
 
-          {/* API Configuration */}
+          {/* Socket Configuration */}
           <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>API Configuration</h2>
+            <h2 className={styles.sectionTitle}>Socket Configuration</h2>
             <p className={styles.sectionDescription}>
-              Configure the connection to your security gate backend.
+              Configure the connection to your security gate backend via
+              Socket.IO.
             </p>
 
             <div className={styles.formGroup}>
               <Input
-                label="API Endpoint"
+                label="Socket Endpoint"
                 placeholder="http://localhost:8001"
-                value={settings.apiEndpoint}
+                value={settings.socketEndpoint}
                 onChange={(e) =>
-                  handleSettingChange("apiEndpoint", e.target.value)
+                  handleSettingChange("socketEndpoint", e.target.value)
                 }
-                helperText="The base URL for your security gate API"
+                helperText="The base URL for your security gate Socket.IO server"
               />
             </div>
 
@@ -253,7 +255,7 @@ const Settings: React.FC = () => {
                     parseInt(e.target.value),
                   )
                 }
-                helperText="How often to refresh data from the API"
+                helperText="How often to refresh data from the socket server"
               />
             </div>
           </section>
@@ -338,6 +340,6 @@ const Settings: React.FC = () => {
       </main>
     </div>
   );
-};
+}
 
 export default Settings;

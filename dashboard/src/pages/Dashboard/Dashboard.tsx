@@ -1,31 +1,29 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { useApi } from "../../hooks/useApi";
+import { useSocket } from "../../hooks/useSocket";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
 import Camera, { type CameraRef } from "../../components/Camera/Camera";
 import { UI_CONSTANTS } from "../../utils/constants";
-import type { Message, VisitorProfile } from "../../services/apiClient";
+import type { Message, VisitorProfile } from "../../services/socketClient";
 import ThreatLogView from "../../components/ThreatLog/ThreatLog";
 import styles from "./Dashboard.module.css";
 
-const Dashboard: React.FC = () => {
+function Dashboard() {
   const {
-    session,
-    startSession,
-    endSession,
+    connectionStatus,
     messages,
     sendMessage,
     profile,
     fetchProfile,
     health,
     fetchHealth,
-    currentSessionId,
     imageUpload,
     uploadImage,
     threatLogs,
     fetchThreatLogs,
-  } = useApi();
+  } = useSocket();
 
   const cameraRef = useRef<CameraRef>(null);
   const [messageInput, setMessageInput] = useState("");
@@ -40,15 +38,13 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       fetchHealth();
-      if (currentSessionId) {
-        fetchProfile();
-      }
+      fetchProfile();
     }, UI_CONSTANTS.REFRESH_INTERVAL);
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [fetchHealth, fetchProfile, currentSessionId]);
+  }, [fetchHealth, fetchProfile]);
 
   // Auto-refresh threat logs
   useEffect(() => {
@@ -63,7 +59,7 @@ const Dashboard: React.FC = () => {
 
   // Auto-upload image every 2 seconds
   useEffect(() => {
-    if (!cameraEnabled || !currentSessionId) {
+    if (!cameraEnabled) {
       return;
     }
 
@@ -74,18 +70,18 @@ const Dashboard: React.FC = () => {
           await uploadImage(capturedImage);
         }
       }
-    }, 2000);
+    }, 500);
 
     return () => {
       clearInterval(imageUploadInterval);
     };
-  }, [cameraEnabled, currentSessionId, uploadImage]);
+  }, [cameraEnabled, uploadImage]);
 
   const handleSendMessage = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
 
-      if (!messageInput.trim() || !currentSessionId) return;
+      if (!messageInput.trim()) return;
 
       const messageContent = messageInput.trim();
       setMessageInput("");
@@ -102,7 +98,7 @@ const Dashboard: React.FC = () => {
       }
 
       // Send message with freshly captured image
-      await sendMessage(messageContent, capturedImage);
+      sendMessage(messageContent);
 
       // If we have separate endpoint enabled and an image, upload it separately
       if (uploadToSeparateEndpoint && capturedImage) {
@@ -114,24 +110,12 @@ const Dashboard: React.FC = () => {
     },
     [
       messageInput,
-      currentSessionId,
       sendMessage,
       cameraEnabled,
       uploadToSeparateEndpoint,
       uploadImage,
     ],
   );
-
-  const handleStartSession = useCallback(async () => {
-    await startSession();
-  }, [startSession]);
-
-  const handleEndSession = useCallback(async () => {
-    await endSession();
-    // Reset camera state when session ends
-    setCameraEnabled(false);
-    setLastCapturedImage(null);
-  }, [endSession]);
 
   const handleCameraToggle = useCallback((enabled: boolean) => {
     setCameraEnabled(enabled);
@@ -201,7 +185,7 @@ const Dashboard: React.FC = () => {
     icon: string,
     title: string,
     subtitle: string,
-    action?: React.ReactNode,
+    action?: ReactNode,
   ) => (
     <div className={styles.emptyState}>
       <div className={styles.emptyStateIcon}>{icon}</div>
@@ -294,6 +278,28 @@ const Dashboard: React.FC = () => {
       <header className={styles.header}>
         <h1 className={styles.headerTitle}>Security Gate Dashboard</h1>
         <div className={styles.statusContainer}>
+          {/* Connection Status */}
+          <div
+            className={`${styles.statusIndicator} ${
+              connectionStatus === "connected"
+                ? styles.statusOnline
+                : styles.statusOffline
+            }`}
+          >
+            <div
+              className={`${styles.statusDot} ${
+                connectionStatus === "connected"
+                  ? styles.statusDotOnline
+                  : styles.statusDotOffline
+              }`}
+            />
+            {connectionStatus === "connected" && "Socket Connected"}
+            {connectionStatus === "connecting" && "Connecting..."}
+            {connectionStatus === "reconnecting" && "Reconnecting..."}
+            {connectionStatus === "disconnected" && "Disconnected"}
+          </div>
+
+          {/* System Health */}
           {health.data && (
             <div
               className={`${styles.statusIndicator} ${
@@ -339,74 +345,26 @@ const Dashboard: React.FC = () => {
         <aside className={styles.sidebar}>
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Session Info</h2>
-              <div className={styles.sectionActions}>
-                {currentSessionId ? (
-                  <Button
-                    variant="danger"
-                    size="small"
-                    onClick={handleEndSession}
-                    loading={session.loading}
-                  >
-                    End Session
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    size="small"
-                    onClick={handleStartSession}
-                    loading={session.loading}
-                  >
-                    Start Session
-                  </Button>
-                )}
-              </div>
+              <h2 className={styles.sectionTitle}>Visitor Profile</h2>
             </div>
             <div className={styles.profileContent}>
-              {!currentSessionId &&
+              {!profile.data &&
+                connectionStatus === "connected" &&
                 renderEmptyState(
-                  "🔒",
-                  "No Active Session",
-                  "Start a new session to begin visitor screening",
-                  <Button
-                    variant="primary"
-                    size="small"
-                    onClick={handleStartSession}
-                    loading={session.loading}
-                  >
-                    Start New Session
-                  </Button>,
+                  "👤",
+                  "No Profile Data",
+                  "Waiting for visitor information...",
                 )}
 
-              {currentSessionId && !profile.data && (
-                <div className={styles.sessionActive}>
-                  <div className={styles.sessionId}>
-                    Session ID: {currentSessionId}
-                  </div>
-                  <div className={styles.sessionStatus}>
-                    Status: <span className={styles.statusActive}>Active</span>
-                  </div>
-                </div>
-              )}
+              {connectionStatus !== "connected" &&
+                renderEmptyState(
+                  "🔌",
+                  "Not Connected",
+                  "Connecting to security system...",
+                )}
 
               {profile.data && (
                 <div className={styles.profileData}>
-                  <div className={styles.sessionId}>
-                    Session ID: {currentSessionId}
-                  </div>
-                  <div className={styles.sessionStatus}>
-                    Status:{" "}
-                    <span
-                      className={
-                        profile.data.session_active
-                          ? styles.statusActive
-                          : styles.statusComplete
-                      }
-                    >
-                      {profile.data.session_active ? "Active" : "Complete"}
-                    </span>
-                  </div>
-
                   {profile.data.decision && (
                     <div className={styles.decisionContainer}>
                       <div
@@ -418,7 +376,10 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className={styles.confidence}>
                         Confidence:{" "}
-                        {(profile.data.decision_confidence * 100).toFixed(1)}%
+                        {profile.data.decision_confidence !== null
+                          ? (profile.data.decision_confidence * 100).toFixed(1)
+                          : "N/A"}
+                        %
                       </div>
                     </div>
                   )}
@@ -431,65 +392,61 @@ const Dashboard: React.FC = () => {
                 renderErrorState(profile.error, () => fetchProfile())}
             </div>
             {/* Camera Section */}
-            {currentSessionId && (
-              <div className={styles.cameraSection}>
-                <Camera
-                  ref={cameraRef}
-                  enabled={cameraEnabled}
-                  onToggle={handleCameraToggle}
-                  onCapture={handleCameraCapture}
-                />
+            <div className={styles.cameraSection}>
+              <Camera
+                ref={cameraRef}
+                enabled={cameraEnabled}
+                onToggle={handleCameraToggle}
+                onCapture={handleCameraCapture}
+              />
 
-                {cameraEnabled && (
-                  <div className={styles.separateUploadToggle}>
-                    <div className={styles.separateUploadLabel}>
-                      <div className={styles.separateUploadTitle}>
-                        Separate Upload
-                      </div>
-                      <div className={styles.separateUploadDescription}>
-                        Also send images to separate endpoint
-                      </div>
+              {cameraEnabled && (
+                <div className={styles.separateUploadToggle}>
+                  <div className={styles.separateUploadLabel}>
+                    <div className={styles.separateUploadTitle}>
+                      Separate Upload
                     </div>
-                    <div
-                      className={`${styles.separateUploadSwitch} ${
-                        uploadToSeparateEndpoint ? styles.active : ""
-                      }`}
-                      onClick={() =>
-                        handleSeparateEndpointToggle(!uploadToSeparateEndpoint)
+                    <div className={styles.separateUploadDescription}>
+                      Also send images to separate endpoint
+                    </div>
+                  </div>
+                  <div
+                    className={`${styles.separateUploadSwitch} ${
+                      uploadToSeparateEndpoint ? styles.active : ""
+                    }`}
+                    onClick={() =>
+                      handleSeparateEndpointToggle(!uploadToSeparateEndpoint)
+                    }
+                    role="switch"
+                    aria-checked={uploadToSeparateEndpoint}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleSeparateEndpointToggle(!uploadToSeparateEndpoint);
                       }
-                      role="switch"
-                      aria-checked={uploadToSeparateEndpoint}
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleSeparateEndpointToggle(
-                            !uploadToSeparateEndpoint,
-                          );
-                        }
-                      }}
-                    >
-                      <div className={styles.separateUploadKnob} />
-                    </div>
+                    }}
+                  >
+                    <div className={styles.separateUploadKnob} />
                   </div>
-                )}
+                </div>
+              )}
 
-                {lastCapturedImage && (
-                  <div className={styles.imageStatus}>
-                    <div className={styles.imageStatusText}>
-                      <span className={styles.imageStatusIcon}>📸</span> Last
-                      captured frame (new frame will be taken on send)
-                    </div>
+              {lastCapturedImage && (
+                <div className={styles.imageStatus}>
+                  <div className={styles.imageStatusText}>
+                    <span className={styles.imageStatusIcon}>📸</span> Last
+                    captured frame (new frame will be taken on send)
                   </div>
-                )}
+                </div>
+              )}
 
-                {imageUpload.error && (
-                  <div className={styles.uploadError}>
-                    Upload error: {imageUpload.error}
-                  </div>
-                )}
-              </div>
-            )}
+              {imageUpload.error && (
+                <div className={styles.uploadError}>
+                  Upload error: {imageUpload.error}
+                </div>
+              )}
+            </div>
           </div>
         </aside>
 
@@ -504,26 +461,26 @@ const Dashboard: React.FC = () => {
                   size="small"
                   onClick={() => fetchProfile()}
                   loading={profile.loading}
-                  disabled={!currentSessionId}
+                  disabled={connectionStatus !== "connected"}
                 >
-                  🔄
+                  Refresh Profile
                 </Button>
               </div>
             </div>
             <div className={styles.messagesContainer}>
-              {!currentSessionId &&
+              {connectionStatus !== "connected" &&
                 renderEmptyState(
-                  "💬",
-                  "No Active Session",
-                  "Start a session to begin chatting with the security agent",
+                  "🔌",
+                  "Not Connected",
+                  "Connecting to security agent...",
                 )}
 
-              {currentSessionId &&
+              {connectionStatus === "connected" &&
                 messages.data &&
                 messages.data.length === 0 &&
                 renderEmptyState(
                   "👋",
-                  "Session Started",
+                  "Ready to Chat",
                   "Start the conversation by sending a message",
                 )}
 
@@ -550,29 +507,30 @@ const Dashboard: React.FC = () => {
                     maxLength={UI_CONSTANTS.MESSAGE_MAX_LENGTH}
                     showCharacterCount
                     rows={2}
-                    disabled={!currentSessionId}
+                    disabled={connectionStatus !== "connected"}
                     variant={messages.error ? "error" : "default"}
                     helperText={
-                      !currentSessionId
-                        ? "Start a session to begin chatting"
+                      connectionStatus !== "connected"
+                        ? "Connect to begin chatting"
                         : messages.error
                           ? "Failed to send message. Please try again."
                           : undefined
                     }
                   />
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="small"
+                    disabled={
+                      !messageInput.trim() ||
+                      connectionStatus !== "connected" ||
+                      messageInput.length > UI_CONSTANTS.MESSAGE_MAX_LENGTH
+                    }
+                    loading={false}
+                  >
+                    Send
+                  </Button>
                 </div>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={
-                    !messageInput.trim() ||
-                    !currentSessionId ||
-                    messageInput.length > UI_CONSTANTS.MESSAGE_MAX_LENGTH
-                  }
-                  loading={messages.loading || imageUpload.loading}
-                >
-                  {cameraEnabled ? "Send with 📸" : "Send"}
-                </Button>
               </form>
             </div>
           </div>
@@ -589,6 +547,6 @@ const Dashboard: React.FC = () => {
       </main>
     </div>
   );
-};
+}
 
 export default Dashboard;

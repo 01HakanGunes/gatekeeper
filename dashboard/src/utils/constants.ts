@@ -1,13 +1,29 @@
-export const API_BASE_URL = "http://localhost:8001";
+export const SOCKET_BASE_URL = "http://localhost:8001";
 
-export const API_ENDPOINTS = {
-  START_SESSION: "/start-session",
-  CHAT: "/chat",
-  PROFILE: "/profile",
-  END_SESSION: "/end-session",
-  HEALTH: "/health",
-  IMAGE_UPLOAD: "/upload-image",
-  THREAT_LOGS: "/threat-logs",
+export const SOCKET_EVENTS = {
+  // Client to server events
+  SEND_MESSAGE: "send_message",
+  GET_PROFILE: "get_profile",
+  REQUEST_HEALTH_CHECK: "request_health_check",
+  UPLOAD_IMAGE: "upload_image",
+  REQUEST_THREAT_LOGS: "request_threat_logs",
+
+  // Server to client events (responses)
+  CHAT_RESPONSE: "chat_response",
+  PROFILE_DATA: "profile_data",
+  HEALTH_STATUS: "health_status",
+  IMAGE_UPLOAD_RESPONSE: "image_upload_response",
+  THREAT_LOGS: "threat_logs",
+
+  // Real-time events from server
+  SYSTEM_STATUS: "system_status",
+  NOTIFICATION: "notification",
+  STATUS: "status",
+  ERROR: "error",
+
+  // Connection events
+  CONNECT: "connect",
+  DISCONNECT: "disconnect",
 } as const;
 
 export const UI_CONSTANTS = {
@@ -23,16 +39,7 @@ export const ERROR_MESSAGES = {
   UNAUTHORIZED: "Unauthorized access. Please check your credentials.",
   SERVER_ERROR: "Server error occurred. Please try again later.",
   INVALID_MESSAGE: "Please enter a valid message.",
-  SESSION_ERROR: "Session error. Please start a new session.",
+
   CAMERA_ERROR: "Camera access denied or not available.",
   IMAGE_CAPTURE_ERROR: "Failed to capture image from camera.",
 } as const;
-
-export const SESSION_STATUS = {
-  ACTIVE: "active",
-  COMPLETED: "completed",
-  ENDED: "ended",
-} as const;
-
-export type SessionStatus =
-  (typeof SESSION_STATUS)[keyof typeof SESSION_STATUS];

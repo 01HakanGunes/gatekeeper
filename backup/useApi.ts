@@ -23,7 +23,7 @@ interface UseApiReturn {
 
   // Chat
   messages: UseApiState<Message[]>;
-  sendMessage: (message: string, image?: string) => Promise<void>;
+  sendMessage: (message: string) => Promise<void>;
 
   // Profile
   profile: UseApiState<ProfileResponse>;
@@ -94,7 +94,8 @@ export const useApi = (): UseApiReturn => {
     messages.loading ||
     profile.loading ||
     health.loading ||
-    imageUpload.loading || threatLogs.loading;
+    imageUpload.loading ||
+    threatLogs.loading;
 
   const startSession = useCallback(async (): Promise<string | null> => {
     setSession((prev) => ({ ...prev, loading: true, error: null }));
@@ -153,7 +154,7 @@ export const useApi = (): UseApiReturn => {
   }, [currentSessionId]);
 
   const sendMessage = useCallback(
-    async (messageContent: string, image?: string): Promise<void> => {
+    async (messageContent: string): Promise<void> => {
       if (!currentSessionId) {
         setMessages((prev) => ({
           ...prev,
@@ -181,7 +182,6 @@ export const useApi = (): UseApiReturn => {
         const response = await apiClient.sendMessage(
           currentSessionId,
           messageContent,
-          image,
         );
 
         // Add agent response to the list
