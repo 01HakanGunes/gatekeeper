@@ -2,9 +2,8 @@
 
 ## Bugs/Fixes
 
-- Stop development debug then merge into main with frontend
-
 - Each time threat level high extracted, another invoke to the graph in parallel happens. Instead of this only fetch from the state, when thet high threat detected somehow stop the processing of following high threat frames until the state is cleared and session initialized again from scratch.
+  (Add a limit to let each sid to have only 1 trigger langgraph request in the event queue)
 
 - Analyze threat level node is depreacted delete it.
 

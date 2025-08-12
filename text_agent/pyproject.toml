@@ -1,6 +1,5 @@
 [project]
 name = "my-python-project"
-version = "0.1.0"
 
 [tool.pyright]
 venvPath = "."
