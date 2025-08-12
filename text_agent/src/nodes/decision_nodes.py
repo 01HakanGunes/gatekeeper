@@ -24,6 +24,7 @@ def make_decision(state: State) -> State:
 
     if threat_level_value == "high":
         state["decision"] = "call_security"
+        return state
     # Get recent conversation context for decision making
     conversation_text = "\n".join(
         [

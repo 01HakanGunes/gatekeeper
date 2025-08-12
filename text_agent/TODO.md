@@ -2,10 +2,8 @@
 
 ## Bugs/Fixes
 
-- Debug print if the state cleared.
-
-- John Doe is the name after the session ends. It doesnt reset the session probably.
-
+- When the final decision happens i need to reset the state but the last message from state is used as the user feedback. Fix that
+  (use a seperate field)
 - Add the decisions as seperate tools.
 
 - Too slow

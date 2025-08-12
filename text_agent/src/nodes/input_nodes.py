@@ -376,7 +376,7 @@ def reset_conversation(state: State) -> State:
     Reset conversation for a new visitor by clearing the entire state.
     """
     # Keep reference to the new visitor's message
-    new_visitor_message = state["messages"][-1] if state["messages"] else None
+    # new_visitor_message = state["messages"][-1] if state["messages"] else None
 
     # Clear the whole state
     _clear_state(state)
@@ -384,8 +384,8 @@ def reset_conversation(state: State) -> State:
     # Create new message list with initial system message and new visitor's message
     system_msg_content = prompt_manager.format_prompt("input", "system_message")
     state["messages"].append(SystemMessage(content=system_msg_content))
-    if new_visitor_message:
-        state["messages"].append(new_visitor_message)
+    # if new_visitor_message:
+    #     state["messages"].append(new_visitor_message)
 
     print("🔄 Reset conversation: Properly cleared state for new visitor")
     return state

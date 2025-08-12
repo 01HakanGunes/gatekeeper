@@ -104,7 +104,7 @@ async def reset_session_state(sid: str):
 
     state = session_states[sid]
     # Clear state
-    state["messages"].clear()
+    state["messages"] = []
     state["visitor_profile"] = {
         "name": None,
         "purpose": None,
@@ -178,6 +178,8 @@ async def send_message(sid: str, data: Dict[str, Any]):
             current_state,
             {"recursion_limit": DEFAULT_RECURSION_LIMIT}
         )
+
+        print_state(updated_state)
 
         # Update stored state
         async with sessions_lock:
@@ -475,3 +477,43 @@ async def start_state_processor_if_needed():
         asyncio.create_task(process_state_requests())
         _state_processor_started = True
         print("🔄 Started state processor")
+
+
+def print_state(state):
+    """Print State object in a concise format"""
+    print("=== State ===")
+    print(f"Session Active: {state.get('session_active', False)}")
+    print(f"User Input: {state.get('user_input', '')}")
+    print(f"Invalid Input: {state.get('invalid_input', False)}")
+
+    # Visitor Profile
+    profile = state.get('visitor_profile', {})
+    if profile:
+        print("\n--- Visitor Profile ---")
+        for key, value in profile.items():
+            print(f"{key}: {value}")
+
+    # Vision Analysis
+    vision = state.get('vision_schema')
+    if vision:
+        print("\n--- Vision Analysis ---")
+        print(f"Face Detected: {vision.get('face_detected')}")
+        print(f"Angry Face: {vision.get('angry_face')}")
+        print(f"Dangerous Object: {vision.get('dangerous_object')}")
+        print(f"Threat Level: {vision.get('threat_level')}")
+        print(f"Details: {vision.get('details')}")
+
+    # Decision
+    print(f"\n--- Decision ---")
+    print(f"Decision: {state.get('decision', 'N/A')}")
+    print(f"Confidence: {state.get('decision_confidence', 'N/A')}")
+    print(f"Reasoning: {state.get('decision_reasoning', 'N/A')}")
+
+    # Messages
+    messages = state.get('messages', [])
+    print(f"\n--- Messages ({len(messages)} item(s)) ---")
+    for i, msg in enumerate(messages):
+        if hasattr(msg, 'content'):  # LangChain message object
+            print(f"{i+1}. {msg.content}")
+        else:  # Regular string or dict
+            print(f"{i+1}. {msg}")

@@ -98,7 +98,6 @@ def create_security_graph():
         "make_decision",
         check_decision_for_notification,
         {
-            "call_security": "reset_conversation",
             "notify": "notify_contact",
             "end": "reset_conversation",
         },
