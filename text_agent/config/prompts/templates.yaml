@@ -79,7 +79,7 @@ processing:
 
       Instructions:
       - Extract only the specific information requested for each field
-      - Do not mix the visitors name (I am John Doe) with their contact person's name (I am here to visit John Doe)
+      - Do not mix the visitors name  with their contact person's name
       - If a field cannot be found or determined, set its value to -1
       - Provide confidence scores between 0 and 1 for each extraction
 

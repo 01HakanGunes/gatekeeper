@@ -23,9 +23,6 @@ def make_decision(state: State) -> State:
     threat_level_value = state["vision_schema"]["threat_level"]
 
     if threat_level_value == "high":
-        state["messages"].append(
-            AIMessage("Yardım edin imdaaat!!!!")
-        )
         state["decision"] = "call_security"
     # Get recent conversation context for decision making
     conversation_text = "\n".join(

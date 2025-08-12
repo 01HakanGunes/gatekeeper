@@ -21,7 +21,7 @@ class VisionSchema(TypedDict):
 
 
 class State(TypedDict):
-    messages: Annotated[list, add_messages]
+    messages: list
     visitor_profile: VisitorProfile
     decision: str
     decision_confidence: Optional[float]

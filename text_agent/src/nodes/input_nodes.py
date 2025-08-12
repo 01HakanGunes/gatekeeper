@@ -355,7 +355,7 @@ def _clear_state(state: State):
     Helper function to clear the entire state for a new visitor/session.
     """
     # Clear messages
-    state["messages"].clear()
+    state["messages"] = []
     # Reset visitor profile
     state["visitor_profile"] = {
         "name": None,

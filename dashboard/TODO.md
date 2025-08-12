@@ -2,6 +2,7 @@
 
 ## Bug/Fix
 
+- Enter to send message
 - Fetch visitor profile periodically
 
 ## Refactor

@@ -2,14 +2,17 @@
 
 ## Bugs/Fixes
 
-- After threat level high, directly jump to decision as call security and reset graph.
-  Make the image processor trigger the graph when the threat level field is high (find a way to jump to the decision part/ is it really necessary)
+- Debug print if the state cleared.
+
+- John Doe is the name after the session ends. It doesnt reset the session probably.
 
 - Add the decisions as seperate tools.
 
 - Too slow
 
 - My .env data is not passed.
+
+- Put a cooldown to send messages from cleint
 
 ## Features
 
@@ -22,6 +25,8 @@
 - If cargo arrived, check if a cargo is expected (logged), in a file if not reject (send notification)
 
 ## Testing
+
+- Send multiple messages
 
 - !Test the whole tree and complete the process.
 
@@ -42,3 +47,5 @@
 - not shutting down gracefully.
 
 - Analyze threat level node is depreacted delete it.
+
+- Make agent response a seperate field in the state

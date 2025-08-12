@@ -9,7 +9,7 @@ def send_email(contact_name: str, subject: str, message: str) -> str:
     Send an email to a contact from the approved contact list.
 
     Args:
-        contact_name: Full name of the contact (e.g., "David Smith", "Alice Kimble")
+        contact_name: Full name of the contact
         subject: Subject line of the email
         message: Body content of the email
 
