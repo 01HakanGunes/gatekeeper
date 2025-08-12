@@ -180,6 +180,7 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None, state_req
         # Trigger langgraph if threat level is high
         threat_level = validated_vision_schema.get("threat_level", "low")
         if threat_level == "high" and socketio_events_queue is not None:
+            # TODO: Here we have a client with high threat. Somehow only trigger langgraph once and put a sleep time without blocking the image_processor.
             try:
                 langgraph_trigger_event = {
                     "type": "trigger_langgraph",
