@@ -1,12 +1,10 @@
-# Text Agent - To-Do List
+# Text Agent - To-Do List (Do not delete completed tasks)
 
 ## Bugs/Fixes
 
-- Stricter check for security call (threat_level + dangerous_object)
 - Add the decisions as seperate tools.
-- Too slow
+- Put a cooldown to send messages from clint(a cap maybe)
 - My .env data is not passed.
-- Put a cooldown to send messages from clint
 
 ## Features
 
@@ -29,3 +27,5 @@
 - not shutting down gracefully.
 - Analyze threat level node is depreacted delete it.
 - Make agent response a seperate field in the state
+
+## Completed
