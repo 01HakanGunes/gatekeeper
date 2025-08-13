@@ -2,13 +2,13 @@
 
 ## Bugs/Fixes
 
-- Add the decisions as seperate tools.
+- Check visitor profile has a conditional edge so should return a literal
 - Put a cooldown to send messages from clint(a cap maybe)
 - My .env data is not passed.
 
 ## Features
 
-- Find a dummy way to enable face recognition.
+- Find a dummy way to enable face recognition. (face recognition tool used / note this when the employee name entered to the chat)
 - Cam id based authorization. Create auth table (json). Deterministic (no llm process) json load with permissions.
 - Name based auth.
 - If cargo arrived, check if a cargo is expected (logged), in a file if not reject (send notification)

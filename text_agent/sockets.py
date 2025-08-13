@@ -64,7 +64,7 @@ state_request_queue = multiprocessing.Queue(maxsize=50)
 state_response_queue = multiprocessing.Queue(maxsize=50)
 
 # Graph visualized and saved as image
-_generate_graph_visualization()
+# _generate_graph_visualization()
 
 # --- Pydantic models for request/response validation ---
 class UserInput(BaseModel):

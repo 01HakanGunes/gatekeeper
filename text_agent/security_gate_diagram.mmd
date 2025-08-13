@@ -17,7 +17,8 @@ graph TD;
 	__end__([<p>__end__</p>]):::last
 	__start__ --> receive_input;
 	analyze_threat_level --> validate_contact_person;
-	check_visitor_profile --> analyze_threat_level;
+	check_visitor_profile -. &nbsp;not_authenticated&nbsp; .-> analyze_threat_level;
+	check_visitor_profile -. &nbsp;authenticated&nbsp; .-> make_decision;
 	make_decision -. &nbsp;notify&nbsp; .-> notify_contact;
 	make_decision -. &nbsp;end&nbsp; .-> reset_conversation;
 	notify_contact --> reset_conversation;

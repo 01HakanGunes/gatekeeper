@@ -8,6 +8,7 @@ from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_email, llm_decision_json
 from src.tools.communication import tools
 from src.utils.prompt_manager import prompt_manager
+from src.utils.auth import get_greeting
 
 
 def make_decision(state: State) -> State:
@@ -20,11 +21,22 @@ def make_decision(state: State) -> State:
     messages = state["messages"]
     if state["vision_schema"] is None:
         raise ValueError("Vision schema is missing")
+
     threat_level_value = state["vision_schema"]["threat_level"]
+    is_authenticated = state["visitor_profile"]["authenticated"]
 
     if threat_level_value == "high":
         state["decision"] = "call_security"
         state["agent_response"] = "Security called"
+        return state
+
+    if is_authenticated:
+        state["decision"] = "allow_request"
+        response = get_greeting(state["visitor_profile"]["name"])
+        if response:
+            state["agent_response"] = response
+        else:
+            state["agent_response"] = "Debug: Hello authenticated user!!"
         return state
 
     # Get recent conversation context for decision making

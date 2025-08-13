@@ -338,7 +338,8 @@ def _clear_state(state: State):
         "contact_person": None,
         "threat_level": None,
         "affiliation": None,
-        "id_verified": None,
+        "id_verified": False,
+        "authenticated": False
     }
     # Reset decision fields
     state["decision"] = ""

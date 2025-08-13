@@ -2,6 +2,9 @@ from langgraph.graph import StateGraph, END
 from langchain_core.messages import SystemMessage
 from src.core.state import State
 from src.utils.prompt_manager import prompt_manager
+from typing import Literal
+from src.utils.auth import authenticate
+from src.nodes.processing_nodes import check_visitor_profile_condition
 
 from src.nodes.input_nodes import (
     receive_input,
@@ -15,7 +18,6 @@ from src.nodes.processing_nodes import (
     check_visitor_profile_node,
     validate_contact_person,
     question_visitor,
-    check_visitor_profile_condition,
 )
 from src.nodes.decision_nodes import (
     make_decision,
@@ -47,6 +49,16 @@ def create_security_graph():
 
     # ---- Add Edges (Logic Flow) ----
     graph_builder.set_entry_point("receive_input")
+
+    def check_authenticated(state: State,) -> Literal["authenticated", "not_authenticated"]:
+        name = state["visitor_profile"]["name"]
+
+        if authenticate(name):
+            state["visitor_profile"]["authenticated"] = True
+            return "authenticated"
+        state["visitor_profile"]["authenticated"] = False
+        return "not_authenticated"
+
 
     # Route after input based on session and context length
     def route_after_input(state):
@@ -82,8 +94,17 @@ def create_security_graph():
             "call_security": "make_decision",
         },
     )
+
+    graph_builder.add_conditional_edges(
+        "check_visitor_profile",
+        check_authenticated,
+        {
+            "not_authenticated": "analyze_threat_level",
+            "authenticated": "make_decision",
+        },
+    )
+
     graph_builder.add_edge("summarize", "check_visitor_profile")
-    graph_builder.add_edge("check_visitor_profile", "analyze_threat_level")
     graph_builder.add_edge("analyze_threat_level", "validate_contact_person")
     graph_builder.add_conditional_edges(
         "validate_contact_person",
@@ -130,13 +151,15 @@ def create_initial_state() -> State:
             "contact_person": None,
             "threat_level": None,
             "affiliation": None,
-            "id_verified": None,
+            "id_verified": False,
+            "authenticated": False
         },
         "decision": "",
         "decision_confidence": None,
         "decision_reasoning": None,
         "vision_schema": None,
         "user_input": "",
+        "agent_response": "",
         "invalid_input": False,
         "session_active": False,
     }

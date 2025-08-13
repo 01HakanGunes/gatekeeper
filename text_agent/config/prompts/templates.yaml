@@ -49,13 +49,13 @@ decision:
 
   decision_messages:
     allow_request: "✅ Access granted. Welcome! Please proceed to the main entrance."
-    call_security: "⚠️ Please wait here. Security has been notified and will assist you shortly."
     deny_request: "❌ Access denied. Please contact the appropriate department to arrange your visit."
+    call_security: "⚠️ Please wait here. Security has been notified and will assist you shortly."
 
   available_decisions:
     allow_request: "Standard access granted - visitor approved and the related people notified."
-    call_security: "Call security immediately - high threat or suspicious behavior"
     deny_request: "Access denied - insufficient credentials or policy violation"
+    call_security: "Call security immediately - high threat or suspicious behavior"
 
   fallback_messages:
     unclear_decision: "❌ I cannot process your request at this time. Please contact reception for assistance."

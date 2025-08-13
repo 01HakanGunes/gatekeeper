@@ -10,6 +10,7 @@ class VisitorProfile(TypedDict):
     threat_level: Optional[str]
     affiliation: Optional[str]
     id_verified: Optional[bool]
+    authenticated: Optional[bool]
 
 
 class VisionSchema(TypedDict):

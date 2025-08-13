@@ -1,9 +1,9 @@
 from typing import Literal
+from src.utils.auth import authenticate
 import json
 from langchain_core.messages import AIMessage
 from src.core.state import State
 from data.contacts import CONTACTS
-from src.utils.extraction import extract_answer_from_thinking_model
 from models.llm_config import llm_profiler_json
 from src.utils.prompt_manager import prompt_manager
 
@@ -76,28 +76,29 @@ def check_visitor_profile_node(state: State) -> State:
 
         # Update profile with extracted fields
         extracted_fields = extraction_data.get("extracted_fields", {})
-        confidence_scores = extraction_data.get("confidence", {})
 
         for field in missing_fields:
             if field in extracted_fields:
                 value = extracted_fields[field]
-                confidence = confidence_scores.get(field, 0.0)
+
+                # TODO: Here add the authentication function call with the name field.
+                if field == "name":
+                    if authenticate(value):
+                        # TODO: what to do now?
+                        print("TODO")
+
 
                 # Validate and clean the extracted value
                 if value and value != "-1" and value.lower() != "null":
                     # Additional cleaning
                     value = str(value).strip("\"'")
 
-                    # For contact_person, keep the full name, for others limit to 3 words
-                    if field != "contact_person":
-                        words = value.split()
-                        if len(words) > 3:
-                            value = " ".join(words[-3:])
+                    #limit to 3 words
+                    words = value.split()
+                    if len(words) > 3:
+                        value = " ".join(words[-3:])
 
                     state["visitor_profile"][field] = value
-                    print(
-                        f"✅ Extracted {field}: '{value}' (confidence: {confidence:.2f})"
-                    )
                 else:
                     print(f"❌ Could not extract {field}")
 

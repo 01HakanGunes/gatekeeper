@@ -1,6 +1,6 @@
 {
   "decision_schema": {
-    "decision": "string (one of: allow_request, call_security, deny_request)",
+    "decision": "string one of the available_decisions",
     "confidence": "number between 0 and 1",
     "reasoning": "string with brief explanation",
     "threat_indicators": "array of strings (any concerning factors found)"
