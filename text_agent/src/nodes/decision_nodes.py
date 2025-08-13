@@ -221,6 +221,7 @@ def check_decision_for_notification(state: State) -> Literal["notify", "end"]:
     """
     Check if the decision requires email notification.
     """
+    # TODO: we need another case where no need for notification for authenticated employees
     decision = state.get("decision", "")
     if decision == "allow_request":
         return "notify"

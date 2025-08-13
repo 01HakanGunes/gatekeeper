@@ -2,7 +2,6 @@
 
 ## Bugs/Fixes
 
-- Check visitor profile has a conditional edge so should return a literal
 - Put a cooldown to send messages from clint(a cap maybe)
 - My .env data is not passed.
 
@@ -28,4 +27,10 @@
 - Analyze threat level node is depreacted delete it.
 - Make agent response a seperate field in the state
 
+# Docs
+
+- List the features
+
 ## Completed
+
+- Added support for employee data

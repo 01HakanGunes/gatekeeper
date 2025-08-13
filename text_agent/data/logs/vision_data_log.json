@@ -2372,5 +2372,1082 @@
             }
         ],
         "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "VwHKkCugHSOFB9u-AAAB",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T15:52:58.475655",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:00.618356",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:02.549098",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:04.471541",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:06.538372",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:08.614297",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:10.655349",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:12.626563",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:14.648027",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T15:53:16.797880",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "F-FBlo7gF9U6gb-8AAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T17:06:08.539759",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:10.283992",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:12.044969",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:13.718726",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:15.491986",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:17.249779",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:19.005328",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:20.796737",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:22.581821",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:06:24.447401",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "La5WXmaudyKumDSxAAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T17:07:19.234018",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with a serious expression"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:21.213469",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person looking directly at the camera."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:23.260386",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:25.141534",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:27.129810",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:29.137966",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with a serious expression"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:31.119133",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:33.130963",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person looking at the camera."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:35.209824",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:07:37.257133",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "nVs6IZQ17H_jVhp0AAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T17:08:37.689008",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person looking serious"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:39.827232",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:41.874361",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:44.025501",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with a serious expression."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:46.003847",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:48.191660",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:50.342792",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:52.520054",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses, appears thoughtful."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:54.561003",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:08:56.765255",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "Es4OKVMzyzmHviL1AAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T17:11:21.351239",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:23.740823",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:25.949277",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:28.155846",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:30.302317",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:32.668316",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:34.850520",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with glasses is visible."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:37.072889",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:39.199068",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:11:41.542486",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A man with glasses is visible."
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "TpmYwbAuAyJWa93-AAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T17:16:33.463347",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:35.847244",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:38.112370",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:40.454787",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:42.747371",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:45.215508",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:47.630195",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:49.901098",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:52.314017",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:16:54.658037",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "nuZkjMAyiuKBxhzCAAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T17:17:10.426074",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:12.890315",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:17.605895",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:20.812249",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:23.153162",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:25.397548",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:27.838884",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:30.102212",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:32.382248",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:34.723686",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person wearing glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "cyC5ThwKC1XQyGeZAAAF",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T17:17:37.072554",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:40.252279",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with a serious expression"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:45.040638",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person looking serious"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:47.668720",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:50.083024",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:52.540883",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:54.867088",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-13T17:17:57.251177",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "VmE2FVHhiCiYPetoAAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-13T17:20:02.075819",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person wearing glasses."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:04.191477",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:06.274803",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:08.288304",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:10.365498",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:12.382544",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:14.494514",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:16.684599",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person is visible."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:18.876058",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with a serious expression."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-13T17:20:21.001822",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "f5JZCZeSU3SlVIdvAAAC",
+        "face_detected": [
+            false,
+            false,
+            false
+        ],
+        "log_entries": [],
+        "last_langgraph_trigger": null
     }
 ]

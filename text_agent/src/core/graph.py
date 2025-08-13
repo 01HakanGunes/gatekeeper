@@ -52,11 +52,16 @@ def create_security_graph():
 
     def check_authenticated(state: State,) -> Literal["authenticated", "not_authenticated"]:
         name = state["visitor_profile"]["name"]
-
+        print("!!!debug: In the check_auth function and name is: ")
+        if name:
+            print("!!!debug:" + name)
         if authenticate(name):
             state["visitor_profile"]["authenticated"] = True
+            print("!!!debug: auth success")
+
             return "authenticated"
         state["visitor_profile"]["authenticated"] = False
+        print("!!!Debug: Auth not success!")
         return "not_authenticated"
 
 

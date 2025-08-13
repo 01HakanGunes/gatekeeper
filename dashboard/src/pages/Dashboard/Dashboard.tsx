@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 import { Link } from "react-router-dom";
 import { useSocket } from "../../hooks/useSocket";
 import Button from "../../components/Button/Button";
@@ -78,7 +78,7 @@ function Dashboard() {
   }, [cameraEnabled, uploadImage]);
 
   const handleSendMessage = useCallback(
-    async (e: FormEvent) => {
+    async (e: SyntheticEvent) => {
       e.preventDefault();
 
       if (!messageInput.trim()) return;
@@ -136,7 +136,7 @@ function Dashboard() {
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        handleSendMessage(e as any);
+        handleSendMessage(e);
       }
     },
     [handleSendMessage],

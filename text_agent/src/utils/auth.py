@@ -5,7 +5,7 @@ def authenticate(employee_name):
     Authenticate employee by checking if the name exists in the employees database.
     """
     try:
-        with open("./db/employees.json", "r") as f:
+        with open("./data/db/employees.json", "r") as f:
             employees = json.load(f)
 
         # Check if an employee with the given name exists
@@ -18,7 +18,7 @@ def _find_employee(employee_name):
     A helper function to find an employee's data by name.
     """
     try:
-        with open("./db/employees.json", "r") as f:
+        with open("./data/db/employees.json", "r") as f:
             employees = json.load(f)
 
         # Find the employee and return their data
