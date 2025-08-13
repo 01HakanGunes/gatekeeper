@@ -204,7 +204,8 @@ def threat_detector(session_id, image_b64, socketio_events_queue=None, state_req
 
         # Trigger langgraph if threat level is high (with cooldown)
         threat_level = validated_vision_schema.get("threat_level", "low")
-        if threat_level == "high" and socketio_events_queue is not None:
+        dangerous_object = validated_vision_schema.get("dangerous_object", False)
+        if (threat_level == "high" and dangerous_object == True) and socketio_events_queue is not None:
             if can_trigger_langgraph(session_id):
                 try:
                     langgraph_trigger_event = {

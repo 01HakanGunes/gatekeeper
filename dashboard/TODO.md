@@ -2,11 +2,10 @@
 
 ## Bug/Fix
 
-- Enter to send message
-- Fetch visitor profile periodically
+- Fix the page alignment to fit in the window.
+- Irrelevant switch
+- Settings page is not functional
 
 ## Refactor
 
 - Decomponent the dashboard page into multiple
-- Irrelevant switch
-- Settings page is not functional
