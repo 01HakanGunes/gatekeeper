@@ -2,7 +2,7 @@
 
 ## Bugs/Fixes
 
-- Deploy to server
+- Faster disable for session when no face detected.
 
 - Add the decisions as seperate tools.
 
