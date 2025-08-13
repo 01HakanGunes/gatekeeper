@@ -2,7 +2,9 @@
 
 ## Bugs/Fixes
 
-- Faster disable for session when no face detected.
+- Face detection false positive too much !!!!
+
+- Stricter check for security call (threat_level + dangerous_object)
 
 - Add the decisions as seperate tools.
 

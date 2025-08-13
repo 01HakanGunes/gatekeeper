@@ -132,6 +132,16 @@ function Dashboard() {
     setUploadToSeparateEndpoint(enabled);
   }, []);
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage(e as any);
+      }
+    },
+    [handleSendMessage],
+  );
+
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
   };
@@ -504,6 +514,7 @@ function Dashboard() {
                     placeholder="Type your message to the security agent..."
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     maxLength={UI_CONSTANTS.MESSAGE_MAX_LENGTH}
                     showCharacterCount
                     rows={2}

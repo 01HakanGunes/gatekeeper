@@ -7,7 +7,7 @@ from src.utils.llm_utilities import analyze_image_with_prompt
 
 LOG_FILE = "./data/logs/vision_data_log.json"
 LOG_LIMIT = 10
-FACE_QUEUE_LIMIT = 4
+FACE_QUEUE_LIMIT = 3
 LANGGRAPH_COOLDOWN_SECONDS = 10
 
 def load_sessions_data():
