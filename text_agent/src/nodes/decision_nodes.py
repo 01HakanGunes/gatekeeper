@@ -34,7 +34,7 @@ def make_decision(state: State) -> State:
         state["decision"] = "allow_request"
         response = get_greeting(state["visitor_profile"]["name"])
         if response:
-            state["agent_response"] = response
+            state["agent_response"] = "Face recognition called (dummy): " + response
         else:
             state["agent_response"] = "Debug: Hello authenticated user!!"
         return state

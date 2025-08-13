@@ -2,8 +2,8 @@
 
 ## Bugs/Fixes
 
-- Put a cooldown to send messages from clint(a cap maybe)
 - My .env data is not passed.
+- Put a cooldown to send messages from clint(a cap maybe)
 
 ## Features
 

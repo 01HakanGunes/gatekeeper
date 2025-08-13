@@ -352,7 +352,7 @@ def reset_conversation(state: State) -> State:
     Reset conversation for a new visitor by clearing the entire state.
     """
     # Keep reference to the new visitor's message
-    agent_feedback = state["messages"][-1] if state["messages"] else None
+    # agent_feedback = state["messages"][-1] if state["messages"] else None
 
     # Clear the whole state
     _clear_state(state)
