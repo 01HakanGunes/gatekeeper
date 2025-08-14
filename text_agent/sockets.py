@@ -54,8 +54,9 @@ def _generate_graph_visualization():
 
 # Initialize objects vars
 shared_graph = create_security_graph()
-session_states: Dict[str, Any] = {}  # Now keyed by sid
+session_states: Dict[str, Any] = {}  # keyed by sid
 active_connections: Dict[str, bool] = {}  # Track active sids
+cameraSidMap: Dict[str, str] = {} # TODO: Use this mapping like ("CAM-1", "sid-placeholder")
 sessions_lock = asyncio.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
 face_detection_queue = multiprocessing.Queue(maxsize=4)
@@ -83,7 +84,6 @@ class ImageUploadResponse(BaseModel):
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 
 # --- Helper Functions ---
-# TODO: This is supposed to use the agent_response field inside the state.
 def _get_agent_response(updated_state):
     """Extracts the agent response and completion status from the state."""
     agent_response = ""
@@ -327,6 +327,57 @@ async def leave_session_updates(sid: str, data: Dict[str, Any]):
     """Allow client to leave a room for session-specific updates."""
     await sio.leave_room(sid, sid)
     await sio.emit('status', {'msg': f'Left updates for session {sid}'}, to=sid)
+
+# --- Camera Management Events ---
+
+@sio.event
+async def getCameraList(sid: str, data: Dict[str, Any]):
+    """Return the list of available cameras from cameras.json."""
+    try:
+        cameras_path = "data/db/cameras.json"
+        async with aiofiles.open(cameras_path, "r") as f:
+            content = await f.read()
+        cameras = json.loads(content)
+        await sio.emit('cameraList', {'cameras': cameras}, to=sid)
+    except FileNotFoundError:
+        await sio.emit('error', {'msg': 'Cameras configuration not found'}, to=sid)
+    except json.JSONDecodeError:
+        await sio.emit('error', {'msg': 'Invalid cameras configuration'}, to=sid)
+    except Exception as e:
+        await sio.emit('error', {'msg': f'Error loading cameras: {str(e)}'}, to=sid)
+
+@sio.event
+async def registerCamera(sid: str, data: Dict[str, Any]):
+    """Map selected camera ID to session ID in cameraSidMap."""
+    camera_id = data.get("camera_id")
+
+    if not camera_id:
+        await sio.emit('error', {'msg': 'Camera ID is required'}, to=sid)
+        return
+
+    try:
+        # Validate camera exists
+        cameras_path = "data/db/cameras.json"
+        async with aiofiles.open(cameras_path, "r") as f:
+            content = await f.read()
+        cameras = json.loads(content)
+
+        if not any(cam['id'] == camera_id for cam in cameras):
+            await sio.emit('error', {'msg': 'Invalid camera ID'}, to=sid)
+            return
+
+        # Update mapping with thread safety
+        async with sessions_lock:
+            cameraSidMap[camera_id] = sid
+
+        await sio.emit('cameraRegistered', {
+            'camera_id': camera_id,
+            'session_id': sid,
+            'message': f'Camera {camera_id} registered successfully'
+        }, to=sid)
+
+    except Exception as e:
+        await sio.emit('error', {'msg': f'Error registering camera: {str(e)}'}, to=sid)
 
 # --- Server-side Functions to Emit Events ---
 
