@@ -2,6 +2,7 @@
 
 ## Bugs/Fixes
 
+- Too much false positive face detected.
 - Put a cooldown to send messages from clint(a cap maybe)
 
 ## Features

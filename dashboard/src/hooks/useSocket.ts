@@ -8,6 +8,7 @@ import type {
   ThreatLog,
   SystemStatus,
   Notification,
+  Camera,
 } from "../services/socketClient";
 
 interface UseSocketState<T> {
@@ -39,6 +40,12 @@ interface UseSocketReturn {
   // Threat logs
   threatLogs: UseSocketState<ThreatLog[]>;
   fetchThreatLogs: () => Promise<void>;
+
+  // Camera functionality
+  cameras: UseSocketState<Camera[]>;
+  selectedCamera: Camera | null;
+  fetchCameraList: () => Promise<void>;
+  registerCamera: (cameraId: string) => Promise<void>;
 
   // Real-time data
   systemStatus: SystemStatus | null;
@@ -93,11 +100,20 @@ export const useSocket = (): UseSocketReturn => {
     error: null,
   });
 
+  const [cameras, setCameras] = useState<UseSocketState<Camera[]>>({
+    data: [],
+    loading: false,
+    error: null,
+  });
+
+  const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
+
   const isLoading =
     profile.loading ||
     health.loading ||
     imageUpload.loading ||
-    threatLogs.loading;
+    threatLogs.loading ||
+    cameras.loading;
 
   // Connection management
   const connect = useCallback(() => {
@@ -315,12 +331,68 @@ export const useSocket = (): UseSocketReturn => {
     }
   }, [connectionStatus]);
 
-  // Auto-fetch health when connected
+  const fetchCameraList = useCallback(async () => {
+    if (connectionStatus !== "connected") {
+      setCameras((prev) => ({
+        ...prev,
+        error: "Socket not connected. Please wait for connection.",
+      }));
+      return;
+    }
+
+    setCameras((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      const data = await socketClient.getCameraList();
+      setCameras({ data, loading: false, error: null });
+    } catch (error) {
+      setCameras((prev) => ({
+        ...prev,
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch camera list",
+      }));
+    }
+  }, [connectionStatus]);
+
+  const registerCamera = useCallback(
+    async (cameraId: string): Promise<void> => {
+      if (connectionStatus !== "connected") {
+        setCameras((prev) => ({
+          ...prev,
+          error: "Socket not connected. Please wait for connection.",
+        }));
+        return;
+      }
+
+      setCameras((prev) => ({ ...prev, loading: true, error: null }));
+      try {
+        await socketClient.registerCamera(cameraId);
+        const camera = cameras.data?.find((c) => c.id === cameraId) || null;
+        setSelectedCamera(camera);
+        setCameras((prev) => ({ ...prev, loading: false, error: null }));
+      } catch (error) {
+        setCameras((prev) => ({
+          ...prev,
+          loading: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to register camera",
+        }));
+      }
+    },
+    [connectionStatus, cameras.data],
+  );
+
+  // Auto-fetch health and cameras when connected
   useEffect(() => {
     if (connectionStatus === "connected") {
       fetchHealth();
+      fetchCameraList();
     }
-  }, [connectionStatus, fetchHealth]);
+  }, [connectionStatus, fetchHealth, fetchCameraList]);
 
   // Clear notifications older than 5 minutes
   useEffect(() => {
@@ -351,6 +423,10 @@ export const useSocket = (): UseSocketReturn => {
     uploadImage,
     threatLogs,
     fetchThreatLogs,
+    cameras,
+    selectedCamera,
+    fetchCameraList,
+    registerCamera,
     systemStatus,
     notifications,
     isLoading,

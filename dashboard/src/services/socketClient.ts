@@ -59,6 +59,24 @@ export interface ThreatLog {
   details: string;
 }
 
+export interface Camera {
+  id: string;
+  location: string;
+  ip_address: string;
+  resolution: string;
+  status: "online" | "offline";
+}
+
+export interface CameraListResponse {
+  cameras: Camera[];
+}
+
+export interface CameraRegistrationResponse {
+  camera_id: string;
+  session_id: string;
+  message: string;
+}
+
 export interface SystemStatus {
   healthy: boolean;
   active_sessions: number;
@@ -289,6 +307,62 @@ class SocketClient {
 
       // Send request
       this.socket.emit(SOCKET_EVENTS.REQUEST_THREAT_LOGS, {});
+    });
+  }
+
+  async getCameraList(): Promise<Camera[]> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket || !this.socket.connected) {
+        reject(new Error("Socket not connected"));
+        return;
+      }
+
+      // Listen for response
+      const onCameraList = (response: CameraListResponse) => {
+        this.socket?.off(SOCKET_EVENTS.CAMERA_LIST, onCameraList);
+        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
+        resolve(response.cameras);
+      };
+
+      const onError = (error: ErrorResponse) => {
+        this.socket?.off(SOCKET_EVENTS.CAMERA_LIST, onCameraList);
+        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
+        reject(new Error(error.msg));
+      };
+
+      this.socket.on(SOCKET_EVENTS.CAMERA_LIST, onCameraList);
+      this.socket.on(SOCKET_EVENTS.ERROR, onError);
+
+      // Send request
+      this.socket.emit(SOCKET_EVENTS.GET_CAMERA_LIST, {});
+    });
+  }
+
+  async registerCamera(cameraId: string): Promise<CameraRegistrationResponse> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket || !this.socket.connected) {
+        reject(new Error("Socket not connected"));
+        return;
+      }
+
+      // Listen for response
+      const onCameraRegistered = (response: CameraRegistrationResponse) => {
+        this.socket?.off(SOCKET_EVENTS.CAMERA_REGISTERED, onCameraRegistered);
+        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
+        resolve(response);
+      };
+
+      const onError = (error: ErrorResponse) => {
+        this.socket?.off(SOCKET_EVENTS.CAMERA_REGISTERED, onCameraRegistered);
+        this.socket?.off(SOCKET_EVENTS.ERROR, onError);
+        reject(new Error(error.msg));
+      };
+
+      this.socket.on(SOCKET_EVENTS.CAMERA_REGISTERED, onCameraRegistered);
+      this.socket.on(SOCKET_EVENTS.ERROR, onError);
+
+      // Send request
+      this.socket.emit(SOCKET_EVENTS.REGISTER_CAMERA, { camera_id: cameraId });
     });
   }
 

@@ -11,6 +11,8 @@ export const SOCKET_EVENTS = {
   REQUEST_HEALTH_CHECK: "request_health_check",
   UPLOAD_IMAGE: "upload_image",
   REQUEST_THREAT_LOGS: "request_threat_logs",
+  GET_CAMERA_LIST: "getCameraList",
+  REGISTER_CAMERA: "registerCamera",
 
   // Server to client events (responses)
   CHAT_RESPONSE: "chat_response",
@@ -18,6 +20,8 @@ export const SOCKET_EVENTS = {
   HEALTH_STATUS: "health_status",
   IMAGE_UPLOAD_RESPONSE: "image_upload_response",
   THREAT_LOGS: "threat_logs",
+  CAMERA_LIST: "cameraList",
+  CAMERA_REGISTERED: "cameraRegistered",
 
   // Real-time events from server
   SYSTEM_STATUS: "system_status",

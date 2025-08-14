@@ -23,6 +23,10 @@ function Dashboard() {
     uploadImage,
     threatLogs,
     fetchThreatLogs,
+    cameras,
+    selectedCamera,
+    fetchCameraList,
+    registerCamera,
   } = useSocket();
 
   const cameraRef = useRef<CameraRef>(null);
@@ -142,6 +146,17 @@ function Dashboard() {
     [handleSendMessage],
   );
 
+  const handleCameraSelect = useCallback(
+    async (cameraId: string) => {
+      try {
+        await registerCamera(cameraId);
+      } catch (error) {
+        console.error("Failed to register camera:", error);
+      }
+    },
+    [registerCamera],
+  );
+
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
   };
@@ -202,6 +217,61 @@ function Dashboard() {
       <div className={styles.emptyStateText}>{title}</div>
       <div className={styles.emptyStateSubtext}>{subtitle}</div>
       {action}
+    </div>
+  );
+
+  const renderCameraSelection = () => (
+    <div className={styles.cameraSelectionContainer}>
+      <h3 className={styles.sectionTitle}>Camera Selection</h3>
+      {cameras.loading && (
+        <div className={styles.loadingState}>Loading cameras...</div>
+      )}
+      {cameras.error &&
+        renderErrorState(cameras.error, () => fetchCameraList())}
+      {cameras.data && cameras.data.length > 0 && (
+        <div className={styles.cameraSelection}>
+          <select
+            className={styles.cameraDropdown}
+            onChange={(e) => handleCameraSelect(e.target.value)}
+            disabled={cameras.loading}
+            value={selectedCamera?.id || ""}
+          >
+            <option value="">Select a camera...</option>
+            {cameras.data.map((camera) => (
+              <option
+                key={camera.id}
+                value={camera.id}
+                disabled={camera.status === "offline"}
+              >
+                {camera.id} - {camera.location} ({camera.status})
+              </option>
+            ))}
+          </select>
+          {selectedCamera && (
+            <div className={styles.selectedCamera}>
+              <div className={styles.selectedCameraInfo}>
+                <span className={styles.selectedCameraLabel}>Active:</span>
+                <span className={styles.selectedCameraValue}>
+                  {selectedCamera.id} - {selectedCamera.location}
+                </span>
+              </div>
+              <div
+                className={`${styles.cameraStatus} ${
+                  selectedCamera.status === "online"
+                    ? styles.statusOnline
+                    : styles.statusOffline
+                }`}
+              >
+                {selectedCamera.status}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      {cameras.data &&
+        cameras.data.length === 0 &&
+        connectionStatus === "connected" &&
+        renderEmptyState("📹", "No Cameras", "No cameras are configured")}
     </div>
   );
 
@@ -348,6 +418,9 @@ function Dashboard() {
           </Link>
         </div>
       </header>
+
+      {/* Camera Selection */}
+      <div className={styles.cameraSection}>{renderCameraSelection()}</div>
 
       {/* Main Content */}
       <main className={styles.main}>
