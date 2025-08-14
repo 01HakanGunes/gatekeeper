@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature-newtools-thursday
+      - ui-update
 
 jobs:
   deploy:
