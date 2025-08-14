@@ -154,7 +154,7 @@ export const useSocket = (): UseSocketReturn => {
         };
 
         setMessages((prev) => ({
-          data: prev.data ? [agentMessage, ...prev.data] : [agentMessage],
+          data: prev.data ? [...prev.data, agentMessage] : [agentMessage],
           loading: false,
           error: null,
         }));
@@ -233,7 +233,7 @@ export const useSocket = (): UseSocketReturn => {
       };
 
       setMessages((prev) => ({
-        data: prev.data ? [userMessage, ...prev.data] : [userMessage],
+        data: prev.data ? [...prev.data, userMessage] : [userMessage],
         loading: false,
         error: null,
       }));

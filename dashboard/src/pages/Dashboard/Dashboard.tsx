@@ -30,6 +30,7 @@ function Dashboard() {
   } = useSocket();
 
   const cameraRef = useRef<CameraRef>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messageInput, setMessageInput] = useState("");
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [uploadToSeparateEndpoint] = useState(false);
@@ -59,6 +60,13 @@ function Dashboard() {
       if (interval) clearInterval(interval);
     };
   }, [fetchThreatLogs]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages.data]);
 
   // Auto-upload image every 2 seconds
   useEffect(() => {
@@ -528,6 +536,7 @@ function Dashboard() {
               {messages.data && messages.data.length > 0 && (
                 <div className={styles.messagesList}>
                   {messages.data.map(renderMessageEntry)}
+                  <div ref={messagesEndRef} />
                 </div>
               )}
 

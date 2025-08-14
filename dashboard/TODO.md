@@ -2,7 +2,7 @@
 
 ## Bug/Fix
 
-- Reverse the chat flow
+-
 
 ## Refactor
 
