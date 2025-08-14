@@ -46,3 +46,31 @@ def get_greeting(employee_name):
     if employee:
         return employee.get("greeting")
     return None
+
+def authorize_door_access(employee_name, sid, camera_sid_map):
+    """
+    Check if authenticated employee has permission for the camera associated with the door to their session.
+
+    Args:
+        employee_name (str): Name of the authenticated employee
+        sid (str): Socket.IO session identifier
+        camera_sid_map (dict): Mapping of sid -> camera_id (restructured format)
+
+    Returns:
+        bool: True if employee has access to the door (which is represented as camera), False otherwise
+    """
+    employee = _find_employee(employee_name)
+    if not employee:
+        return False
+
+    # Get employee's allowed camera IDs
+    permissions = employee.get("permissions", {})
+    allowed_cameras = permissions.get("doors", [])
+
+    # Get camera_id for this session
+    session_camera_id = camera_sid_map.get(sid)
+    if not session_camera_id:
+        return False
+
+    # Check if employee has permission for this camera
+    return session_camera_id in allowed_cameras

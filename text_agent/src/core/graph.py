@@ -3,7 +3,7 @@ from langchain_core.messages import SystemMessage
 from src.core.state import State
 from src.utils.prompt_manager import prompt_manager
 from typing import Literal
-from src.utils.auth import authenticate
+from src.utils.auth import authenticate, authorize_door_access
 from src.nodes.processing_nodes import check_visitor_profile_condition
 
 from src.nodes.input_nodes import (
@@ -53,6 +53,8 @@ def create_security_graph():
     def check_authenticated(state: State,) -> Literal["authenticated", "not_authenticated"]:
         name = state["visitor_profile"]["name"]
         if authenticate(name):
+            if authorize_door_access(name, sid, camera_sid_map): # TODO: We need to somehow pass these two
+               return "not_authenticated"
             state["visitor_profile"]["authenticated"] = True
             return "authenticated"
         state["visitor_profile"]["authenticated"] = False

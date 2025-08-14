@@ -8,7 +8,7 @@
 ## Features
 
 - Cam id based authorization.
-
+- If authenticated but no authority to use that door, then give feedback "Hello Hakan, welcome. You cannot enter from here please go the the doors 1,2,3 etc"
 - If cargo arrived, check if a cargo is expected (logged), in a file if not reject (send notification)
 
 ## Testing

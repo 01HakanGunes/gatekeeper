@@ -56,7 +56,7 @@ def _generate_graph_visualization():
 shared_graph = create_security_graph()
 session_states: Dict[str, Any] = {}  # keyed by sid
 active_connections: Dict[str, bool] = {}  # Track active sids
-cameraSidMap: Dict[str, str] = {} # TODO: Use this mapping like ("CAM-1", "sid-placeholder")
+cameraSidMap: Dict[str, str] = {} # TODO: Use this mapping like ("sid-placeholder", "CAM-1").
 sessions_lock = asyncio.Lock()
 image_queue = multiprocessing.Queue(maxsize=10)
 face_detection_queue = multiprocessing.Queue(maxsize=4)
@@ -368,7 +368,7 @@ async def registerCamera(sid: str, data: Dict[str, Any]):
 
         # Update mapping with thread safety
         async with sessions_lock:
-            cameraSidMap[camera_id] = sid
+            cameraSidMap[sid] = camera_id
 
         await sio.emit('cameraRegistered', {
             'camera_id': camera_id,
