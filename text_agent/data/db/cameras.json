@@ -1,0 +1,30 @@
+[
+  {
+    "id": "CAM-1",
+    "location": "Warehouse Main Entrance",
+    "ip_address": "192.168.1.101",
+    "resolution": "1080p",
+    "status": "online"
+  },
+  {
+    "id": "CAM-2",
+    "location": "Server Room",
+    "ip_address": "192.168.1.102",
+    "resolution": "4K",
+    "status": "online"
+  },
+  {
+    "id": "CAM-3",
+    "location": "Loading Dock",
+    "ip_address": "192.168.1.103",
+    "resolution": "720p",
+    "status": "offline"
+  },
+  {
+    "id": "CAM-4",
+    "location": "Parking Lot",
+    "ip_address": "192.168.1.104",
+    "resolution": "1080p",
+    "status": "online"
+  }
+]
