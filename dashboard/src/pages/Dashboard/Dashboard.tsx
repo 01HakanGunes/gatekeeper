@@ -32,8 +32,7 @@ function Dashboard() {
   const cameraRef = useRef<CameraRef>(null);
   const [messageInput, setMessageInput] = useState("");
   const [cameraEnabled, setCameraEnabled] = useState(false);
-  const [uploadToSeparateEndpoint, setUploadToSeparateEndpoint] =
-    useState(false);
+  const [uploadToSeparateEndpoint] = useState(false);
   const [lastCapturedImage, setLastCapturedImage] = useState<string | null>(
     null,
   );
@@ -130,10 +129,6 @@ function Dashboard() {
 
   const handleCameraCapture = useCallback((imageData: string) => {
     setLastCapturedImage(imageData);
-  }, []);
-
-  const handleSeparateEndpointToggle = useCallback((enabled: boolean) => {
-    setUploadToSeparateEndpoint(enabled);
   }, []);
 
   const handleKeyDown = useCallback(
@@ -477,38 +472,6 @@ function Dashboard() {
                 onToggle={handleCameraToggle}
                 onCapture={handleCameraCapture}
               />
-
-              {cameraEnabled && (
-                <div className={styles.separateUploadToggle}>
-                  <div className={styles.separateUploadLabel}>
-                    <div className={styles.separateUploadTitle}>
-                      Separate Upload
-                    </div>
-                    <div className={styles.separateUploadDescription}>
-                      Also send images to separate endpoint
-                    </div>
-                  </div>
-                  <div
-                    className={`${styles.separateUploadSwitch} ${
-                      uploadToSeparateEndpoint ? styles.active : ""
-                    }`}
-                    onClick={() =>
-                      handleSeparateEndpointToggle(!uploadToSeparateEndpoint)
-                    }
-                    role="switch"
-                    aria-checked={uploadToSeparateEndpoint}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleSeparateEndpointToggle(!uploadToSeparateEndpoint);
-                      }
-                    }}
-                  >
-                    <div className={styles.separateUploadKnob} />
-                  </div>
-                </div>
-              )}
 
               {lastCapturedImage && (
                 <div className={styles.imageStatus}>

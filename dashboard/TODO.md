@@ -3,11 +3,6 @@
 ## Bug/Fix
 
 - Reverse the chat flow
-- Remove this switch: "Separate Upload"
-- Add a how to use list somewhere maybe?
-- Fix the page alignment to fit in the window.
-- Irrelevant switch
-- Settings page is not functional
 
 ## Refactor
 
