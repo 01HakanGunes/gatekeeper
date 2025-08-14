@@ -2,14 +2,14 @@
   {
     "name": "Hakan",
     "permissions": {
-      "doors": ["CAM-1", "CAM-3"]
+      "doors": ["CAM-2", "CAM-3"]
     },
     "greeting": "Hello Hakan. Admin access granted, you are free to roam..."
   },
   {
     "name": "Omer",
     "permissions": {
-      "doors": ["CAM-2", "CAM-4"]
+      "doors": ["CAM-4"]
     },
     "greeting": "Marhaba Omer. Jane, I hope you had a good weekend!"
   },

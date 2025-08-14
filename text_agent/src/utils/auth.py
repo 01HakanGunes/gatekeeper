@@ -49,7 +49,7 @@ def get_greeting(employee_name):
 
 def authorize_door_access(employee_name, sid, camera_sid_map):
     """
-    Check if authenticated employee has permission for the camera associated with the door to their session.
+    Check if authenticated employee has permission for the door associated with their session.
 
     Args:
         employee_name (str): Name of the authenticated employee
@@ -57,7 +57,7 @@ def authorize_door_access(employee_name, sid, camera_sid_map):
         camera_sid_map (dict): Mapping of sid -> camera_id (restructured format)
 
     Returns:
-        bool: True if employee has access to the door (which is represented as camera), False otherwise
+        bool: True if employee has access to the session's door, False otherwise
     """
     employee = _find_employee(employee_name)
     if not employee:

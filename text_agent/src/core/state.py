@@ -32,3 +32,4 @@ class State(TypedDict):
     agent_response: str
     invalid_input: bool
     session_active: bool
+    session_id: Optional[str]

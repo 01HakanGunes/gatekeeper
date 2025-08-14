@@ -173,6 +173,7 @@ async def send_message(sid: str, data: Dict[str, Any]):
     try:
         # Update state with user input
         current_state["user_input"] = user_message
+        current_state["session_id"] = sid
 
         updated_state = await asyncio.to_thread(
             shared_graph.invoke,

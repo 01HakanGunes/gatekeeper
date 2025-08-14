@@ -51,12 +51,13 @@ def create_security_graph():
     graph_builder.set_entry_point("receive_input")
 
     def check_authenticated(state: State,) -> Literal["authenticated", "not_authenticated"]:
+        from sockets import cameraSidMap
         name = state["visitor_profile"]["name"]
         if authenticate(name):
-            if authorize_door_access(name, sid, camera_sid_map): # TODO: We need to somehow pass these two
-               return "not_authenticated"
-            state["visitor_profile"]["authenticated"] = True
-            return "authenticated"
+            sid = state.get("session_id")
+            if authorize_door_access(name, sid, cameraSidMap):
+                state["visitor_profile"]["authenticated"] = True
+                return "authenticated"
         state["visitor_profile"]["authenticated"] = False
         return "not_authenticated"
 
@@ -163,4 +164,5 @@ def create_initial_state() -> State:
         "agent_response": "",
         "invalid_input": False,
         "session_active": False,
+        "session_id": None,
     }

@@ -2,6 +2,7 @@
 
 ## Bugs/Fixes
 
+- After authorized entrance the state is not cleared or idk
 - Too much false positive face detected.
 - Put a cooldown to send messages from clint(a cap maybe)
 
