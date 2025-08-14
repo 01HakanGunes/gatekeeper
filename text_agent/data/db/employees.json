@@ -7,24 +7,45 @@
     "greeting": "Hello Hakan. Admin access granted, you are free to roam..."
   },
   {
+    "name": "Gülin",
+    "permissions": {
+      "doors": ["CAM-2", "CAM-3"]
+    },
+    "greeting": "Merhabalar Gülin hanım hoşgeldiniz, iyisiniz umarım..."
+  },
+  {
+    "name": "Osman",
+    "permissions": {
+      "doors": ["CAM-2", "CAM-3"]
+    },
+    "greeting": "Hello Admin Osman. Admin access granted, you are free to roam..."
+  },
+  {
     "name": "Omer",
     "permissions": {
       "doors": ["CAM-4"]
     },
-    "greeting": "Marhaba Omer. Jane, I hope you had a good weekend!"
+    "greeting": "Marhaba Omer. Bugün nasılsınız."
   },
   {
     "name": "Emir",
     "permissions": {
       "doors": ["CAM-1"]
     },
-    "greeting": "Good morning Peter, have you finished that report yet?"
+    "greeting": "Hoşgeldiniz Emir bey şeref verdiniz."
   },
   {
     "name": "Yigit",
     "permissions": {
       "doors": ["CAM-2"]
     },
-    "greeting": "Hey Alice, what are your plans for lunch?"
+    "greeting": "Hoşgeldiniz, nasılsınız Yiğit Bey, afiyettemisiniz."
+  },
+  {
+    "name": "Havva",
+    "permissions": {
+      "doors": ["CAM-2"]
+    },
+    "greeting": "Havva Hanım hoşgeldiniz, buyrun efendim, rahatınıza bakın..."
   }
 ]

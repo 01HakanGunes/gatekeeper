@@ -3691,5 +3691,126 @@
             }
         ],
         "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "_KNB-ibWCpt_tbA_AAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2025-08-14T14:33:03.873889",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:06.164818",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A man with a serious expression."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:08.315867",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with a serious expression"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:10.575067",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:12.893886",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with a serious expression."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:15.309383",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person appears to be displaying an angry expression."
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:17.532106",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Suspicious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:19.705703",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "A man with a serious expression."
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:21.965281",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2025-08-14T14:33:24.291053",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "A person with a serious expression."
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
     }
 ]

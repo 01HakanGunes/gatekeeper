@@ -3,7 +3,7 @@ from langchain_core.messages import SystemMessage
 from src.core.state import State
 from src.utils.prompt_manager import prompt_manager
 from typing import Literal
-from src.utils.auth import authenticate, authorize_door_access
+from src.utils.auth import authenticate, get_authorized_doors
 from src.nodes.processing_nodes import check_visitor_profile_condition
 
 from src.nodes.input_nodes import (
@@ -50,14 +50,12 @@ def create_security_graph():
     # ---- Add Edges (Logic Flow) ----
     graph_builder.set_entry_point("receive_input")
 
-    def check_authenticated(state: State,) -> Literal["authenticated", "not_authenticated"]:
-        from sockets import cameraSidMap
+    # TODO: Fix the graph to use auth and auth seperately and give feedback properly.
+    def check_auth(state: State,) -> Literal["authenticated", "not_authenticated"]:
         name = state["visitor_profile"]["name"]
         if authenticate(name):
-            sid = state.get("session_id")
-            if authorize_door_access(name, sid, cameraSidMap):
-                state["visitor_profile"]["authenticated"] = True
-                return "authenticated"
+            state["visitor_profile"]["authenticated"] = True
+            return "authenticated"
         state["visitor_profile"]["authenticated"] = False
         return "not_authenticated"
 
@@ -99,7 +97,7 @@ def create_security_graph():
 
     graph_builder.add_conditional_edges(
         "check_visitor_profile",
-        check_authenticated,
+        check_auth,
         {
             "not_authenticated": "analyze_threat_level",
             "authenticated": "make_decision",

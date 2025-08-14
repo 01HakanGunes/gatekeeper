@@ -31,12 +31,30 @@ def make_decision(state: State) -> State:
         return state
 
     if is_authenticated:
+        # TODO: Check authorization
+        from sockets import cameraSidMap
+        from src.utils.auth import get_authorized_doors
+
+        sid = state.get("session_id")
+        if not sid:
+            print("Debug: Graph couldnt get sid from state!")
+            sid = ""
+        current_door = cameraSidMap[sid]
+        name = state["visitor_profile"]["name"]
+        if not name:
+            name = ""
+        authorized_doors = get_authorized_doors(name)
+        if current_door in authorized_doors:
+            response = get_greeting(state["visitor_profile"]["name"])
+        else:
+            response = "Hoşgeldiniz " + name + ", sizi bu kapıdan alamıyoruz malesef. Hoşçakalın..."
+
         state["decision"] = "allow_request"
-        response = get_greeting(state["visitor_profile"]["name"])
         if response:
             state["agent_response"] = "Face recognition called (dummy): " + response
         else:
             state["agent_response"] = "Debug: Hello authenticated user!!"
+
         return state
 
     # Get recent conversation context for decision making
