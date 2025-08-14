@@ -1,8 +1,8 @@
 // Deploy dev
-// export const SOCKET_BASE_URL = "https://192.168.0.86";
+export const SOCKET_BASE_URL = "https://192.168.0.86";
 
 // Local dev
-export const SOCKET_BASE_URL = "http://localhost:8001";
+// export const SOCKET_BASE_URL = "http://localhost:8001";
 
 export const SOCKET_EVENTS = {
   // Client to server events
