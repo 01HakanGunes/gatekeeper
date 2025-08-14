@@ -1,236 +1,261 @@
+/* Modern Input Component - Fixed Width Containers */
+
 .inputWrapper {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.5rem;
+    width: 100%;
 }
 
 .label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: inherit;
+    color: var(--text-primary);
     margin-bottom: 0.25rem;
 }
 
+.label.required::after {
+    content: " *";
+    color: var(--error-color);
+}
+
+/* Base input styles */
 .input {
-    display: flex;
+    display: block;
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--border-color);
     border-radius: 0.5rem;
-    background-color: transparent;
+    background-color: var(--bg-primary);
     font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: inherit;
+    line-height: 1.5;
+    color: var(--text-primary);
     font-family: inherit;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.15s ease-in-out;
     outline: none;
+    box-sizing: border-box;
 }
 
 .input::placeholder {
-    color: #9ca3af;
+    color: var(--text-tertiary);
+    opacity: 1;
 }
 
 .input:focus {
-    border-color: #646cff;
+    border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.1);
 }
 
 .input:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
-    background-color: #f9fafb;
+    background-color: var(--bg-secondary);
 }
 
-/* Sizes */
+/* Size variants */
 .small {
     padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
-    line-height: 1rem;
+    font-size: 0.8125rem;
 }
 
 .medium {
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
-    line-height: 1.25rem;
 }
 
 .large {
     padding: 1rem 1.25rem;
     font-size: 1rem;
-    line-height: 1.5rem;
 }
 
-/* States */
+/* State variants */
 .error {
-    border-color: #ef4444;
+    border-color: var(--error-color);
 }
 
 .error:focus {
-    border-color: #ef4444;
+    border-color: var(--error-color);
     box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
 }
 
 .success {
-    border-color: #10b981;
+    border-color: var(--success-color);
 }
 
 .success:focus {
-    border-color: #10b981;
+    border-color: var(--success-color);
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
 }
 
-/* With icon */
+/* Icon support */
 .hasLeftIcon {
-    padding-left: 2.5rem;
+    padding-left: 2.75rem;
 }
 
 .hasRightIcon {
-    padding-right: 2.5rem;
+    padding-right: 2.75rem;
 }
 
 .iconLeft {
     position: absolute;
-    left: 0.75rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #9ca3af;
+    color: var(--text-tertiary);
     pointer-events: none;
     z-index: 1;
 }
 
 .iconRight {
     position: absolute;
-    right: 0.75rem;
+    right: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #9ca3af;
+    color: var(--text-tertiary);
     pointer-events: none;
     z-index: 1;
 }
 
-/* Textarea */
+/* Textarea specific styles */
 .textarea {
-    min-height: 4rem;
+    resize: none;
+    min-height: 3rem;
     max-height: 8rem;
-    resize: vertical;
     overflow-y: auto;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .textarea.small {
-    min-height: 3rem;
+    min-height: 2.5rem;
     max-height: 6rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 .textarea.large {
-    min-height: 6rem;
+    min-height: 4rem;
     max-height: 12rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
-/* Full width */
+/* Full width modifier */
 .fullWidth {
     width: 100%;
 }
 
 /* Helper text */
 .helperText {
-    font-size: 0.75rem;
-    line-height: 1rem;
-    color: #6b7280;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
     margin-top: 0.25rem;
 }
 
 .helperText.error {
-    color: #ef4444;
+    color: var(--error-color);
 }
 
 .helperText.success {
-    color: #10b981;
+    color: var(--success-color);
 }
 
 /* Character count */
 .characterCount {
     font-size: 0.75rem;
-    line-height: 1rem;
-    color: #9ca3af;
+    line-height: 1.4;
+    color: var(--text-tertiary);
     text-align: right;
     margin-top: 0.25rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .characterCount.nearLimit {
-    color: #f59e0b;
+    color: var(--warning-color);
 }
 
 .characterCount.overLimit {
-    color: #ef4444;
+    color: var(--error-color);
+    font-weight: 500;
 }
 
-/* Required indicator */
-.required::after {
-    content: " *";
-    color: #ef4444;
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-    .input {
-        border-color: #374151;
-        background-color: #1f2937;
-    }
-
-    .input:focus {
-        border-color: #646cff;
-        box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
-    }
-
-    .input:disabled {
-        background-color: #111827;
-        border-color: #374151;
-    }
-
-    .input::placeholder {
-        color: #6b7280;
-    }
-
-    .iconLeft,
-    .iconRight {
-        color: #6b7280;
-    }
-
-    .helperText {
-        color: #9ca3af;
-    }
-
-    .characterCount {
-        color: #6b7280;
-    }
-}
-
-/* Light mode adjustments */
-@media (prefers-color-scheme: light) {
-    .input {
-        border-color: #d1d5db;
-        background-color: white;
-    }
-
-    .input:disabled {
-        background-color: #f9fafb;
-        border-color: #e5e7eb;
-    }
-}
-
-/* Focus within wrapper for icon inputs */
+/* Focus states for icon inputs */
 .inputWrapper:focus-within .iconLeft,
 .inputWrapper:focus-within .iconRight {
-    color: #646cff;
+    color: var(--primary-color);
 }
 
 .inputWrapper:focus-within .error .iconLeft,
 .inputWrapper:focus-within .error .iconRight {
-    color: #ef4444;
+    color: var(--error-color);
 }
 
 .inputWrapper:focus-within .success .iconLeft,
 .inputWrapper:focus-within .success .iconRight {
-    color: #10b981;
+    color: var(--success-color);
+}
+
+/* Prevent layout shifts */
+.input,
+.textarea {
+    contain: layout style;
+}
+
+/* Enhanced scrollbar for textarea */
+.textarea::-webkit-scrollbar {
+    width: 4px;
+}
+
+.textarea::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.textarea::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+.textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .input,
+    .textarea {
+        font-size: 16px;
+    }
+
+    .small {
+        font-size: 16px;
+    }
+
+    .medium {
+        font-size: 16px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .input {
+        border-width: 2px;
+    }
+
+    .input:focus {
+        box-shadow: 0 0 0 3px var(--primary-color);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .input,
+    .textarea {
+        transition: none;
+    }
 }

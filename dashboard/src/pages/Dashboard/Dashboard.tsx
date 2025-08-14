@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { ReactNode, SyntheticEvent } from "react";
-import { Link } from "react-router-dom";
+
 import { useSocket } from "../../hooks/useSocket";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
@@ -411,11 +411,6 @@ function Dashboard() {
           >
             🔄
           </Button>
-          <Link to="/settings">
-            <Button variant="ghost" size="small">
-              ⚙️
-            </Button>
-          </Link>
         </div>
       </header>
 
@@ -590,9 +585,10 @@ function Dashboard() {
                     onKeyDown={handleKeyDown}
                     maxLength={UI_CONSTANTS.MESSAGE_MAX_LENGTH}
                     showCharacterCount
-                    rows={2}
+                    rows={3}
                     disabled={connectionStatus !== "connected"}
                     variant={messages.error ? "error" : "default"}
+                    fullWidth={true}
                     helperText={
                       connectionStatus !== "connected"
                         ? "Connect to begin chatting"
