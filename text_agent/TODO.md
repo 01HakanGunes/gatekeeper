@@ -2,6 +2,7 @@
 
 ## Bugs/Fixes
 
+- Dont forget to choose camera
 - English turkish mixture used maybe a cleanup for demo.
 - Too much false positive face detected.
 - Put a cooldown to send messages from clint(a cap maybe)

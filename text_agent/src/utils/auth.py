@@ -8,8 +8,8 @@ def authenticate(employee_name):
         with open("./data/db/employees.json", "r") as f:
             employees = json.load(f)
 
-        # Check if an employee with the given name exists
-        return any(emp["name"] == employee_name for emp in employees)
+        # Check if an employee with the given name exists (case-insensitive)
+        return any(emp["name"].lower() == employee_name.lower() for emp in employees)
     except FileNotFoundError:
         return False
 
@@ -21,9 +21,9 @@ def _find_employee(employee_name):
         with open("./data/db/employees.json", "r") as f:
             employees = json.load(f)
 
-        # Find the employee and return their data
+        # Find the employee and return their data (case-insensitive)
         for employee in employees:
-            if employee["name"] == employee_name:
+            if employee["name"].lower() == employee_name.lower():
                 return employee
         return None  # Return None if the employee is not found
     except FileNotFoundError:
