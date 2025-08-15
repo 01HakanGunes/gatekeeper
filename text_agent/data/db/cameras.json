@@ -1,7 +1,7 @@
 [
   {
     "id": "CAM-1",
-    "location": "Warehouse Main Entrance",
+    "location": "Office Main Entrance",
     "ip_address": "192.168.1.101",
     "resolution": "1080p",
     "status": "online"
@@ -15,14 +15,14 @@
   },
   {
     "id": "CAM-3",
-    "location": "Loading Dock",
+    "location": "Backdoor Entrance",
     "ip_address": "192.168.1.103",
     "resolution": "720p",
-    "status": "offline"
+    "status": "online"
   },
   {
     "id": "CAM-4",
-    "location": "Parking Lot",
+    "location": "Manager Room",
     "ip_address": "192.168.1.104",
     "resolution": "1080p",
     "status": "online"

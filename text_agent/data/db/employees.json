@@ -11,7 +11,7 @@
     "permissions": {
       "doors": ["CAM-2", "CAM-3"]
     },
-    "greeting": "Merhabalar Gülin hanım hoşgeldiniz, iyisiniz umarım..."
+    "greeting": "Merhabalar Gülin hanım hoşgeldiniz, Chatgpt sent his regards..."
   },
   {
     "name": "Osman",
@@ -47,5 +47,26 @@
       "doors": ["CAM-2"]
     },
     "greeting": "Havva Hanım hoşgeldiniz, buyrun efendim, rahatınıza bakın..."
+  },
+  {
+    "name": "Serdar",
+    "permissions": {
+      "doors": ["CAM-2"]
+    },
+    "greeting": "Serdar Bey hoşgeldiniz..."
+  },
+  {
+    "name": "Yavuz",
+    "permissions": {
+      "doors": ["CAM-2"]
+    },
+    "greeting": "Yavuz Bey ofise hoşgeldiniz, network işleri nasıl gidiyor..."
+  },
+  {
+    "name": "Necati",
+    "permissions": {
+      "doors": ["CAM-2"]
+    },
+    "greeting": "Necati Bey ofise hoşgeldiniz..."
   }
 ]

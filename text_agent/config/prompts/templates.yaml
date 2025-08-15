@@ -153,13 +153,13 @@ input:
       - Personal information (names, company names, purposes)
       - Responses to security questions
       - Regular conversations
-      - Questions about the facility or visit process
       - Explanations about their visit purpose
+      - Short user input that you couldnt understand what is that. (unknown company names, foreign names etc)
+      - Example valid inputs (hakan, mehmet, adelheid, Ikon arge, Coca Cola, Microsoft, and all strange words that can be a company name or foreign name)
 
       INVALID inputs include:
       - Complete gibberish or random characters
       - Curse words
-      - Spam or repetitive nonsense
 
       Respond with ONLY one word:
       - "valid" if the input is appropriate for a security checkpoint
