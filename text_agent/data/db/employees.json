@@ -2,30 +2,23 @@
   {
     "name": "Hakan",
     "permissions": {
-      "doors": ["CAM-2", "CAM-3"]
+      "doors": ["CAM-1"]
     },
     "greeting": "Hello Hakan. Admin access granted, you are free to roam..."
   },
   {
     "name": "Gülin",
     "permissions": {
-      "doors": ["CAM-2", "CAM-3"]
+      "doors": ["CAM-1", "CAM-2", "CAM-3", "CAM-4"]
     },
     "greeting": "Merhabalar Gülin hanım hoşgeldiniz, Chatgpt sent his regards..."
   },
   {
     "name": "Osman",
     "permissions": {
-      "doors": ["CAM-2", "CAM-3"]
+      "doors": ["CAM-1", "CAM-2"]
     },
     "greeting": "Hello Admin Osman. Admin access granted, you are free to roam..."
-  },
-  {
-    "name": "Omer",
-    "permissions": {
-      "doors": ["CAM-4"]
-    },
-    "greeting": "Marhaba Omer. Bugün nasılsınız."
   },
   {
     "name": "Emir",
@@ -37,35 +30,35 @@
   {
     "name": "Yigit",
     "permissions": {
-      "doors": ["CAM-2"]
+      "doors": ["CAM-1"]
     },
     "greeting": "Hoşgeldiniz, nasılsınız Yiğit Bey, afiyettemisiniz."
   },
   {
     "name": "Havva",
     "permissions": {
-      "doors": ["CAM-2"]
+      "doors": ["CAM-1"]
     },
     "greeting": "Havva Hanım hoşgeldiniz, buyrun efendim, rahatınıza bakın..."
   },
   {
     "name": "Serdar",
     "permissions": {
-      "doors": ["CAM-2"]
+      "doors": ["CAM-1", "CAM-3"]
     },
     "greeting": "Serdar Bey hoşgeldiniz..."
   },
   {
     "name": "Yavuz",
     "permissions": {
-      "doors": ["CAM-2"]
+      "doors": ["CAM-1", "CAM-3"]
     },
     "greeting": "Yavuz Bey ofise hoşgeldiniz, network işleri nasıl gidiyor..."
   },
   {
     "name": "Necati",
     "permissions": {
-      "doors": ["CAM-2"]
+      "doors": ["CAM-1", "CAM-2"]
     },
     "greeting": "Necati Bey ofise hoşgeldiniz..."
   }

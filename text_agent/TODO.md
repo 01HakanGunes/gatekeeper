@@ -2,11 +2,6 @@
 
 ## Bugs/Fixes
 
-- Update contact list
-- Add different authorities for doors.
-- when only name or direct message entered, it becomes an invalid input for english names it is ok
-- Enable cam4
-- Enter with capital or not capital letter
 - English turkish mixture used maybe a cleanup for demo.
 - Too much false positive face detected.
 - Put a cooldown to send messages from clint(a cap maybe)
