@@ -1,7 +1,7 @@
 visitor_profile_fields:
-  name: "The visitor's full name (first and last name). Examples: 'John Smith', 'Maria Garcia', 'David Kim', '-1'"
+  name: "The visitor's name (first and last name). Examples: 'John Smith', 'Maria Garcia', 'David', 'Muhammad', '-1'"
   purpose: "The reason for the visit or what they want to do. Examples: 'meeting', 'delivery', 'tour', 'interview', 'maintenance', '-1'"
-  contact_person: "The visitor's contact inside the company. Examples: 'David Smith', 'Alice Kimble', 'CEO', 'CTO', 'Mr. John', '-1'"
+  contact_person: "The visitor's contact inside the company. Examples: 'David', 'Alice', 'Manager', 'CEO', 'CTO', 'Mr. John', '-1'"
   threat_level: "Security risk assessment based on items carried. Weapon, knife is high risk. Examples: 'low', 'medium', 'high', '-1'"
   affiliation: "Company, organization, or group they represent. Examples: 'Google', 'FedEx', 'University of XYZ', 'independent contractor', '-1'"
 
