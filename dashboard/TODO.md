@@ -1,4 +1,4 @@
-# Dashboard - To-Do List (Do not delete completed tasks)
+# Dashboard - To-Do List
 
 ## Bug/Fix
 
