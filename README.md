@@ -1,165 +1,228 @@
-# 🤖 Gatekeeper - AI Security Gate System
+# 🤖 Gatekeeper - Agentic Multi-Camera Security System
 
-A security gate system that combines computer vision, natural language processing, and multi-agent AI to automate visitor screening and access control at security checkpoints.
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)  
+![React](https://img.shields.io/badge/React-TypeScript-blue)  
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)  
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## Features
+**Gatekeeper** is an advanced, agentic security system that transforms standard surveillance into an active access control authority. Combining computer vision, Local LLMs, and multi-agent workflows, it manages multiple entry points simultaneously, distinguishing between authorized employees and visitors in real-time.
 
-### AI-Powered Conversation
+Unlike passive recording systems, Gatekeeper **acts**: it grants access, interrogates strangers, detects threats, and notifies hosts autonomously.
 
-- Interactive visitor screening through natural language dialogue
-- Context-aware information extraction (name, purpose, affiliation, contact person)
-- Conversation summarization for extended interactions
-- Session continuity detection
+---
 
-### Computer Vision Analysis
+## 🌟 Core Features
 
-- Real-time face detection and threat assessment
-- Dangerous object detection
-- Emotion analysis and behavioral pattern recognition
-- Base64 image processing pipeline
+### 1. Multi-Camera & Multi-Zone Architecture
 
-### Security Decision Engine
+- **Simultaneous Monitoring:** Supports multiple camera feeds running concurrently via multi-processing.
+- **Zone Authority:** Each camera represents a specific physical location (e.g., "Server Room", "Main Lobby") with unique security clearance requirements.
+- **Context Isolation:** Each camera maintains its own conversation state and event log, preventing cross-talk between different entry points.
 
-- Multi-factor security assessment combining visual and conversational data
-- Automated decisions: `allow_entry`, `deny_entry`, `call_security`, `notify_contact`
-- Confidence scoring with detailed reasoning
-- Employee database authentication and door-specific access control
+---
 
-### Real-time Communication
+### 2. Intelligent Access Control (The "Employee Flow")
 
-- Socket.IO for instant client-server communication
-- Multi-process architecture for concurrent processing
-- Queue-based message handling
-- Live dashboard updates
+- **Face-to-Auth:** Instantly recognizes registered employees via vector database matching.
+- **Authority Check:** Verifies if the recognized employee has the specific clearance level for the door they are attempting to open.
+  - **Authorized:** Silently grants access (`allow_entry`), unlocks the door, and logs the entry.
+  - **Unauthorized:** Denies access, logs the security violation, and alerts admins.
 
-## Architecture
+---
 
-### Backend (Python)
+### 3. Agentic Visitor Screening (The "Stranger Flow")
 
-- **Framework**: FastAPI with Socket.IO integration
-- **AI Orchestration**: LangChain + LangGraph for agent workflows
-- **LLM Models**: Ollama-hosted Qwen 3:4b (text) and Gemma 3:4b (vision)
-- **State Management**: Graph-based conversation flow with automatic context management
+- **Active Interrogation:** If a face is unknown, the AI Agent initiates a natural language voice interview.
+- **Data Extraction:** Dynamically extracts required fields:
+  - _Full Name_
+  - _Purpose of Visit_
+  - _Contact Person_
 
-### Frontend (React + TypeScript)
+- **Verification & Notification:** Validates the contact person against the internal directory and sends a direct notification to them with the visitor's details to request approval.
 
-- **Framework**: React with TypeScript and Vite
-- **Real-time Updates**: Socket.IO client integration
-- **UI Components**: Modern component library with CSS modules
-- **Camera Integration**: WebRTC for live video capture
+---
 
-### Key Components
+### 4. Threat & Safety Intelligence
 
+- **Object Detection:** Real-time visual analysis to detect dangerous objects (weapons, unknown tools in restricted areas).
+- **Escalation:** Immediately locks doors and triggers "Call Security" or "Log Incident" protocols upon threat detection.
+
+---
+
+### 5. Session Lifecycle Management
+
+- **Face Activation:** The agent wakes up and initializes a session only when a human face is detected.
+- **Short-Term Memory:** Maintains context (conversation history) only for the duration of the interaction.
+- **Auto-Clear:** Automatically wipes sensitive session data and resets the state when the subject leaves the frame, ensuring privacy for the next user.
+
+---
+
+## 🏗️ Architecture
+
+### Backend (Python & AI)
+
+- **Orchestration:** LangChain + LangGraph for stateful multi-agent workflows.
+- **Vision:** `llama3.2-vision` (or custom tuned models) for face and object analysis.
+- **LLM:** `Qwen 2.5` (via Ollama) for high-speed, local natural language processing.
+- **Concurrency:** Multiprocessing implementation to handle separate camera streams without blocking.
+- **Communication:** FastAPI + Socket.IO for low-latency, bi-directional event streaming.
+
+---
+
+### Frontend (React Dashboard)
+
+- **Live Monitoring:** Grid view of all active cameras/doors.
+- **Real-Time Logs:** Streaming transcript of AI-Visitor conversations and decision events.
+- **Technology:** React, TypeScript, Vite, and WebRTC for video streaming.
+
+---
+
+## 🧠 Logic Flow
+
+```mermaid
+graph TD
+    Start((Face Detected)) --> Vision[Computer Vision Analysis]
+
+    Vision -->|Dangerous Object| Threat[🚨 TRIGGER SECURITY ALERT]
+    Vision -->|Safe| Identify{Is Employee?}
+
+    %% Employee Flow
+    Identify -->|Yes| Auth{Check Door Authority}
+    Auth -->|Authorized| Grant[✅ Grant Access]
+    Auth -->|Unauthorized| LogAttempt[📝 Log Unauthorized Attempt]
+
+    %% Visitor Flow
+    Identify -->|No| Stranger[Initiate Stranger Protocol]
+    Stranger --> Interview[🗣️ AI Agent Interview]
+    Interview --> Q1[Ask Name/Purpose/Contact]
+    Q1 --> Extract[Extract Info]
+    Extract --> Notify[📲 Notify Contact Person]
+    Notify --> Wait[Wait for Remote Approval]
 ```
-text_agent/          # AI backend service
-├── src/core/        # State management and graph workflow
-├── src/nodes/       # Processing nodes (input, decision, analysis)
-├── models/          # LLM configuration and management
-├── config/          # Prompts, schemas, and settings
-└── data/            # Employee database and logs
 
-dashboard/           # React frontend
-├── src/components/  # UI components (Camera, ThreatLog, etc.)
-├── src/pages/       # Dashboard views
-└── src/services/    # Socket client and API integration
-```
+---
 
-## 🚀 Quick Start
+# 🚀 Quick Start
 
-### Prerequisites
+## Prerequisites
 
 - Docker & Docker Compose
 - Python 3.11+
 - Node.js 18+
-- Ollama with Qwen and Gemma models
+- Ollama running locally
 
-### Installation
+---
 
-1. **Clone the repository**
+## Installation
 
-   ```bash
-   git clone <repository-url>
-   cd gatekeeper
-   ```
-
-2. **Start the AI backend**
-
-   ```bash
-   cd text_agent
-   docker-compose up -d
-   ```
-
-3. **Launch the dashboard**
-
-   ```bash
-   cd dashboard
-   npm install
-   npm run dev
-   ```
-
-4. **Configure models**
-   ```bash
-   # Install required Ollama models
-   ollama pull qwen2.5:3b
-   ollama pull llama3.2-vision:11b
-   ```
-
-## 🔧 Configuration
-
-### Environment Variables
+### 1️⃣ Clone the Repository
 
 ```bash
-# AI Backend
+git clone <repository-url>
+cd gatekeeper
+```
+
+### 2️⃣ Setup Models (Ollama)
+
+Ensure your local LLM host has the required models:
+
+```bash
+ollama pull qwen2.5:3b
+ollama pull llama3.2-vision:11b
+```
+
+### 3️⃣ Start the AI Backend
+
+```bash
+cd text_agent
+
+# Copy env example
+cp .env.example .env
+
+# Start the container cluster
+docker-compose up -d
+```
+
+### 4️⃣ Launch the Dashboard
+
+```bash
+cd dashboard
+npm install
+npm run dev
+```
+
+---
+
+# 🔧 Configuration
+
+## Defining Doors & Authority
+
+Configure your cameras and their security levels in:
+
+```
+text_agent/config/cameras.yaml
+```
+
+```yaml
+cameras:
+  - id: "cam_01"
+    name: "Main Lobby Entrance"
+    device_index: 0
+    required_clearance: "public_access"
+    mode: "hybrid" # Allows strangers to initiate interview
+
+  - id: "cam_02"
+    name: "Server Room B"
+    device_index: 1
+    required_clearance: "sysadmin"
+    mode: "strict" # No interview, employees only. Deny all others.
+```
+
+---
+
+## Environment Variables
+
+Edit `.env` to tune performance and thresholds:
+
+```bash
 OLLAMA_HOST=http://localhost:11434
-MAX_HUMAN_MESSAGES=20
-CONVERSATION_TIMEOUT=300
 
-# Dashboard
-VITE_SOCKET_URL=http://localhost:8000
+# Time in seconds to hold memory before auto-clearing
+SESSION_TIMEOUT=30
+
+# Minimum confidence to grant employee access (0.0 - 1.0)
+FACE_MATCH_THRESHOLD=0.85
+
+# Max conversation turns before forcing a decision
+MAX_INTERACTION_TURNS=5
 ```
 
-### Model Configuration
+---
 
-Edit `text_agent/models/llm_config.py` to customize:
+# 📂 Project Structure
 
-- Model selection and parameters
-- Temperature settings for different tasks
-- JSON schema validation
-
-## Security Features
-
-- **Employee Authentication**: Database-backed employee verification
-- **Threat Detection**: Visual analysis for dangerous objects and suspicious behavior
-- **Access Control**: Door-specific permissions and authorization
-- **Audit Trail**: Comprehensive logging of all interactions and decisions
-- **Real-time Alerts**: Instant notifications for security events
-
-## System Flow
-
-```mermaid
-graph TD
-    A[Visitor Arrives] --> B[Dashboard Interface]
-    B --> C[AI Conversation]
-    C --> D[Information Extraction]
-    D --> E[Camera Analysis]
-    E --> F[Security Assessment]
-    F --> G{Decision Engine}
-    G -->|Allow| H[Grant Access]
-    G -->|Deny| I[Deny Entry]
-    G -->|Alert| J[Call Security]
-    G -->|Notify| K[Contact Person]
+```
+gatekeeper/
+├── text_agent/              # Python Backend
+│   ├── src/
+│   │   ├── agents/          # LangGraph Agent definitions (Interviewer, Guard)
+│   │   ├── vision/          # Object & Face detection pipelines
+│   │   ├── db/              # Vector DB for faces & SQLite for Event Logs
+│   │   └── camera/          # Multi-camera streaming logic & Frame buffers
+│   ├── config/              # Camera & Authority definitions
+│   └── main.py              # Application entry point
+│
+└── dashboard/               # React Frontend
+    ├── src/
+    │   ├── components/      # CameraGrid, LogStream, ThreatAlert
+    │   └── hooks/           # Socket.IO hooks
+    └── public/
 ```
 
-## Development
+---
 
-### Project Structure
+# 🛡️ Security & Privacy
 
-- **Multi-agent AI**: LangGraph-based conversation flow
-- **Modular Design**: Separate nodes for different processing tasks
-- **Scalable Architecture**: Queue-based processing for high throughput
-- **Real-time Updates**: WebSocket communication for live dashboard
-
-### API Documentation
-
-- Backend API: `text_agent/API_DOC.md`
-- Socket Events: `text_agent/SOCKET_DOC.md`
+- **Event Logging:** All access attempts, conversations, and threat detections are immutably logged with timestamps and snapshots.
+- **Ephemeral Sessions:** No conversational data is stored beyond the immediate session context.
+- **Local Processing:** All AI inference (Vision and Text) runs locally via Ollama, ensuring video feeds never leave your private network.
