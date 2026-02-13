@@ -11,9 +11,9 @@ CURRENT_HISTORY_MODE = (
 )
 
 # Model configurations
-DEFAULT_MODEL_FAST = "qwen3:4b"
-DEFAULT_MODEL_SMART = "qwen3:4b"
-DEFAULT_MODEL_VISION = "gemma3:4b"
+DEFAULT_MODEL_FAST = "granite4:latest"
+DEFAULT_MODEL_SMART = "granite4:latest"
+DEFAULT_MODEL_VISION = "gemma3:latest"
 
 # Temperature settings
 TEMPERATURE_MAIN = 0

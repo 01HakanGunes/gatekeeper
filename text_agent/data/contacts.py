@@ -1,8 +1,8 @@
 # Predefined list of contacts with email addresses
 CONTACTS = {
-    "Nermin Hanım": "01guneshakan@gmail.com",
-    "Gülin Hanım": "01guneshakan@gmail.com",
-    "Necati Bey": "01guneshakan@gmail.com",
-    "Osman Bey": "01guneshakan@gmail.com",
-    "Yavuz Bey": "01guneshakan@gmail.com",
+    "Mary Johnson": "01guneshakan@gmail.com",
+    "Susan Smith": "01guneshakan@gmail.com",
+    "Michael Brown": "01guneshakan@gmail.com",
+    "David Wilson": "01guneshakan@gmail.com",
+    "James Taylor": "01guneshakan@gmail.com",
 }

@@ -1,65 +1,65 @@
 [
   {
-    "name": "Hakan",
+    "name": "Daniel",
     "permissions": {
       "doors": ["CAM-1"]
     },
-    "greeting": "Hello Hakan. Admin access granted, you are free to roam..."
+    "greeting": "Hello Daniel. Admin access granted, you are free to roam..."
   },
   {
-    "name": "Gülin",
+    "name": "Sophia",
     "permissions": {
       "doors": ["CAM-1", "CAM-2", "CAM-3", "CAM-4"]
     },
-    "greeting": "Merhabalar Gülin hanım hoşgeldiniz, Chatgpt sent his regards..."
+    "greeting": "Welcome Sophia, ChatGPT sends his regards..."
   },
   {
-    "name": "Osman",
+    "name": "Michael",
     "permissions": {
       "doors": ["CAM-1", "CAM-2"]
     },
-    "greeting": "Hello Admin Osman. Admin access granted, you are free to roam..."
+    "greeting": "Hello Admin Michael. Admin access granted, you are free to roam..."
   },
   {
-    "name": "Emir",
+    "name": "Ethan",
     "permissions": {
       "doors": ["CAM-1"]
     },
-    "greeting": "Hoşgeldiniz Emir bey şeref verdiniz."
+    "greeting": "Welcome Ethan, it’s a pleasure to have you here."
   },
   {
-    "name": "Yigit",
+    "name": "William",
     "permissions": {
       "doors": ["CAM-1"]
     },
-    "greeting": "Hoşgeldiniz, nasılsınız Yiğit Bey, afiyettemisiniz."
+    "greeting": "Welcome William, how are you today?"
   },
   {
-    "name": "Havva",
+    "name": "Grace",
     "permissions": {
       "doors": ["CAM-1"]
     },
-    "greeting": "Havva Hanım hoşgeldiniz, buyrun efendim, rahatınıza bakın..."
+    "greeting": "Welcome Grace, please make yourself comfortable..."
   },
   {
-    "name": "Serdar",
+    "name": "Andrew",
     "permissions": {
       "doors": ["CAM-1", "CAM-3"]
     },
-    "greeting": "Serdar Bey hoşgeldiniz..."
+    "greeting": "Welcome Andrew..."
   },
   {
-    "name": "Yavuz",
+    "name": "James",
     "permissions": {
       "doors": ["CAM-1", "CAM-3"]
     },
-    "greeting": "Yavuz Bey ofise hoşgeldiniz, network işleri nasıl gidiyor..."
+    "greeting": "Welcome to the office James, how are the network tasks going?"
   },
   {
-    "name": "Necati",
+    "name": "Robert",
     "permissions": {
       "doors": ["CAM-1", "CAM-2"]
     },
-    "greeting": "Necati Bey ofise hoşgeldiniz..."
+    "greeting": "Welcome to the office Robert..."
   }
 ]

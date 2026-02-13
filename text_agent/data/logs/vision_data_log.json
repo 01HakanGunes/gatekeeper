@@ -3812,5 +3812,509 @@
             }
         ],
         "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "pgPah9W3QZV9SwAQAAAF",
+        "face_detected": [
+            false,
+            false,
+            false
+        ],
+        "log_entries": [],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "u2HW9hUEQLn8Ab1oAAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2026-02-13T22:50:56.585858",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with a beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:50:58.618262",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Man with glasses"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T22:51:00.755376",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:51:02.802654",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T22:51:04.890297",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:51:06.976804",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:51:09.097122",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:51:11.170419",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:51:13.276818",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with a beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:51:15.341647",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "t515XSBhU_P2zsKfAAAB",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2026-02-13T22:55:29.876220",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses and beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:31.935325",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:34.050491",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:36.177354",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Man with a serious expression"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:38.232174",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:40.389508",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Man with glasses and beard"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:42.552227",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person appears serious and potentially threatening."
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:44.631758",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with a beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:46.791294",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with a beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T22:55:48.924210",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "mYYGMRJqhRZM8GlRAAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2026-02-13T23:00:13.826478",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Person with glasses and a chair."
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:16.008322",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person appears to be expressing anger."
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:18.101010",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:20.264111",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Man with glasses looking serious"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:22.368923",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:24.430766",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Man with glasses"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:26.590185",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:28.686370",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:30.783064",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:00:32.825774",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Person appears to be frowning."
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "qiq2ZMQDN-Qx57AhAAAC",
+        "face_detected": [
+            true,
+            true,
+            true
+        ],
+        "log_entries": [
+            {
+                "timestamp": "2026-02-13T23:08:17.544238",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:19.599477",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses and beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:21.655359",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses and beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:23.682047",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with a beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:25.761713",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses and beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:27.756589",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:29.745073",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:31.765173",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": true,
+                    "dangerous_object": false,
+                    "threat_level": "medium",
+                    "details": "Man with a beard"
+                },
+                "message": "\u26a0\ufe0f Chill bro, you are making me anxious."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:33.807571",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses and beard"
+                },
+                "message": "No threat detected in image."
+            },
+            {
+                "timestamp": "2026-02-13T23:08:35.810661",
+                "vision_data": {
+                    "face_detected": true,
+                    "angry_face": false,
+                    "dangerous_object": false,
+                    "threat_level": "low",
+                    "details": "Man with glasses"
+                },
+                "message": "No threat detected in image."
+            }
+        ],
+        "last_langgraph_trigger": null
+    },
+    {
+        "session_id": "fo2fqLdXi4IYAmaMAAAC",
+        "face_detected": [
+            false,
+            false,
+            false
+        ],
+        "log_entries": [],
+        "last_langgraph_trigger": "2026-02-13T23:21:39.246439"
     }
 ]

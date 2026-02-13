@@ -499,12 +499,12 @@ async def process_state_requests():
                                     if old_active != new_active:
                                         if new_active:
                                             await sio.emit('chat_response', {
-                                                "agent_response": "Dur yolcu, sen kimsin!",
+                                                "agent_response": "👋 Hello. What is the purpose of your visit?",
                                                 "session_complete": False
                                             }, to=session_id)
                                         else:
                                             await sio.emit('chat_response', {
-                                                "agent_response": "Tekrar görüşecez...",
+                                                "agent_response": "Goodbye...",
                                                 "session_complete": False
                                             }, to=session_id)
 
