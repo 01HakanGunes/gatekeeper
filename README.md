@@ -225,3 +225,19 @@ gatekeeper/
 - **Event Logging:** All access attempts, conversations, and threat detections are immutably logged with timestamps and snapshots.
 - **Ephemeral Sessions:** No conversational data is stored beyond the immediate session context.
 - **Local Processing:** By default, AI inference runs locally via Ollama to ensure video feeds never leave your private network. Cloud APIs can be substituted if desired.
+
+---
+
+# 📸 Screenshots
+
+### Active Monitoring
+
+![Active Monitoring](Docs/Assets/Screenshots/active.png)
+
+### Idle Dashboard
+
+![Idle Dashboard](Docs/Assets/Screenshots/idle.png)
+
+### Visitor Activity
+
+![Visitor Activity](Docs/Assets/Screenshots/visitor-left.png)
