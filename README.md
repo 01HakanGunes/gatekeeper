@@ -2,8 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)  
 ![React](https://img.shields.io/badge/React-TypeScript-blue)  
-![Docker](https://img.shields.io/badge/Docker-Enabled-blue)  
-![License](https://img.shields.io/badge/License-MIT-green)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
 
 **Gatekeeper** is an advanced, agentic security system that transforms standard surveillance into an active access control authority. Combining computer vision, Local LLMs, and multi-agent workflows, it manages multiple entry points simultaneously, distinguishing between authorized employees and visitors in real-time.
 
@@ -23,7 +22,7 @@ Unlike passive recording systems, Gatekeeper **acts**: it grants access, interro
 
 ### 2. Intelligent Access Control (The "Employee Flow")
 
-- **Face-to-Auth:** Instantly recognizes registered employees via vector database matching.
+- **Face-to-Auth:** Instantly recognizes registered employees via face detection.
 - **Authority Check:** Verifies if the recognized employee has the specific clearance level for the door they are attempting to open.
   - **Authorized:** Silently grants access (`allow_entry`), unlocks the door, and logs the entry.
   - **Unauthorized:** Denies access, logs the security violation, and alerts admins.
@@ -62,8 +61,8 @@ Unlike passive recording systems, Gatekeeper **acts**: it grants access, interro
 ### Backend (Python & AI)
 
 - **Orchestration:** LangChain + LangGraph for stateful multi-agent workflows.
-- **Vision:** `llama3.2-vision` (or custom tuned models) for face and object analysis.
-- **LLM:** `Qwen 2.5` (via Ollama) for high-speed, local natural language processing.
+- **Vision:** `gemma` (or custom tuned models) for face and object analysis.
+- **LLM:** Flexible support for Local LLMs (via Ollama, e.g., `Qwen3`) or Cloud APIs (OpenAI, Anthropic, etc.) for broader model choices.
 - **Concurrency:** Multiprocessing implementation to handle separate camera streams without blocking.
 - **Communication:** FastAPI + Socket.IO for low-latency, bi-directional event streaming.
 
@@ -73,7 +72,7 @@ Unlike passive recording systems, Gatekeeper **acts**: it grants access, interro
 
 - **Live Monitoring:** Grid view of all active cameras/doors.
 - **Real-Time Logs:** Streaming transcript of AI-Visitor conversations and decision events.
-- **Technology:** React, TypeScript, Vite, and WebRTC for video streaming.
+- **Technology:** React, TypeScript, Vite, Socket.IO client for real-time updates.
 
 ---
 
@@ -109,7 +108,7 @@ graph TD
 - Docker & Docker Compose
 - Python 3.11+
 - Node.js 18+
-- Ollama running locally
+- Ollama running locally (optional, if using local models)
 
 ---
 
@@ -127,8 +126,8 @@ cd gatekeeper
 Ensure your local LLM host has the required models:
 
 ```bash
-ollama pull qwen2.5:3b
-ollama pull llama3.2-vision:11b
+ollama pull qwen3:3b
+ollama pull gemma:2b
 ```
 
 ### 3️⃣ Start the AI Backend
@@ -225,4 +224,4 @@ gatekeeper/
 
 - **Event Logging:** All access attempts, conversations, and threat detections are immutably logged with timestamps and snapshots.
 - **Ephemeral Sessions:** No conversational data is stored beyond the immediate session context.
-- **Local Processing:** All AI inference (Vision and Text) runs locally via Ollama, ensuring video feeds never leave your private network.
+- **Local Processing:** By default, AI inference runs locally via Ollama to ensure video feeds never leave your private network. Cloud APIs can be substituted if desired.
